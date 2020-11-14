@@ -1,0 +1,73 @@
+classification: what is it ?
+
+Main tags:
+- #kafka
+- #apachekafka
+
+Language criteria:
+- en
+- undefined
+
+Interesting topics:
+- learn: learn tutorial example how post talk (has a link)
+    - article: read digest
+    - presentation: slide
+    - video: video watch demo demonstration presentation record showcase showcasing(has a link (youtube or other))
+- version: version release (numbers ?)
+
+to ignore:
+- no link /
+- too short (< 10 chars) /
+- job offer :   /
+    - #hire #hiring
+- game: #game #indie /
+- Franz Kafka:  /
+    - "franz kafka" franz kafkaesque
+    - book titles: "The Trial", "The metamorphosis"
+- money: any currency($...) with numbers associated (200$, £4250...) /
+- ads: "[Sponsored]" /
+- certification /
+- specific sources (@Functionalworks) /
+
+Strongly related:
+----------------
+apache
+connect
+cluster
+data
+ksql
+real-time
+streaming
+topic
+zookeeper
+
+Related:
+-------
+AI
+analytics
+bigdata
+database
+datamining
+datascience
+encrypt
+java
+kubernetes
+machinelearning
+metrics
+monitor
+python
+scala
+spark
+tool
+
+Notes:
+- need to decide which words need to be searched as:
+    - full word
+    - hashtag
+    - part of words (ie. data)
+
+Other sources than Twitter:
+- Version updates:
+    - Maven repo (assume we know which libs are interesting to follow):
+        - already existing: https://www.artifact-listener.org/
+        - my own implementation, maybe with a daily job to do it (play with airflow ?)

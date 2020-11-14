@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="20 seconds">
+
+    <appender name="JSON" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder" />
+    </appender>
+
+    <appender name="ASYNCJSON" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="JSON" />
+    </appender>
+
+    <appender name="LOCAL_DEV" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>[%highlight(%-5level)] %logger{0} %mdc - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="${APP_LOGGING_FORMAT:-LOCAL_DEV}"/>
+    </root>
+
+</configuration>
