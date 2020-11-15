@@ -23,6 +23,11 @@ class ToIgnoreTest extends AnyFlatSpec with Matchers {
     shouldBeIgnored(goodTweet) shouldBe None
   }
 
+  "A Tweet that doesn't have kafka in the text" should "be ignored" in {
+    val tweet = goodTweet.copy(Text = "no mention of keyword")
+    shouldBeIgnored(tweet) shouldBe Some(reasonDoesNotMentionKafka)
+  }
+
   "A Retweet" should "be ignored" in {
     val tweet = goodTweet.copy(Retweet = true)
     shouldBeIgnored(tweet) shouldBe Some(reasonIsRetweet)
@@ -54,27 +59,32 @@ class ToIgnoreTest extends AnyFlatSpec with Matchers {
   }
 
   "A tweet too short" should "be ignored" in {
-    val tweet = goodTweet.copy(Text = "too short")
+    val tweet = goodTweet.copy(Text = "kafka")
     shouldBeIgnored(tweet) shouldBe Some(reasonIsTooShort)
   }
 
   "A tweet about a job offer" should "be ignored" in {
-    val tweet = goodTweet.copy(Text = "We are hiring!")
+    val tweet = goodTweet.copy(Text = "We are hiring kafka devs!")
     shouldBeIgnored(tweet) shouldBe Some(reasonIsAJobOffer)
   }
 
   "A tweet about a game" should "be ignored" in {
-    val tweet = goodTweet.copy(Text = "We just released a great game!")
+    val tweet = goodTweet.copy(Text = "We just released a great game about Kafka!")
     shouldBeIgnored(tweet) shouldBe Some(reasonIsAboutAGame)
   }
 
   "A tweet mentioning money with xxx$ format" should "be ignored" in {
-    val tweet = goodTweet.copy(Text = "Here is your chance to win 1000$!")
+    val tweet = goodTweet.copy(Text = "Here is your chance to win 1000$ and spend some on kafka!")
     shouldBeIgnored(tweet) shouldBe Some(reasonIsMoneyRelated)
   }
 
   "A tweet mentioning money with $xxxx format" should "be ignored" in {
-    val tweet = goodTweet.copy(Text = "Here is your chance to win $1000!")
+    val tweet = goodTweet.copy(Text = "Here is your chance to win $1000 and spend some on Kafka!")
+    shouldBeIgnored(tweet) shouldBe Some(reasonIsMoneyRelated)
+  }
+
+  "A tweet about a sale/special deal" should "be ignored" in {
+    val tweet = goodTweet.copy(Text = "All courses on Kafka cheaper on Black friday!")
     shouldBeIgnored(tweet) shouldBe Some(reasonIsMoneyRelated)
   }
 
@@ -84,7 +94,12 @@ class ToIgnoreTest extends AnyFlatSpec with Matchers {
   }
 
   "A tweet which contains an ad" should "be ignored" in {
-    val tweet = goodTweet.copy(Text = "[Sponsored] Check out that gread deal!")
+    val tweet = goodTweet.copy(Text = "[Sponsored] Check out that gread deal on Kafka!")
     shouldBeIgnored(tweet) shouldBe Some(reasonIsAnAd)
+  }
+
+  "A tweet which has completely unrelated words" should "be ignored" in {
+    val tweet = goodTweet.copy(Text = "It's about a Novel on Kafka")
+    shouldBeIgnored(tweet) shouldBe Some(reasonHasUnrelatedWords)
   }
 }

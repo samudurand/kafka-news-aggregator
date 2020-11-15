@@ -5,15 +5,17 @@ import com.kafka.experiments.tweetscategorizer.Tweet
 object FranzKafkaWriter {
 
   private val bookNames = List(
-    "The Trial",
-    "The Castle",
     "Amerika",
-    "Metamorphosis",
     "Excursion into the Mountains",
-    "Letters to Felice"
+    "Kafka on the Shore", // Not by F. Kafka but another popular book
+    "Letters to Felice",
+    "Metamorphosis",
+    "The Castle",
+    "The Trial"
   ).map(_.toLowerCase)
 
   private val authorRelatedWords = List(
+    "insomnia",
     "kafkaesque"
   ).map(_.toLowerCase)
 

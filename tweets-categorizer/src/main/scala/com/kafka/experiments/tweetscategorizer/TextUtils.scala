@@ -2,7 +2,7 @@ package com.kafka.experiments.tweetscategorizer
 
 object TextUtils {
 
-  def textLoweredCaseContainAnyOf(text: String, substringWords: List[String], fullWords: List[String] = List()): Boolean = {
+  def textLoweredCaseContainAnyOf(text: String, substringWords: Seq[String], fullWords: Seq[String] = List()): Boolean = {
     val wordSeparatorOrPunctuation = "[\\s+!?#.]"
     substringWords.exists(text.toLowerCase.contains) ||
       text.toLowerCase.split(wordSeparatorOrPunctuation).exists(fullWords.contains)
@@ -18,5 +18,8 @@ object TextUtils {
       text.split(wordSeparatorOrPunctuation).exists(fullWords.contains)
   }
 
+  def textContainAtLeastOneNumber(text: String): Boolean = {
+    text.exists(_.isDigit)
+  }
 
 }

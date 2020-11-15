@@ -7,6 +7,7 @@ import com.kafka.experiments.tweetscategorizer.ignore.FranzKafkaWriter.isAboutFr
 
 object ToIgnore {
 
+  val reasonDoesNotMentionKafka = "NO_KAFKA_MENTION"
   val reasonIsAboutAGame = "IS_ABOUT_A_GAME"
   val reasonIsAboutACertification = "IS_ABOUT_A_CERTIFICATION"
   val reasonIsAboutFranzKafka = "IS_ABOUT_F_KAFKA"
@@ -16,8 +17,8 @@ object ToIgnore {
   val reasonIsNotInEnglish = "IS_NOT_IN_ENGLISH"
   val reasonIsRetweet = "IS_RETWEET"
   val reasonIsTooShort = "IS_TOO_SHORT"
-  val reasonHasNotLink = "HAS_NO_LINK"
   val reasonHasSourceToBeIgnored = "HAS_SOURCE_TO_BE_IGNORED"
+  val reasonHasUnrelatedWords = "HAS_UNRELATED_WORDS"
 
   /**
    * @return the reason why it should be ignored
@@ -25,7 +26,9 @@ object ToIgnore {
   def shouldBeIgnored(tweet: Tweet): Option[String] = {
     tweet match {
       case t if t.Retweet => Some(reasonIsRetweet)
+      case t if doesNotMentionKafka(t) => Some(reasonDoesNotMentionKafka)
       case t if hasSourceToBeIgnored(t) => Some(reasonHasSourceToBeIgnored)
+      case t if hasUnrelatedWords(t) => Some(reasonHasUnrelatedWords)
       case t if isAboutACertification(t) => Some(reasonIsAboutACertification)
       case t if isAboutAGame(t) => Some(reasonIsAboutAGame)
       case t if isAboutFranzKafka(t) => Some(reasonIsAboutFranzKafka)
@@ -41,6 +44,10 @@ object ToIgnore {
   private def isAboutAGame(tweet: Tweet): Boolean = {
     val gameWords = List("game", "indie")
     textLoweredCaseContainAnyOf(tweet.Text, List(), gameWords)
+  }
+
+  private def doesNotMentionKafka(tweet: Tweet): Boolean = {
+    !textLoweredCaseContainAnyOf(tweet.Text, List("kafka"))
   }
 
   private def isNotInEnglish(tweet: Tweet) = {
@@ -60,10 +67,12 @@ object ToIgnore {
     val regexSignAfter = "[0-9]+[\\$£€]".r
     val regexSignBefore = "[\\$£€][0-9]+".r
 
-    (regexSignAfter.findFirstIn(tweet.Text), regexSignBefore.findFirstIn(tweet.Text)) match {
+    val saleWords = List("black friday")
+
+    ((regexSignAfter.findFirstIn(tweet.Text), regexSignBefore.findFirstIn(tweet.Text)) match {
       case (None, None) => false
       case _            => true
-    }
+    }) || textLoweredCaseContainAnyOf(tweet.Text, saleWords)
   }
 
   private def isAboutACertification(tweet: Tweet): Boolean = {
@@ -74,5 +83,9 @@ object ToIgnore {
   private def isAnAdvertisement(tweet: Tweet) = {
     val adWords = List("sponsored")
     textLoweredCaseContainAnyOf(tweet.Text, adWords)
+  }
+
+  private def hasUnrelatedWords(tweet: Tweet) = {
+    textLoweredCaseContainAnyOf(tweet.Text, Keywords.unrelatedWords)
   }
 }

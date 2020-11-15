@@ -12,15 +12,19 @@ import org.apache.kafka.streams.scala.kstream.KStream
 import org.apache.kafka.streams.{KafkaStreams, StreamsConfig}
 import io.circe.parser.decode
 import Tweet.codec
-import com.kafka.experiments.shared.{DroppedTweet, InterestingTweet}
+import com.kafka.experiments.shared.{ArticleTweet, AudioTweet, DroppedTweet, InterestingTweet, VersionReleaseTweet}
+import com.kafka.experiments.tweetscategorizer.categorize.Categorizer
 import com.kafka.experiments.tweetscategorizer.ignore.ToIgnore.shouldBeIgnored
 import io.circe.syntax._
 
 object Main extends App with StrictLogging {
 
   val sourceTopic = "kafka_tweets"
+  val sinkArticleTopic = "article_tweets"
+  val sinkAudioTopic = "audio_tweets"
   val sinkDroppedTopic = "dropped_tweets"
   val sinkInterestingTopic = "interesting_tweets"
+  val sinkVersionTopic = "version_tweets"
 
   val props = new Properties()
   props.put(StreamsConfig.APPLICATION_ID_CONFIG, "tweets-categorizer")
@@ -32,8 +36,8 @@ object Main extends App with StrictLogging {
   val tweets = messages.flatMap((key, tweetJson) => parseJsonIntoTweet(key, tweetJson))
   val classifiedTweets = tweets.mapValues(tweet => {
     shouldBeIgnored(tweet) match {
-      case Some(reason) => DroppedTweet(tweet.Text, tweet.Retweet, reason, tweet.User.ScreenName)
-      case None => InterestingTweet(tweet.Text, tweet.Retweet, tweet.User.ScreenName)
+      case Some(reason) => DroppedTweet(tweet.Id, tweet.Text, reason, tweet.User.ScreenName)
+      case None => Categorizer.categorize(tweet)
     }
   })
 
@@ -43,6 +47,27 @@ object Main extends App with StrictLogging {
       case _ => None
     }
     .to(sinkDroppedTopic)
+
+  classifiedTweets
+    .flatMap[String, String] {
+      case (key, tweet: ArticleTweet) => Some((key, tweet.asJson.noSpaces))
+      case _ => None
+    }
+    .to(sinkArticleTopic)
+
+  classifiedTweets
+    .flatMap[String, String] {
+      case (key, tweet: AudioTweet) => Some((key, tweet.asJson.noSpaces))
+      case _ => None
+    }
+    .to(sinkAudioTopic)
+
+  classifiedTweets
+    .flatMap[String, String] {
+      case (key, tweet: VersionReleaseTweet) => Some((key, tweet.asJson.noSpaces))
+      case _ => None
+    }
+    .to(sinkVersionTopic)
 
   classifiedTweets
     .flatMap[String, String] {
