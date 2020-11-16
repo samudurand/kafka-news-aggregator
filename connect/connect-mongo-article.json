@@ -1,0 +1,14 @@
+{
+  "name": "mongo_sink_article",
+  "config": {
+    "connector.class": "com.mongodb.kafka.connect.MongoSinkConnector",
+    "tasks.max": "1",
+    "topics": "article_tweets",
+    "connection.uri": "mongodb://mongo:27017",
+    "database": "tweets",
+    "collection": "article",
+    "key.converter": "org.apache.kafka.connect.storage.StringConverter",
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter.schemas.enable": "false"
+  }
+}
