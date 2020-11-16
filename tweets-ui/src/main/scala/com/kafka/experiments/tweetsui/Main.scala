@@ -24,8 +24,8 @@ object Main extends IOApp with StrictLogging {
 
   private val helloWorldService = HttpRoutes
     .of[IO] {
-      case GET -> Root / tweetType =>
-        tweetType match {
+      case GET -> Root / category =>
+        category match {
           case InterestingTweet.typeName =>
             val maybeTweets = for {
               intT <- mongoService.interestingTweets()
@@ -49,14 +49,17 @@ object Main extends IOApp with StrictLogging {
           case _ => BadRequest()
         }
 
-      case GET -> Root / tweetType / "count" =>
-        tweetType match {
+      case GET -> Root / category / "count" =>
+        category match {
           case InterestingTweet.typeName =>
             mongoService.interestingTweetsCount().flatMap(Ok(_))
           case DroppedTweet.typeName =>
             mongoService.droppedTweetsCount().flatMap(Ok(_))
           case _ => BadRequest()
         }
+
+      case DELETE -> Root / category / LongVar(tweetId) =>
+        mongoService.delete(category, tweetId).flatMap(_ => Ok("Deleted"))
     }
     .orNotFound
 
