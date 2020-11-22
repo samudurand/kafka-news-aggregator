@@ -2,7 +2,6 @@ package com.kafka.experiments.tweetscategorizer.ignore
 
 import com.kafka.experiments.tweetscategorizer.config.GlobalConfig
 import pureconfig.ConfigSource
-import pureconfig.generic.auto.exportReader
 
 object Keywords {
 

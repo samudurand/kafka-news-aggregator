@@ -1,7 +1,7 @@
 package com.kafka.experiments.tweetsui
 
 import cats.effect.IO
-import com.kafka.experiments.shared.{ArticleTweet, AudioTweet, DroppedTweet, InterestingTweet, VersionReleaseTweet}
+import com.kafka.experiments.shared._
 import org.http4s.EntityEncoder
 import org.http4s.circe.jsonEncoderOf
 

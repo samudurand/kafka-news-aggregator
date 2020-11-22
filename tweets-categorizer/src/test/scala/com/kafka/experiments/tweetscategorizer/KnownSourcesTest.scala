@@ -1,8 +1,8 @@
 package com.kafka.experiments.tweetscategorizer
 
+import com.kafka.experiments.tweetscategorizer.KnownSources._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import KnownSources._
 
 class KnownSourcesTest extends AnyFlatSpec with Matchers {
 

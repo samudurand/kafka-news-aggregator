@@ -10,12 +10,13 @@ object DroppedTweet {
   implicit val codec: Codec[DroppedTweet] = deriveCodec
 }
 
-case class DroppedTweet (
+case class DroppedTweet(
     id: Long,
     reason: String,
     text: String,
-    user: String
-)  extends CategorisedTweet
+    user: String,
+    createdAt: Long
+) extends CategorisedTweet
 
 object AudioTweet {
   val typeName = "audio"
@@ -25,7 +26,8 @@ object AudioTweet {
 case class AudioTweet(
     id: Long,
     text: String,
-    user: String
+    user: String,
+    createdAt: Long
 ) extends CategorisedTweet
 
 object VersionReleaseTweet {
@@ -36,7 +38,8 @@ object VersionReleaseTweet {
 case class VersionReleaseTweet(
     id: Long,
     text: String,
-    user: String
+    user: String,
+    createdAt: Long
 ) extends CategorisedTweet
 
 object ArticleTweet {
@@ -47,7 +50,8 @@ object ArticleTweet {
 case class ArticleTweet(
     id: Long,
     text: String,
-    user: String
+    user: String,
+    createdAt: Long
 ) extends CategorisedTweet
 
 object InterestingTweet {
@@ -58,5 +62,6 @@ object InterestingTweet {
 case class InterestingTweet(
     id: Long,
     text: String,
-    user: String
+    user: String,
+    createdAt: Long
 ) extends CategorisedTweet

@@ -1,19 +1,14 @@
 package com.kafka.experiments.tweetsui
 
 import cats.effect.{ContextShift, IO}
-import com.kafka.experiments.shared.{
-  ArticleTweet,
-  AudioTweet,
-  DroppedTweet,
-  InterestingTweet,
-  VersionReleaseTweet
-}
+import com.kafka.experiments.shared._
 import com.kafka.experiments.tweetsui.config.MongodbConfig
 import org.bson.codecs.configuration.CodecRegistries.{fromProviders, fromRegistries}
-import org.mongodb.scala.{Document, MongoClient, MongoCollection, SingleObservable}
 import org.mongodb.scala.MongoClient.DEFAULT_CODEC_REGISTRY
-import org.mongodb.scala.bson.{BsonNumber, BsonString}
+import org.mongodb.scala.bson.BsonNumber
 import org.mongodb.scala.bson.codecs.Macros._
+import org.mongodb.scala.model.Sorts.{descending, orderBy}
+import org.mongodb.scala.{Document, MongoClient, MongoCollection}
 
 trait MongoService {
   def interestingTweets(): IO[Seq[InterestingTweet]]
@@ -58,23 +53,42 @@ class DefaultMongoService(config: MongodbConfig)(implicit c: ContextShift[IO]) e
   private val collVersionTweets = database.getCollection(config.collVersion)
   private val collInterestingTweets = database.getCollection(config.collInteresting)
 
+  private val maxResults = 5
+  private val createdAtField = "createdAt"
+
   override def interestingTweets(): IO[Seq[InterestingTweet]] = {
-    val tweets = collInterestingTweets.find[InterestingTweet]().limit(50).toFuture()
+    val tweets = collInterestingTweets
+      .find[InterestingTweet]()
+      .sort(orderBy(descending(createdAtField)))
+      .limit(maxResults)
+      .toFuture()
     IO.fromFuture(IO(tweets))
   }
 
   override def audioTweets(): IO[Seq[AudioTweet]] = {
-    val tweets = collAudioTweets.find[AudioTweet]().limit(50).toFuture()
+    val tweets = collAudioTweets
+      .find[AudioTweet]()
+      .sort(orderBy(descending(createdAtField)))
+      .limit(maxResults)
+      .toFuture()
     IO.fromFuture(IO(tweets))
   }
 
   override def articleTweets(): IO[Seq[ArticleTweet]] = {
-    val tweets = collArticleTweets.find[ArticleTweet]().limit(50).toFuture()
+    val tweets = collArticleTweets
+      .find[ArticleTweet]()
+      .sort(orderBy(descending(createdAtField)))
+      .limit(maxResults)
+      .toFuture()
     IO.fromFuture(IO(tweets))
   }
 
   override def versionTweets(): IO[Seq[VersionReleaseTweet]] = {
-    val tweets = collVersionTweets.find[VersionReleaseTweet]().limit(50).toFuture()
+    val tweets = collVersionTweets
+      .find[VersionReleaseTweet]()
+      .sort(orderBy(descending(createdAtField)))
+      .limit(maxResults)
+      .toFuture()
     IO.fromFuture(IO(tweets))
   }
 
@@ -83,7 +97,11 @@ class DefaultMongoService(config: MongodbConfig)(implicit c: ContextShift[IO]) e
   }
 
   override def droppedTweets(): IO[Seq[DroppedTweet]] = {
-    val tweets = collDroppedTweets.find[DroppedTweet]().limit(50).toFuture()
+    val tweets = collDroppedTweets
+      .find[DroppedTweet]()
+      .sort(orderBy(descending(createdAtField)))
+      .limit(maxResults)
+      .toFuture()
     IO.fromFuture(IO(tweets))
   }
 

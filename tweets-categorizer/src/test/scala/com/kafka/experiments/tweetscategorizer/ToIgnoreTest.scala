@@ -1,8 +1,8 @@
 package com.kafka.experiments.tweetscategorizer
 
+import com.kafka.experiments.tweetscategorizer.ignore.ToIgnore._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import com.kafka.experiments.tweetscategorizer.ignore.ToIgnore._
 
 class ToIgnoreTest extends AnyFlatSpec with Matchers {
 

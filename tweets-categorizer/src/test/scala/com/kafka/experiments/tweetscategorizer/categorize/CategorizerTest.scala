@@ -1,9 +1,9 @@
 package com.kafka.experiments.tweetscategorizer.categorize
 
+import com.kafka.experiments.shared.{ArticleTweet, AudioTweet, DroppedTweet, VersionReleaseTweet}
+import com.kafka.experiments.tweetscategorizer.categorize.Categorizer.categorize
 import com.kafka.experiments.tweetscategorizer.{Tweet, URLEntity, User}
 import org.scalatest.flatspec.AnyFlatSpec
-import Categorizer.{categorize, isAboutAnAudioPost}
-import com.kafka.experiments.shared.{ArticleTweet, AudioTweet, DroppedTweet, VersionReleaseTweet}
 import org.scalatest.matchers.should.Matchers
 
 class CategorizerTest extends AnyFlatSpec with Matchers {

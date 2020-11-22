@@ -16,7 +16,9 @@ object FranzKafkaWriter {
 
   private val authorRelatedWords = List(
     "insomnia",
-    "kafkaesque"
+    "kafkaesque",
+    "kafka-esque",
+    "kafkaiesque"
   ).map(_.toLowerCase)
 
   private val kafkaUserAccount = "Kafka"
