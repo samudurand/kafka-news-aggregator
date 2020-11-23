@@ -11,11 +11,11 @@ object DroppedTweet {
 }
 
 case class DroppedTweet(
-    id: Long,
+    id: String,
     reason: String,
     text: String,
     user: String,
-    createdAt: Long
+    createdAt: String
 ) extends CategorisedTweet
 
 object AudioTweet {
@@ -24,10 +24,10 @@ object AudioTweet {
 }
 
 case class AudioTweet(
-    id: Long,
+    id: String,
     text: String,
     user: String,
-    createdAt: Long
+    createdAt: String
 ) extends CategorisedTweet
 
 object VersionReleaseTweet {
@@ -36,10 +36,10 @@ object VersionReleaseTweet {
 }
 
 case class VersionReleaseTweet(
-    id: Long,
+    id: String,
     text: String,
     user: String,
-    createdAt: Long
+    createdAt: String
 ) extends CategorisedTweet
 
 object ArticleTweet {
@@ -48,10 +48,10 @@ object ArticleTweet {
 }
 
 case class ArticleTweet(
-    id: Long,
+    id: String,
     text: String,
     user: String,
-    createdAt: Long
+    createdAt: String
 ) extends CategorisedTweet
 
 object InterestingTweet {
@@ -60,8 +60,8 @@ object InterestingTweet {
 }
 
 case class InterestingTweet(
-    id: Long,
+    id: String,
     text: String,
     user: String,
-    createdAt: Long
+    createdAt: String
 ) extends CategorisedTweet

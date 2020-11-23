@@ -2,8 +2,7 @@ package com.kafka.experiments.tweetscategorizer.categorize
 
 import com.kafka.experiments.shared._
 import com.kafka.experiments.tweetscategorizer.TextUtils.{textContainAtLeastOneNumber, textLoweredCaseContainAnyOf}
-import com.kafka.experiments.tweetscategorizer.Tweet
-import com.kafka.experiments.tweetscategorizer.ignore.Keywords
+import com.kafka.experiments.tweetscategorizer.{Keywords, Tweet}
 import com.kafka.experiments.tweetscategorizer.tweetUtils.hasLink
 
 object Categorizer {
@@ -12,12 +11,12 @@ object Categorizer {
 
   def categorize(tweet: Tweet): CategorisedTweet = {
     tweet match {
-      case t if isAboutAnAudioPost(t) => AudioTweet(tweet.Id, tweet.Text, tweet.User.ScreenName, tweet.CreatedAt)
+      case t if isAboutAnAudioPost(t) => AudioTweet(tweet.Id.toString, tweet.Text, tweet.User.ScreenName, tweet.CreatedAt.toString)
       case t if isAboutANewVersion(t) =>
-        VersionReleaseTweet(tweet.Id, tweet.Text, tweet.User.ScreenName, tweet.CreatedAt)
-      case t if isAboutAnArticle(t) => ArticleTweet(tweet.Id, tweet.Text, tweet.User.ScreenName, tweet.CreatedAt)
-      case t if hasLink(t)          => InterestingTweet(tweet.Id, tweet.Text, tweet.User.ScreenName, tweet.CreatedAt)
-      case _                        => DroppedTweet(tweet.Id, reasonHasNoLink, tweet.Text, tweet.User.ScreenName, tweet.CreatedAt)
+        VersionReleaseTweet(tweet.Id.toString, tweet.Text, tweet.User.ScreenName, tweet.CreatedAt.toString)
+      case t if isAboutAnArticle(t) => ArticleTweet(tweet.Id.toString, tweet.Text, tweet.User.ScreenName, tweet.CreatedAt.toString)
+      case t if hasLink(t)          => InterestingTweet(tweet.Id.toString, tweet.Text, tweet.User.ScreenName, tweet.CreatedAt.toString)
+      case _                        => DroppedTweet(tweet.Id.toString, reasonHasNoLink, tweet.Text, tweet.User.ScreenName, tweet.CreatedAt.toString)
     }
   }
 

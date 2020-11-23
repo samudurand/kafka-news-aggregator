@@ -1,0 +1,13 @@
+#main {
+    margin-bottom: 2em;
+    padding-top: 2em;
+}
+
+div.card-header:hover {
+    background-color: gainsboro;
+    cursor: pointer;
+}
+
+div.card-header {
+    font-size: 1.3em;
+}

@@ -34,12 +34,15 @@ object Main extends App with StrictLogging {
 
   val tweets = messages.flatMap((key, tweetJson) => parseJsonIntoTweet(key, tweetJson))
 
-  val classifiedTweets = tweets.mapValues(tweet => {
-    shouldBeIgnored(tweet) match {
-      case Some(reason) => DroppedTweet(tweet.Id, reason, tweet.Text, tweet.User.ScreenName, tweet.CreatedAt)
-      case None         => Categorizer.categorize(tweet)
-    }
-  })
+  val classifiedTweets = tweets
+    .filterNot((_, tweet) => tweet.Retweet) // Ignore all retweets
+    .mapValues(tweet => {
+      shouldBeIgnored(tweet) match {
+        case Some(reason) =>
+          DroppedTweet(tweet.Id.toString, reason, tweet.Text, tweet.User.ScreenName, tweet.CreatedAt.toString)
+        case None => Categorizer.categorize(tweet)
+      }
+    })
 
   classifiedTweets
     .flatMap[String, String] {

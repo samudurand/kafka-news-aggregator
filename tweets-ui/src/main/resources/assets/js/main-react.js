@@ -6,20 +6,30 @@ class LikeButton extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            tweetsAudio: [],
-            tweetsArticle: [],
-            tweetsVersion: [],
-            tweetsOther: [],
-            tweetsDropped: []
+            audioTweets: [],
+            articleTweets: [],
+            versionTweets: [],
+            interestingTweets: [],
+            droppedTweets: []
         };
+
+        this.deleteTweet = this.deleteTweet.bind(this);
+        this.retrieveTweetsByCategory = this.retrieveTweetsByCategory.bind(this);
+        this.retrieveTweetsCountByCategory = this.retrieveTweetsCountByCategory.bind(this);
     }
 
     componentDidMount() {
-        this.retrieveTweetsByCategory("audio", "tweetsAudio");
-        this.retrieveTweetsByCategory("article", "tweetsArticle");
-        this.retrieveTweetsByCategory("version", "tweetsVersion");
-        this.retrieveTweetsByCategory("interesting", "tweetsOther");
-        this.retrieveTweetsByCategory("dropped", "tweetsDropped");
+        this.retrieveTweetsCountByCategory("audio", "audioCount");
+        this.retrieveTweetsCountByCategory("article", "articleCount");
+        this.retrieveTweetsCountByCategory("version", "versionCount");
+        this.retrieveTweetsCountByCategory("interesting", "interestingCount");
+        this.retrieveTweetsCountByCategory("dropped", "droppedCount");
+
+        this.retrieveTweetsByCategory("audio", "audioTweets");
+        this.retrieveTweetsByCategory("article", "articleTweets");
+        this.retrieveTweetsByCategory("version", "versionTweets");
+        this.retrieveTweetsByCategory("interesting", "interestingTweets");
+        this.retrieveTweetsByCategory("dropped", "droppedTweets");
     }
 
     retrieveTweetsByCategory(category, listName) {
@@ -37,13 +47,34 @@ class LikeButton extends React.Component {
             )
     }
 
+    retrieveTweetsCountByCategory(category, countName) {
+        fetch(`/api/${category}/count`)
+            .then(res => res.json())
+            .then(
+                (result) => {
+                    this.setState({
+                        [`${countName}`]: result.count
+                    });
+                },
+                (error) => {
+                    console.log(`Unable to get '${category}' tweets count: ${error}`);
+                }
+            )
+    }
+
     render() {
         const {
-            tweetsAudio,
-            tweetsArticle,
-            tweetsVersion,
-            tweetsOther,
-            tweetsDropped
+            audioCount,
+            articleCount,
+            versionCount,
+            interestingCount,
+            droppedCount,
+
+            audioTweets,
+            articleTweets,
+            versionTweets,
+            interestingTweets,
+            droppedTweets
         } = this.state;
 
         return (
@@ -51,11 +82,11 @@ class LikeButton extends React.Component {
                 <ReactBootstrap.Row>
                     <ReactBootstrap.Col>
                         <ReactBootstrap.Accordion>
-                            {this.tweetsCard("0", "Audio", tweetsAudio)}
-                            {this.tweetsCard("1", "Article", tweetsArticle)}
-                            {this.tweetsCard("2", "Version", tweetsVersion)}
-                            {this.tweetsCard("3", "Other Interesting", tweetsOther)}
-                            {this.tweetsCard("4", "Dropped", tweetsDropped)}
+                            {this.tweetsCard("audio", "0", "Audio", audioCount, audioTweets)}
+                            {this.tweetsCard("article", "1", "Article", articleCount, articleTweets)}
+                            {this.tweetsCard("version", "2", "Version", versionCount, versionTweets)}
+                            {this.tweetsCard("interesting", "3", "Interesting", interestingCount, interestingTweets)}
+                            {this.tweetsCard("dropped", "4", "Dropped", droppedCount, droppedTweets)}
                         </ReactBootstrap.Accordion>
                     </ReactBootstrap.Col>
                 </ReactBootstrap.Row>
@@ -63,27 +94,29 @@ class LikeButton extends React.Component {
         )
     }
 
-    tweetsCard(cardKey, cardTitle, tweets) {
+    tweetsCard(category, cardKey, cardTitle, count, tweets) {
         return <ReactBootstrap.Card>
-            <ReactBootstrap.Card.Header>
-                <ReactBootstrap.Accordion.Toggle as={ReactBootstrap.Button} variant="link" eventKey={cardKey}>
-                    {cardTitle}
-                </ReactBootstrap.Accordion.Toggle>
-            </ReactBootstrap.Card.Header>
+            <ReactBootstrap.Accordion.Toggle as={ReactBootstrap.Card.Header} eventKey={cardKey}>
+                <span><b>Tweets:</b> {cardTitle}</span>
+                <span style={{float: "right"}}><i>({count})</i></span>
+            </ReactBootstrap.Accordion.Toggle>
             <ReactBootstrap.Accordion.Collapse eventKey={cardKey}>
-                <ReactBootstrap.Card.Body>{this.tweetsTable(tweets)}</ReactBootstrap.Card.Body>
+                <ReactBootstrap.Card.Body>{this.tweetsTable(category, tweets)}</ReactBootstrap.Card.Body>
             </ReactBootstrap.Accordion.Collapse>
         </ReactBootstrap.Card>
     }
 
-    tweetsTable(tweets) {
+    tweetsTable(category, tweets) {
+        const reasonCol = (category === "dropped")
         return <ReactBootstrap.Table striped bordered hover>
             <thead>
             <tr>
                 <th width={120}>Date</th>
                 <th>Text</th>
                 <th>User</th>
-                <th>Link</th>
+                {/*<th>Link</th>*/}
+                <th>Action</th>
+                { reasonCol ? <th>Reason</th> : '' }
             </tr>
             </thead>
             <tbody>
@@ -93,13 +126,32 @@ class LikeButton extends React.Component {
                         <td>{moment.unix(tweet.createdAt / 1000).format("DD/MM hh:mm")}</td>
                         <td><Linkify>{tweet.text}</Linkify></td>
                         <td>{tweet.user}</td>
-                        <td><a target="_blank"
-                               href={`https://twitter.com/${tweet.user}/status/${tweet.id}`}>Link</a></td>
+                        {/*<td>*/}
+                        {/*    <a target="_blank" href={`https://twitter.com/${tweet.user}/status/${tweet.id}`}>Link</a>*/}
+                        {/*</td>*/}
+                        <td>
+                            <ReactBootstrap.Button variant="danger" onClick={() => this.deleteTweet(category, tweet.id)}>
+                                Del
+                            </ReactBootstrap.Button>
+                        </td>
+                        { reasonCol ? <td>{tweet.reason.substr(0, 17)}</td> : '' }
                     </tr>
                 )
             }
             </tbody>
         </ReactBootstrap.Table>
+    }
+
+    deleteTweet(category, tweetId) {
+        fetch(`/api/${category}/${tweetId}`, {method: "DELETE"})
+            .then(
+                (res) => {
+                    this.retrieveTweetsByCategory(category, `${category}Tweets`)
+                    this.retrieveTweetsCountByCategory(category, `${category}Count`)
+                },
+                (error) => {
+                }
+            )
     }
 }
 

@@ -2,7 +2,7 @@ package com.kafka.experiments.tweetscategorizer.ignore
 
 import com.kafka.experiments.tweetscategorizer.KnownSources.hasSourceToBeIgnored
 import com.kafka.experiments.tweetscategorizer.TextUtils.textLoweredCaseContainAnyOf
-import com.kafka.experiments.tweetscategorizer.Tweet
+import com.kafka.experiments.tweetscategorizer.{Keywords, Tweet}
 import com.kafka.experiments.tweetscategorizer.ignore.FranzKafkaWriter.isAboutFranzKafka
 
 object ToIgnore {
@@ -15,7 +15,6 @@ object ToIgnore {
   val reasonIsAJobOffer = "IS_A_JOB_OFFER"
   val reasonIsMoneyRelated = "IS_MONEY_RELATED"
   val reasonIsNotInEnglish = "IS_NOT_IN_ENGLISH"
-  val reasonIsRetweet = "IS_RETWEET"
   val reasonIsTooShort = "IS_TOO_SHORT"
   val reasonHasSourceToBeIgnored = "HAS_SOURCE_TO_BE_IGNORED"
   val reasonHasUnrelatedWords = "HAS_UNRELATED_WORDS"
@@ -25,7 +24,6 @@ object ToIgnore {
    */
   def shouldBeIgnored(tweet: Tweet): Option[String] = {
     tweet match {
-      case t if t.Retweet => Some(reasonIsRetweet)
       case t if doesNotMentionKafka(t) => Some(reasonDoesNotMentionKafka)
       case t if hasSourceToBeIgnored(t) => Some(reasonHasSourceToBeIgnored)
       case t if hasUnrelatedWords(t) => Some(reasonHasUnrelatedWords)

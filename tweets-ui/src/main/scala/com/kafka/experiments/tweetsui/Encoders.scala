@@ -12,4 +12,5 @@ object Encoders {
   implicit val articleEncoder: EntityEncoder[IO, Seq[ArticleTweet]] = jsonEncoderOf[IO, Seq[ArticleTweet]]
   implicit val versionEncoder: EntityEncoder[IO, Seq[VersionReleaseTweet]] = jsonEncoderOf[IO, Seq[VersionReleaseTweet]]
   implicit val droppedEncoder: EntityEncoder[IO, Seq[DroppedTweet]] = jsonEncoderOf[IO, Seq[DroppedTweet]]
+  implicit val countResultEncoder: EntityEncoder[IO, CountResult] = jsonEncoderOf[IO, CountResult]
 }

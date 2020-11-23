@@ -5,15 +5,13 @@ import com.kafka.experiments.shared._
 import com.kafka.experiments.tweetsui.config.MongodbConfig
 import org.bson.codecs.configuration.CodecRegistries.{fromProviders, fromRegistries}
 import org.mongodb.scala.MongoClient.DEFAULT_CODEC_REGISTRY
-import org.mongodb.scala.bson.BsonNumber
+import org.mongodb.scala.bson.BsonString
 import org.mongodb.scala.bson.codecs.Macros._
 import org.mongodb.scala.model.Sorts.{descending, orderBy}
 import org.mongodb.scala.{Document, MongoClient, MongoCollection}
 
 trait MongoService {
   def interestingTweets(): IO[Seq[InterestingTweet]]
-
-  def interestingTweetsCount(): IO[Long]
 
   def audioTweets(): IO[Seq[AudioTweet]]
 
@@ -23,9 +21,9 @@ trait MongoService {
 
   def droppedTweets(): IO[Seq[DroppedTweet]]
 
-  def droppedTweetsCount(): IO[Long]
+  def tweetsCount(category: String): IO[Long]
 
-  def delete(category: String, tweetId: Long): IO[Unit]
+  def delete(category: String, tweetId: String): IO[Unit]
 }
 
 object MongoService {
@@ -92,8 +90,8 @@ class DefaultMongoService(config: MongodbConfig)(implicit c: ContextShift[IO]) e
     IO.fromFuture(IO(tweets))
   }
 
-  override def interestingTweetsCount(): IO[Long] = {
-    IO.fromFuture(IO(collInterestingTweets.countDocuments().toFuture()))
+  override def tweetsCount(category: String): IO[Long] = {
+    IO.fromFuture(IO(collectionFromCategory(category).countDocuments().toFuture()))
   }
 
   override def droppedTweets(): IO[Seq[DroppedTweet]] = {
@@ -105,13 +103,9 @@ class DefaultMongoService(config: MongodbConfig)(implicit c: ContextShift[IO]) e
     IO.fromFuture(IO(tweets))
   }
 
-  override def droppedTweetsCount(): IO[Long] = {
-    IO.fromFuture(IO(collDroppedTweets.countDocuments().toFuture()))
-  }
-
-  override def delete(category: String, tweetId: Long): IO[Unit] = {
+  override def delete(category: String, tweetId: String): IO[Unit] = {
     IO.fromFuture(
-      IO(collectionFromCategory(category).findOneAndDelete(Document("id" -> BsonNumber(tweetId))).toFuture())
+      IO(collectionFromCategory(category).findOneAndDelete(Document("id" -> BsonString(tweetId))).toFuture())
     ).map(_ => ())
   }
 

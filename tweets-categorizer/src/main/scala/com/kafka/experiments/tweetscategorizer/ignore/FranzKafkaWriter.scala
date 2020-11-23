@@ -1,6 +1,6 @@
 package com.kafka.experiments.tweetscategorizer.ignore
 
-import com.kafka.experiments.tweetscategorizer.Tweet
+import com.kafka.experiments.tweetscategorizer.{Keywords, Tweet}
 
 object FranzKafkaWriter {
 
@@ -14,12 +14,7 @@ object FranzKafkaWriter {
     "The Trial"
   ).map(_.toLowerCase)
 
-  private val authorRelatedWords = List(
-    "insomnia",
-    "kafkaesque",
-    "kafka-esque",
-    "kafkaiesque"
-  ).map(_.toLowerCase)
+  private val authorRelatedWords = Keywords.franzKafkaRelatedWords.map(_.toLowerCase)
 
   private val kafkaUserAccount = "Kafka"
 
@@ -41,7 +36,7 @@ object FranzKafkaWriter {
 
   private def containsAWordRelatedToFranzKafka(text: String): Boolean = {
     val lowerCasedText = text.toLowerCase
-    authorRelatedWords.exists(lowerCasedText.contains)
+    authorRelatedWords.map(_.toLowerCase).exists(lowerCasedText.contains)
   }
 
   private def mentionsAuthorAccount(tweet: Tweet): Boolean = {

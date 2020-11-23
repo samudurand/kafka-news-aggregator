@@ -5,6 +5,8 @@ import com.kafka.experiments.shared.{ArticleTweet, AudioTweet, DroppedTweet, Int
 import com.kafka.experiments.tweetsui.Encoders._
 import com.kafka.experiments.tweetsui.config.GlobalConfig
 import com.typesafe.scalalogging.StrictLogging
+import io.circe.Codec
+import io.circe.generic.semiauto.deriveCodec
 import io.circe.syntax._
 import org.http4s.dsl.io._
 import org.http4s.headers.`Content-Type`
@@ -17,6 +19,11 @@ import pureconfig.ConfigSource
 import pureconfig.generic.auto._
 
 import scala.concurrent.ExecutionContext.global
+
+object CountResult {
+  implicit val codec: Codec[CountResult] = deriveCodec
+}
+case class CountResult(count: Long)
 
 object Main extends IOApp with StrictLogging {
 
@@ -43,14 +50,13 @@ object Main extends IOApp with StrictLogging {
 
       case GET -> Root / category / "count" =>
         category match {
-          case InterestingTweet.typeName =>
-            mongoService.interestingTweetsCount().flatMap(Ok(_))
-          case DroppedTweet.typeName =>
-            mongoService.droppedTweetsCount().flatMap(Ok(_))
+          case InterestingTweet.typeName | AudioTweet.typeName | ArticleTweet.typeName | VersionReleaseTweet.typeName |
+              DroppedTweet.typeName =>
+            mongoService.tweetsCount(category).flatMap(count => Ok(CountResult(count)))
           case _ => BadRequest()
         }
 
-      case DELETE -> Root / category / LongVar(tweetId) =>
+      case DELETE -> Root / category / tweetId =>
         mongoService.delete(category, tweetId).flatMap(_ => Ok("Deleted"))
     }
 

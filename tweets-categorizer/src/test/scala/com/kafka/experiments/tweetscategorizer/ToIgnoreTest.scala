@@ -28,11 +28,6 @@ class ToIgnoreTest extends AnyFlatSpec with Matchers {
     shouldBeIgnored(tweet) shouldBe Some(reasonDoesNotMentionKafka)
   }
 
-  "A Retweet" should "be ignored" in {
-    val tweet = goodTweet.copy(Retweet = true)
-    shouldBeIgnored(tweet) shouldBe Some(reasonIsRetweet)
-  }
-
   "A tweet in english" should "not be ignored" in {
     val tweet = goodTweet.copy(Lang = Some("en"))
     shouldBeIgnored(tweet) shouldBe None
