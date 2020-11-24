@@ -10,10 +10,12 @@ class LikeButton extends React.Component {
             articleTweets: [],
             versionTweets: [],
             interestingTweets: [],
+            videoTweets: [],
             droppedTweets: []
         };
 
         this.deleteTweet = this.deleteTweet.bind(this);
+        this.downloadTxtFile = this.downloadTxtFile.bind(this);
         this.retrieveTweetsByCategory = this.retrieveTweetsByCategory.bind(this);
         this.retrieveTweetsCountByCategory = this.retrieveTweetsCountByCategory.bind(this);
     }
@@ -22,12 +24,14 @@ class LikeButton extends React.Component {
         this.retrieveTweetsCountByCategory("audio", "audioCount");
         this.retrieveTweetsCountByCategory("article", "articleCount");
         this.retrieveTweetsCountByCategory("version", "versionCount");
+        this.retrieveTweetsCountByCategory("video", "videoCount");
         this.retrieveTweetsCountByCategory("interesting", "interestingCount");
         this.retrieveTweetsCountByCategory("dropped", "droppedCount");
 
         this.retrieveTweetsByCategory("audio", "audioTweets");
         this.retrieveTweetsByCategory("article", "articleTweets");
         this.retrieveTweetsByCategory("version", "versionTweets");
+        this.retrieveTweetsByCategory("video", "videoTweets");
         this.retrieveTweetsByCategory("interesting", "interestingTweets");
         this.retrieveTweetsByCategory("dropped", "droppedTweets");
     }
@@ -65,12 +69,14 @@ class LikeButton extends React.Component {
     render() {
         const {
             audioCount,
+            videoCount,
             articleCount,
             versionCount,
             interestingCount,
             droppedCount,
 
             audioTweets,
+            videoTweets,
             articleTweets,
             versionTweets,
             interestingTweets,
@@ -81,12 +87,20 @@ class LikeButton extends React.Component {
             <ReactBootstrap.Container>
                 <ReactBootstrap.Row>
                     <ReactBootstrap.Col>
+                        <ReactBootstrap.Button className="mb-2" variant="primary" onClick={this.downloadTxtFile}>
+                            Weekly Report
+                        </ReactBootstrap.Button>
+                    </ReactBootstrap.Col>
+                </ReactBootstrap.Row>
+                <ReactBootstrap.Row>
+                    <ReactBootstrap.Col>
                         <ReactBootstrap.Accordion>
                             {this.tweetsCard("audio", "0", "Audio", audioCount, audioTweets)}
-                            {this.tweetsCard("article", "1", "Article", articleCount, articleTweets)}
-                            {this.tweetsCard("version", "2", "Version", versionCount, versionTweets)}
-                            {this.tweetsCard("interesting", "3", "Interesting", interestingCount, interestingTweets)}
-                            {this.tweetsCard("dropped", "4", "Dropped", droppedCount, droppedTweets)}
+                            {this.tweetsCard("video", "1", "Video", videoCount, videoTweets)}
+                            {this.tweetsCard("article", "2", "Article", articleCount, articleTweets)}
+                            {this.tweetsCard("version", "3", "Version", versionCount, versionTweets)}
+                            {this.tweetsCard("interesting", "4", "Interesting", interestingCount, interestingTweets)}
+                            {this.tweetsCard("dropped", "5", "Dropped", droppedCount, droppedTweets)}
                         </ReactBootstrap.Accordion>
                     </ReactBootstrap.Col>
                 </ReactBootstrap.Row>
@@ -152,6 +166,16 @@ class LikeButton extends React.Component {
                 (error) => {
                 }
             )
+    }
+
+    downloadTxtFile() {
+        const element = document.createElement("a");
+        const file = new Blob(["hello\nhi"],
+            {type: 'text/plain;charset=utf-8'});
+        element.href = URL.createObjectURL(file);
+        element.download = "myFile.txt";
+        document.body.appendChild(element);
+        element.click();
     }
 }
 

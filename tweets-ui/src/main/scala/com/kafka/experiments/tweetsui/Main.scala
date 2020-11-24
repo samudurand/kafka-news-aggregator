@@ -1,20 +1,25 @@
 package com.kafka.experiments.tweetsui
 
 import cats.effect.{Blocker, ExitCode, IO, IOApp, Resource}
-import com.kafka.experiments.shared.{ArticleTweet, AudioTweet, DroppedTweet, InterestingTweet, VersionReleaseTweet}
+import com.kafka.experiments.shared.{
+  ArticleTweet,
+  AudioTweet,
+  DroppedTweet,
+  InterestingTweet,
+  VersionReleaseTweet,
+  VideoTweet
+}
 import com.kafka.experiments.tweetsui.Encoders._
 import com.kafka.experiments.tweetsui.config.GlobalConfig
 import com.typesafe.scalalogging.StrictLogging
 import io.circe.Codec
 import io.circe.generic.semiauto.deriveCodec
-import io.circe.syntax._
 import org.http4s.dsl.io._
-import org.http4s.headers.`Content-Type`
 import org.http4s.implicits._
 import org.http4s.server.blaze.BlazeServerBuilder
-import org.http4s.server.staticcontent.{ResourceService, resourceService}
+import org.http4s.server.staticcontent.{resourceService, ResourceService}
 import org.http4s.server.{Router, Server}
-import org.http4s.{HttpRoutes, MediaType}
+import org.http4s.HttpRoutes
 import pureconfig.ConfigSource
 import pureconfig.generic.auto._
 
@@ -39,6 +44,8 @@ object Main extends IOApp with StrictLogging {
             mongoService.interestingTweets().flatMap(Ok(_))
           case AudioTweet.typeName =>
             mongoService.audioTweets().flatMap(Ok(_))
+          case VideoTweet.typeName =>
+            mongoService.videoTweets().flatMap(Ok(_))
           case ArticleTweet.typeName =>
             mongoService.articleTweets().flatMap(Ok(_))
           case VersionReleaseTweet.typeName =>
@@ -50,8 +57,8 @@ object Main extends IOApp with StrictLogging {
 
       case GET -> Root / category / "count" =>
         category match {
-          case InterestingTweet.typeName | AudioTweet.typeName | ArticleTweet.typeName | VersionReleaseTweet.typeName |
-              DroppedTweet.typeName =>
+          case InterestingTweet.typeName | AudioTweet.typeName | VideoTweet.typeName | ArticleTweet.typeName |
+              VersionReleaseTweet.typeName | DroppedTweet.typeName =>
             mongoService.tweetsCount(category).flatMap(count => Ok(CountResult(count)))
           case _ => BadRequest()
         }
@@ -76,22 +83,4 @@ object Main extends IOApp with StrictLogging {
         )
         .resource
     } yield server
-
-  private def retrieveInterestingTweets() = {
-    val maybeTweets = for {
-      intT <- mongoService.interestingTweets()
-      audT <- mongoService.audioTweets()
-      artT <- mongoService.articleTweets()
-      verT <- mongoService.versionTweets()
-    } yield {
-      (
-        intT.asJson.asArray ++
-          audT.asJson.asArray ++
-          artT.asJson.asArray ++
-          verT.asJson.asArray
-      ).flatten.asJson.noSpaces
-    }
-
-    maybeTweets.flatMap(Ok(_).map(_.withContentType(`Content-Type`(MediaType.application.json))))
-  }
 }

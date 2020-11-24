@@ -1,6 +1,6 @@
 package com.kafka.experiments.tweetscategorizer.categorize
 
-import com.kafka.experiments.shared.{ArticleTweet, AudioTweet, DroppedTweet, VersionReleaseTweet}
+import com.kafka.experiments.shared.{ArticleTweet, AudioTweet, DroppedTweet, VersionReleaseTweet, VideoTweet}
 import com.kafka.experiments.tweetscategorizer.categorize.Categorizer.categorize
 import com.kafka.experiments.tweetscategorizer.{Tweet, URLEntity, User}
 import org.scalatest.flatspec.AnyFlatSpec
@@ -34,6 +34,16 @@ class CategorizerTest extends AnyFlatSpec with Matchers {
   "A Tweet mentioning audio but without a link" should "not be identified as Audio publication" in {
     val tweet = goodTweet.copy(Text = "check out this audio post about Kafka", URLEntities = List())
     categorize(tweet) should not be an[AudioTweet]
+  }
+
+  "A Tweet mentioning video keywords" should "be identified as Video publication" in {
+    val tweet = goodTweet.copy(Text = "check out this video post about Kafka")
+    categorize(tweet) shouldBe an[VideoTweet]
+  }
+
+  "A Tweet with a video link" should "be identified as Video publication" in {
+    val tweet = goodTweet.copy(URLEntities = List(URLEntity("https://sdfs.com", "https://youtube.com/sdf")))
+    categorize(tweet) shouldBe an[VideoTweet]
   }
 
   "A Tweet mentioning a Version" should "be identified as an announcement about a new Version" in {

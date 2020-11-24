@@ -10,5 +10,7 @@ case class KeywordsConfig(
     fkafka: Seq[String],
     job: Seq[String],
     unrelated: Seq[String],
-    version: Seq[String]
+    version: Seq[String],
+    video: Seq[String],
+    videodomains: Seq[String]
 )

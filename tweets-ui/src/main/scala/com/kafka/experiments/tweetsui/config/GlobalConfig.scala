@@ -8,6 +8,7 @@ case class MongodbConfig(
     tweetsDb: String,
     collDropped: String,
     collAudio: String,
+    collVideo: String,
     collArticle: String,
     collVersion: String,
     collInteresting: String

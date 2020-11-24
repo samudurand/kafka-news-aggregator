@@ -15,6 +15,8 @@ trait MongoService {
 
   def audioTweets(): IO[Seq[AudioTweet]]
 
+  def videoTweets(): IO[Seq[VideoTweet]]
+
   def articleTweets(): IO[Seq[ArticleTweet]]
 
   def versionTweets(): IO[Seq[VersionReleaseTweet]]
@@ -35,6 +37,7 @@ class DefaultMongoService(config: MongodbConfig)(implicit c: ContextShift[IO]) e
   private val customCodecs = fromProviders(
     classOf[ArticleTweet],
     classOf[AudioTweet],
+    classOf[VideoTweet],
     classOf[DroppedTweet],
     classOf[InterestingTweet],
     classOf[VersionReleaseTweet]
@@ -47,6 +50,7 @@ class DefaultMongoService(config: MongodbConfig)(implicit c: ContextShift[IO]) e
 
   private val collDroppedTweets = database.getCollection(config.collDropped)
   private val collAudioTweets = database.getCollection(config.collAudio)
+  private val collVideoTweets = database.getCollection(config.collVideo)
   private val collArticleTweets = database.getCollection(config.collArticle)
   private val collVersionTweets = database.getCollection(config.collVersion)
   private val collInterestingTweets = database.getCollection(config.collInteresting)
@@ -66,6 +70,15 @@ class DefaultMongoService(config: MongodbConfig)(implicit c: ContextShift[IO]) e
   override def audioTweets(): IO[Seq[AudioTweet]] = {
     val tweets = collAudioTweets
       .find[AudioTweet]()
+      .sort(orderBy(descending(createdAtField)))
+      .limit(maxResults)
+      .toFuture()
+    IO.fromFuture(IO(tweets))
+  }
+
+  override def videoTweets(): IO[Seq[VideoTweet]] = {
+    val tweets = collVideoTweets
+      .find[VideoTweet]()
       .sort(orderBy(descending(createdAtField)))
       .limit(maxResults)
       .toFuture()
@@ -114,6 +127,7 @@ class DefaultMongoService(config: MongodbConfig)(implicit c: ContextShift[IO]) e
       case DroppedTweet.typeName        => collDroppedTweets
       case InterestingTweet.typeName    => collInterestingTweets
       case AudioTweet.typeName          => collAudioTweets
+      case VideoTweet.typeName          => collVideoTweets
       case ArticleTweet.typeName        => collArticleTweets
       case VersionReleaseTweet.typeName => collVersionTweets
     }

@@ -14,5 +14,7 @@ object Keywords {
   val jobOfferWords: Seq[String] = config.job
   val unrelatedWords: Seq[String] = config.unrelated
   val versionReleaseWords: Seq[String] = config.version
+  val videoWords: Seq[String] = config.video
+  val videoDomains: Seq[String] = config.videodomains
 
 }

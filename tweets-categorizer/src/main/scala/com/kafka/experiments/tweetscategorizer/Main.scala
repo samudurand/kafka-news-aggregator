@@ -24,6 +24,7 @@ object Main extends App with StrictLogging {
   val sinkDroppedTopic = "dropped_tweets"
   val sinkInterestingTopic = "interesting_tweets"
   val sinkVersionTopic = "version_tweets"
+  val sinkVideoTopic = "video_tweets"
 
   val props = new Properties()
   props.put(StreamsConfig.APPLICATION_ID_CONFIG, "tweets-categorizer")
@@ -64,6 +65,13 @@ object Main extends App with StrictLogging {
       case _                        => None
     }
     .to(sinkAudioTopic)
+
+  classifiedTweets
+    .flatMap[String, String] {
+      case (key, tweet: VideoTweet) => Some((key, tweet.asJson.noSpaces))
+      case _                        => None
+    }
+    .to(sinkVideoTopic)
 
   classifiedTweets
     .flatMap[String, String] {

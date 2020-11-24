@@ -30,6 +30,18 @@ case class AudioTweet(
     createdAt: String
 ) extends CategorisedTweet
 
+object VideoTweet {
+  val typeName = "video"
+  implicit val codec: Codec[VideoTweet] = deriveCodec
+}
+
+case class VideoTweet(
+    id: String,
+    text: String,
+    user: String,
+    createdAt: String
+) extends CategorisedTweet
+
 object VersionReleaseTweet {
   val typeName = "version"
   implicit val codec: Codec[VersionReleaseTweet] = deriveCodec
