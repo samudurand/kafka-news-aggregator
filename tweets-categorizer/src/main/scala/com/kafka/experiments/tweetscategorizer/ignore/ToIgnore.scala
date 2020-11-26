@@ -1,7 +1,7 @@
 package com.kafka.experiments.tweetscategorizer.ignore
 
 import com.kafka.experiments.tweetscategorizer.KnownSources.hasSourceToBeIgnored
-import com.kafka.experiments.tweetscategorizer.TextUtils.textLoweredCaseContainAnyOf
+import com.kafka.experiments.tweetscategorizer.TextUtils.{textContainAtLeastOneNumber, textLoweredCaseContainAnyOf}
 import com.kafka.experiments.tweetscategorizer.{Keywords, Tweet}
 import com.kafka.experiments.tweetscategorizer.ignore.FranzKafkaWriter.isAboutFranzKafka
 
@@ -13,6 +13,7 @@ object ToIgnore {
   val reasonIsAboutFranzKafka = "IS_ABOUT_F_KAFKA"
   val reasonIsAnAd = "IS_AN_AD"
   val reasonIsAJobOffer = "IS_A_JOB_OFFER"
+  val reasonIsDiscountRelated = "IS_DISCOUNT_RELATED"
   val reasonIsMoneyRelated = "IS_MONEY_RELATED"
   val reasonIsNotInEnglish = "IS_NOT_IN_ENGLISH"
   val reasonIsTooShort = "IS_TOO_SHORT"
@@ -32,6 +33,7 @@ object ToIgnore {
       case t if isAboutFranzKafka(t) => Some(reasonIsAboutFranzKafka)
       case t if isAnAdvertisement(t) => Some(reasonIsAnAd)
       case t if isAJobOffer(t) => Some(reasonIsAJobOffer)
+      case t if isDiscountRelated(t) => Some(reasonIsDiscountRelated)
       case t if isMoneyRelated(t) => Some(reasonIsMoneyRelated)
       case t if isNotInEnglish(t) => Some(reasonIsNotInEnglish)
       case t if isTooShort(t) => Some(reasonIsTooShort)
@@ -59,6 +61,10 @@ object ToIgnore {
 
   private def isAJobOffer(tweet: Tweet) = {
     textLoweredCaseContainAnyOf(tweet.Text, Keywords.jobOfferWords)
+  }
+
+  private def isDiscountRelated(tweet: Tweet) = {
+    textLoweredCaseContainAnyOf(tweet.Text, Keywords.discountWords)
   }
 
   private def isMoneyRelated(tweet: Tweet) = {

@@ -56,6 +56,11 @@ class CategorizerTest extends AnyFlatSpec with Matchers {
     categorize(tweet) shouldBe a[ArticleTweet]
   }
 
+  "A Tweet containing a link to a known article domain" should "be identified as article related" in {
+    val tweet = goodTweet.copy(URLEntities = List(URLEntity("http://tinylink.com", "https://dzone.com/some/article")))
+    categorize(tweet) shouldBe a[ArticleTweet]
+  }
+
   "A tweet thas has no category nor even a link" should "not be considered interesting" in {
     val tweet = goodTweet.copy(Text = "nothing special", URLEntities = List())
     categorize(tweet) shouldBe a[DroppedTweet]

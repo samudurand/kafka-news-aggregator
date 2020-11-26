@@ -30,6 +30,8 @@ object CountResult {
 }
 case class CountResult(count: Long)
 
+object TargetCategoryQueryParamMatcher extends QueryParamDecoderMatcher[String]("targetCategory")
+
 object Main extends IOApp with StrictLogging {
 
   private val config = ConfigSource.default.loadOrThrow[GlobalConfig]
@@ -65,6 +67,9 @@ object Main extends IOApp with StrictLogging {
 
       case DELETE -> Root / category / tweetId =>
         mongoService.delete(category, tweetId).flatMap(_ => Ok("Deleted"))
+
+      case PUT -> Root / "examinate" / tweetId =>
+        mongoService.moveForExamination(tweetId).flatMap(_ => Ok("Moved To Examinate collection"))
     }
 
   def run(args: List[String]): IO[ExitCode] =

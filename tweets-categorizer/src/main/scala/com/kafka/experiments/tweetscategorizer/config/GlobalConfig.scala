@@ -6,7 +6,9 @@ case class SourceConfig(ignored: List[String])
 
 case class KeywordsConfig(
     article: Seq[String],
+    articledomains: Seq[String],
     audio: Seq[String],
+    discount: Seq[String],
     fkafka: Seq[String],
     job: Seq[String],
     unrelated: Seq[String],

@@ -11,6 +11,7 @@ import org.mongodb.scala.model.Sorts.{descending, orderBy}
 import org.mongodb.scala.{Document, MongoClient, MongoCollection}
 
 trait MongoService {
+
   def interestingTweets(): IO[Seq[InterestingTweet]]
 
   def audioTweets(): IO[Seq[AudioTweet]]
@@ -24,6 +25,8 @@ trait MongoService {
   def droppedTweets(): IO[Seq[DroppedTweet]]
 
   def tweetsCount(category: String): IO[Long]
+
+  def moveForExamination(tweetId: String): IO[Unit]
 
   def delete(category: String, tweetId: String): IO[Unit]
 }
@@ -54,6 +57,7 @@ class DefaultMongoService(config: MongodbConfig)(implicit c: ContextShift[IO]) e
   private val collArticleTweets = database.getCollection(config.collArticle)
   private val collVersionTweets = database.getCollection(config.collVersion)
   private val collInterestingTweets = database.getCollection(config.collInteresting)
+  private val collExaminateTweets = database.getCollection(config.collInteresting)
 
   private val maxResults = 5
   private val createdAtField = "createdAt"
@@ -114,6 +118,12 @@ class DefaultMongoService(config: MongodbConfig)(implicit c: ContextShift[IO]) e
       .limit(maxResults)
       .toFuture()
     IO.fromFuture(IO(tweets))
+  }
+
+  override def moveForExamination(tweetId: String): IO[Unit] = {
+    val result = collDroppedTweets.findOneAndDelete(Document("id" -> BsonString(tweetId)))
+      .map(tweetDocument => collExaminateTweets.insertOne(tweetDocument))
+    IO.fromFuture(IO(result.toFuture())).map(_ => ())
   }
 
   override def delete(category: String, tweetId: String): IO[Unit] = {

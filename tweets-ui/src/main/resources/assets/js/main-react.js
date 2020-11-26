@@ -16,6 +16,7 @@ class LikeButton extends React.Component {
 
         this.deleteTweet = this.deleteTweet.bind(this);
         this.downloadTxtFile = this.downloadTxtFile.bind(this);
+        this.moveForExamination = this.moveForExamination.bind(this);
         this.retrieveTweetsByCategory = this.retrieveTweetsByCategory.bind(this);
         this.retrieveTweetsCountByCategory = this.retrieveTweetsCountByCategory.bind(this);
     }
@@ -84,7 +85,7 @@ class LikeButton extends React.Component {
         } = this.state;
 
         return (
-            <ReactBootstrap.Container>
+            <ReactBootstrap.Container fluid>
                 <ReactBootstrap.Row>
                     <ReactBootstrap.Col>
                         <ReactBootstrap.Button className="mb-2" variant="primary" onClick={this.downloadTxtFile}>
@@ -129,8 +130,9 @@ class LikeButton extends React.Component {
                 <th>Text</th>
                 <th>User</th>
                 {/*<th>Link</th>*/}
-                <th>Action</th>
-                { reasonCol ? <th>Reason</th> : '' }
+                {reasonCol ? <th>Move</th> : ''}
+                <th>Delete</th>
+                {reasonCol ? <th>Reason</th> : ''}
             </tr>
             </thead>
             <tbody>
@@ -143,12 +145,19 @@ class LikeButton extends React.Component {
                         {/*<td>*/}
                         {/*    <a target="_blank" href={`https://twitter.com/${tweet.user}/status/${tweet.id}`}>Link</a>*/}
                         {/*</td>*/}
+                        {reasonCol ? <td>
+                            <ReactBootstrap.Button className="mb-2" variant="warning"
+                                                   onClick={() => this.moveForExamination(tweet.id)}>
+                                Move
+                            </ReactBootstrap.Button>
+                        </td> : ''}
                         <td>
-                            <ReactBootstrap.Button variant="danger" onClick={() => this.deleteTweet(category, tweet.id)}>
+                            <ReactBootstrap.Button variant="danger"
+                                                   onClick={() => this.deleteTweet(category, tweet.id)}>
                                 Del
                             </ReactBootstrap.Button>
                         </td>
-                        { reasonCol ? <td>{tweet.reason.substr(0, 17)}</td> : '' }
+                        {reasonCol ? <td>{tweet.reason.substr(0, 17)}</td> : ''}
                     </tr>
                 )
             }
@@ -162,6 +171,18 @@ class LikeButton extends React.Component {
                 (res) => {
                     this.retrieveTweetsByCategory(category, `${category}Tweets`)
                     this.retrieveTweetsCountByCategory(category, `${category}Count`)
+                },
+                (error) => {
+                }
+            )
+    }
+
+    moveForExamination(tweetId) {
+        fetch(`/api/examinate/${tweetId}`, {method: "PUT"})
+            .then(
+                (res) => {
+                    this.retrieveTweetsByCategory("dropped", "droppedTweets")
+                    this.retrieveTweetsCountByCategory("dropped", "droppedCount")
                 },
                 (error) => {
                 }

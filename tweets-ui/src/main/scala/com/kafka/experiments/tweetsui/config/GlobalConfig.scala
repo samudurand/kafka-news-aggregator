@@ -11,7 +11,8 @@ case class MongodbConfig(
     collVideo: String,
     collArticle: String,
     collVersion: String,
-    collInteresting: String
+    collInteresting: String,
+    collExaminate: String
 )
 
 case class ServerConfig(port: Int)
