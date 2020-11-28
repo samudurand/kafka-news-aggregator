@@ -22,12 +22,12 @@ import org.apache.kafka.streams.{KafkaStreams, StreamsConfig}
 object Main extends App with StrictLogging {
 
   val sourceTopic = "kafka_tweets"
-  val sinkArticleTopic = "article_tweets"
-  val sinkAudioTopic = "audio_tweets"
-  val sinkExcludedTopic = "excluded_tweets"
-  val sinkInterestingTopic = "interesting_tweets"
-  val sinkVersionTopic = "version_tweets"
-  val sinkVideoTopic = "video_tweets"
+  val sinkArticleTopic = "category_article"
+  val sinkAudioTopic = "category_audio"
+  val sinkExcludedTopic = "category_excluded"
+  val sinkInterestingTopic = "category_interesting"
+  val sinkVersionTopic = "category_version"
+  val sinkVideoTopic = "category_video"
 
   val props = new Properties()
   props.put(StreamsConfig.APPLICATION_ID_CONFIG, "tweets-categorizer")

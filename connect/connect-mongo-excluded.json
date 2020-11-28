@@ -3,7 +3,7 @@
   "config": {
     "connector.class": "com.mongodb.kafka.connect.MongoSinkConnector",
     "tasks.max": "1",
-    "topics": "excluded_tweets",
+    "topics": "category_excluded",
     "connection.uri": "mongodb://mongo:27017",
     "database": "tweets",
     "collection": "excluded",
