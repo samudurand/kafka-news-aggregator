@@ -22,7 +22,7 @@ trait MongoService {
 
   def versionTweets(): IO[Seq[VersionReleaseTweet]]
 
-  def droppedTweets(): IO[Seq[DroppedTweet]]
+  def excludedTweets(): IO[Seq[ExcludedTweet]]
 
   def tweetsCount(category: String): IO[Long]
 
@@ -41,7 +41,7 @@ class DefaultMongoService(config: MongodbConfig)(implicit c: ContextShift[IO]) e
     classOf[ArticleTweet],
     classOf[AudioTweet],
     classOf[VideoTweet],
-    classOf[DroppedTweet],
+    classOf[ExcludedTweet],
     classOf[InterestingTweet],
     classOf[VersionReleaseTweet]
   )
@@ -57,7 +57,7 @@ class DefaultMongoService(config: MongodbConfig)(implicit c: ContextShift[IO]) e
   private val collVersionTweets = database.getCollection(config.collVersion)
   private val collVideoTweets = database.getCollection(config.collVideo)
 
-  private val collDroppedTweets = database.getCollection(config.collDropped)
+  private val collExcludedTweets = database.getCollection(config.collExcluded)
   private val collExaminateTweets = database.getCollection(config.collInteresting)
   private val collPromotionTweets = database.getCollection(config.collPromotion)
 
@@ -113,9 +113,9 @@ class DefaultMongoService(config: MongodbConfig)(implicit c: ContextShift[IO]) e
     IO.fromFuture(IO(collectionFromCategory(category).countDocuments().toFuture()))
   }
 
-  override def droppedTweets(): IO[Seq[DroppedTweet]] = {
-    val tweets = collDroppedTweets
-      .find[DroppedTweet]()
+  override def excludedTweets(): IO[Seq[ExcludedTweet]] = {
+    val tweets = collExcludedTweets
+      .find[ExcludedTweet]()
       .sort(orderBy(descending(createdAtField)))
       .limit(maxResults)
       .toFuture()
@@ -139,7 +139,7 @@ class DefaultMongoService(config: MongodbConfig)(implicit c: ContextShift[IO]) e
     category match {
       case ArticleTweet.typeName        => collArticleTweets
       case AudioTweet.typeName          => collAudioTweets
-      case DroppedTweet.typeName        => collDroppedTweets
+      case ExcludedTweet.typeName        => collExcludedTweets
       case config.collExaminate         => collExaminateTweets
       case InterestingTweet.typeName    => collInterestingTweets
       case config.collPromotion         => collPromotionTweets

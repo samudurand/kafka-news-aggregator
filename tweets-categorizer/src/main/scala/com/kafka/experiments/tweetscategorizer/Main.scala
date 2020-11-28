@@ -6,7 +6,7 @@ import java.util.Properties
 import com.kafka.experiments.shared._
 import com.kafka.experiments.tweetscategorizer.Tweet.codec
 import com.kafka.experiments.tweetscategorizer.categorize.Categorizer
-import com.kafka.experiments.tweetscategorizer.ignore.ToDrop.shouldBeDropped
+import com.kafka.experiments.tweetscategorizer.ignore.ToExclude.shouldBeExcluded
 import com.kafka.experiments.tweetscategorizer.ignore.ToSkip.{logger, shouldBeSkipped}
 import com.typesafe.scalalogging.StrictLogging
 import io.circe.parser.decode
@@ -23,7 +23,7 @@ object Main extends App with StrictLogging {
   val sourceTopic = "kafka_tweets"
   val sinkArticleTopic = "article_tweets"
   val sinkAudioTopic = "audio_tweets"
-  val sinkDroppedTopic = "dropped_tweets"
+  val sinkExcludedTopic = "excluded_tweets"
   val sinkInterestingTopic = "interesting_tweets"
   val sinkVersionTopic = "version_tweets"
   val sinkVideoTopic = "video_tweets"
@@ -41,20 +41,20 @@ object Main extends App with StrictLogging {
   val classifiedTweets = tweets
     .filterNot((_, tweet) => shouldBeSkipped(tweet))
     .mapValues(tweet => {
-      shouldBeDropped(tweet) match {
+      shouldBeExcluded(tweet) match {
         case Some(reason) =>
-          logger.info(s"Tweet should be be dropped for reason [$reason]: $tweet")
-          DroppedTweet(tweet.Id.toString, reason, tweet.Text, tweet.User.ScreenName, tweet.CreatedAt.toString)
+          logger.info(s"Tweet should be be excluded for reason [$reason]: $tweet")
+          ExcludedTweet(tweet.Id.toString, reason, tweet.Text, tweet.User.ScreenName, tweet.CreatedAt.toString)
         case None => Categorizer.categorize(tweet)
       }
     })
 
   classifiedTweets
     .flatMap[String, String] {
-      case (key, tweet: DroppedTweet) => Some((key, tweet.asJson.noSpaces))
+      case (key, tweet: ExcludedTweet) => Some((key, tweet.asJson.noSpaces))
       case _                          => None
     }
-    .to(sinkDroppedTopic)
+    .to(sinkExcludedTopic)
 
   classifiedTweets
     .flatMap[String, String] {

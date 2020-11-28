@@ -1,12 +1,12 @@
 {
-  "name": "mongo_sink_dropped",
+  "name": "mongo_sink_excluded",
   "config": {
     "connector.class": "com.mongodb.kafka.connect.MongoSinkConnector",
     "tasks.max": "1",
-    "topics": "dropped_tweets",
+    "topics": "excluded_tweets",
     "connection.uri": "mongodb://mongo:27017",
     "database": "tweets",
-    "collection": "dropped",
+    "collection": "excluded",
     "key.converter": "org.apache.kafka.connect.storage.StringConverter",
     "value.converter": "org.apache.kafka.connect.json.JsonConverter",
     "value.converter.schemas.enable": "false"

@@ -1,11 +1,11 @@
 package com.kafka.experiments.tweetscategorizer.ignore
 
-import com.kafka.experiments.tweetscategorizer.KnownSources.hasSourceToBeDropped
+import com.kafka.experiments.tweetscategorizer.KnownSources.hasSourceToBeExcluded
 import com.kafka.experiments.tweetscategorizer.TextUtils.{textContainAtLeastOneNumber, textLoweredCaseContainAnyOf}
 import com.kafka.experiments.tweetscategorizer.{Keywords, Tweet}
 import com.kafka.experiments.tweetscategorizer.ignore.FranzKafkaWriter.isAboutFranzKafka
 
-object ToDrop {
+object ToExclude {
 
   val reasonDoesNotMentionKafka = "NO_KAFKA_MENTION"
   val reasonIsAboutAGame = "IS_ABOUT_A_GAME"
@@ -16,16 +16,16 @@ object ToDrop {
   val reasonIsDiscountRelated = "IS_DISCOUNT_RELATED"
   val reasonIsMoneyRelated = "IS_MONEY_RELATED"
   val reasonIsTooShort = "IS_TOO_SHORT"
-  val reasonHasSourceToBeDropped = "HAS_SOURCE_TO_BE_DROPPED"
+  val reasonHasSourceToBeExcluded = "HAS_SOURCE_TO_BE_EXCLUDED"
   val reasonHasUnrelatedWords = "HAS_UNRELATED_WORDS"
 
   /**
-   * @return the reason why it should be dropped
+   * @return the reason why it should be excluded
    */
-  def shouldBeDropped(tweet: Tweet): Option[String] = {
+  def shouldBeExcluded(tweet: Tweet): Option[String] = {
     tweet match {
       case t if doesNotMentionKafka(t) => Some(reasonDoesNotMentionKafka)
-      case t if hasSourceToBeDropped(t) => Some(reasonHasSourceToBeDropped)
+      case t if hasSourceToBeExcluded(t) => Some(reasonHasSourceToBeExcluded)
       case t if hasUnrelatedWords(t) => Some(reasonHasUnrelatedWords)
       case t if isAboutACertification(t) => Some(reasonIsAboutACertification)
       case t if isAboutAGame(t) => Some(reasonIsAboutAGame)

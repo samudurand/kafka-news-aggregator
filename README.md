@@ -41,7 +41,7 @@ curl -s -X PUT http://localhost:8083/connectors/twitter_source/resume
 | Topic              | Usage                                                  | 
 | ------------------ |:------------------------------------------------------:|
 | kafka_tweets       | receives the tweets collected by the Twitter connector |
-| dropped_tweets     |       |
+| excluded_tweets     |       |
 | interesting_tweets |      |
 
 ### Tweets Categorizer

@@ -20,22 +20,22 @@ class ToSkipTest extends AnyFlatSpec with Matchers {
     User(1234124134L, "someuser")
   )
 
-  "A tweet in english" should "not be dropped" in {
+  "A tweet in english" should "not be excluded" in {
     val tweet = goodTweet.copy(Lang = Some("en"))
     shouldBeSkipped(tweet) shouldBe false
   }
 
-  "A tweet in english" should "not be dropped disregarding the casing" in {
+  "A tweet in english" should "not be excluded disregarding the casing" in {
     val tweet = goodTweet.copy(Lang = Some("eN"))
     shouldBeSkipped(tweet) shouldBe false
   }
 
-  "A tweet without a language" should "be dropped" in {
+  "A tweet without a language" should "not be excluded" in {
     val tweet = goodTweet.copy(Lang = None)
-    shouldBeSkipped(tweet) shouldBe true
+    shouldBeSkipped(tweet) shouldBe false
   }
 
-  "A tweet not in english" should "be dropped" in {
+  "A tweet not in english" should "be excluded" in {
     val tweet = goodTweet.copy(Lang = Some("fr"))
     shouldBeSkipped(tweet) shouldBe true
   }

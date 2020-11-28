@@ -5,7 +5,7 @@ case class GlobalConfig(mongodb: MongodbConfig, server: ServerConfig)
 case class MongodbConfig(
     collArticle: String,
     collAudio: String,
-    collDropped: String,
+    collExcluded: String,
     collExaminate: String,
     collInteresting: String,
     collPromotion: String,

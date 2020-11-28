@@ -2,7 +2,7 @@ package com.kafka.experiments.tweetscategorizer.config
 
 case class GlobalConfig(sources: SourceConfig, keywords: KeywordsConfig)
 
-case class SourceConfig(accepted: List[String], dropped: List[String])
+case class SourceConfig(accepted: List[String], excluded: List[String])
 
 case class KeywordsConfig(
     article: Seq[String],

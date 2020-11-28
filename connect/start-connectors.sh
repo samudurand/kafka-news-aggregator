@@ -14,6 +14,6 @@ curl -s -o /dev/null -v -X POST -H 'Content-Type: application/json' --data "$con
 curl -s -o /dev/null -v -X POST -H 'Content-Type: application/json' --data @connect/connect-mongo-interesting.json http://localhost:8083/connectors 2>&1
 curl -s -o /dev/null -v -X POST -H 'Content-Type: application/json' --data @connect/connect-mongo-audio.json http://localhost:8083/connectors 2>&1
 curl -s -o /dev/null -v -X POST -H 'Content-Type: application/json' --data @connect/connect-mongo-article.json http://localhost:8083/connectors 2>&1
-curl -s -o /dev/null -v -X POST -H 'Content-Type: application/json' --data @connect/connect-mongo-dropped.json http://localhost:8083/connectors 2>&1
+curl -s -o /dev/null -v -X POST -H 'Content-Type: application/json' --data @connect/connect-mongo-excluded.json http://localhost:8083/connectors 2>&1
 curl -s -o /dev/null -v -X POST -H 'Content-Type: application/json' --data @connect/connect-mongo-version.json http://localhost:8083/connectors 2>&1
 curl -s -o /dev/null -v -X POST -H 'Content-Type: application/json' --data @connect/connect-mongo-video.json http://localhost:8083/connectors 2>&1

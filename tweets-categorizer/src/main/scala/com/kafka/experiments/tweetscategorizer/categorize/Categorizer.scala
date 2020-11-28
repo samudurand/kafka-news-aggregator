@@ -22,7 +22,7 @@ object Categorizer {
       case t if hasLink(t) =>
         InterestingTweet(tweet.Id.toString, tweet.Text, tweet.User.ScreenName, tweet.CreatedAt.toString)
       case _ =>
-        DroppedTweet(tweet.Id.toString, reasonHasNoLink, tweet.Text, tweet.User.ScreenName, tweet.CreatedAt.toString)
+        ExcludedTweet(tweet.Id.toString, reasonHasNoLink, tweet.Text, tweet.User.ScreenName, tweet.CreatedAt.toString)
     }
   }
 

@@ -11,7 +11,7 @@ class LikeButton extends React.Component {
             versionTweets: [],
             interestingTweets: [],
             videoTweets: [],
-            droppedTweets: []
+            excludedTweets: []
         };
 
         this.deleteTweet = this.deleteTweet.bind(this);
@@ -27,14 +27,14 @@ class LikeButton extends React.Component {
         this.retrieveTweetsCountByCategory("version", "versionCount");
         this.retrieveTweetsCountByCategory("video", "videoCount");
         this.retrieveTweetsCountByCategory("interesting", "interestingCount");
-        this.retrieveTweetsCountByCategory("dropped", "droppedCount");
+        this.retrieveTweetsCountByCategory("excluded", "excludedCount");
 
         this.retrieveTweetsByCategory("audio", "audioTweets");
         this.retrieveTweetsByCategory("article", "articleTweets");
         this.retrieveTweetsByCategory("version", "versionTweets");
         this.retrieveTweetsByCategory("video", "videoTweets");
         this.retrieveTweetsByCategory("interesting", "interestingTweets");
-        this.retrieveTweetsByCategory("dropped", "droppedTweets");
+        this.retrieveTweetsByCategory("excluded", "excludedTweets");
     }
 
     retrieveTweetsByCategory(category, listName) {
@@ -74,14 +74,14 @@ class LikeButton extends React.Component {
             articleCount,
             versionCount,
             interestingCount,
-            droppedCount,
+            excludedCount,
 
             audioTweets,
             videoTweets,
             articleTweets,
             versionTweets,
             interestingTweets,
-            droppedTweets
+            excludedTweets
         } = this.state;
 
         return (
@@ -101,7 +101,7 @@ class LikeButton extends React.Component {
                             {this.tweetsCard("article", "2", "Article", articleCount, articleTweets)}
                             {this.tweetsCard("version", "3", "Version", versionCount, versionTweets)}
                             {this.tweetsCard("interesting", "4", "Interesting", interestingCount, interestingTweets)}
-                            {this.tweetsCard("dropped", "5", "Dropped", droppedCount, droppedTweets)}
+                            {this.tweetsCard("excluded", "5", "Excluded", excludedCount, excludedTweets)}
                         </ReactBootstrap.Accordion>
                     </ReactBootstrap.Col>
                 </ReactBootstrap.Row>
@@ -122,7 +122,7 @@ class LikeButton extends React.Component {
     }
 
     tweetsTable(category, tweets) {
-        const reasonCol = (category === "dropped")
+        const reasonCol = (category === "excluded")
         return <ReactBootstrap.Table striped bordered hover>
             <thead>
             <tr>
@@ -148,7 +148,7 @@ class LikeButton extends React.Component {
                         {reasonCol ?
                             <td>
                                 <ReactBootstrap.Button className="mb-2" variant="warning"
-                                                       onClick={() => this.moveCategory("dropped", "examinate", tweet.id)}>
+                                                       onClick={() => this.moveCategory("excluded", "examinate", tweet.id)}>
                                     Move
                                 </ReactBootstrap.Button>
                             </td> :

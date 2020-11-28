@@ -15,7 +15,7 @@ object ToSkip extends StrictLogging {
   }
 
   private def isNotInEnglish(tweet: Tweet) = {
-    !tweet.Lang.getOrElse("").toLowerCase.equals("en")
+    tweet.Lang.isDefined && !tweet.Lang.getOrElse("").toLowerCase.equals("en")
   }
 
 }

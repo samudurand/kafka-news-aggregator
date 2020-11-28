@@ -1,6 +1,6 @@
 package com.kafka.experiments.tweetscategorizer.categorize
 
-import com.kafka.experiments.shared.{ArticleTweet, AudioTweet, DroppedTweet, VersionReleaseTweet, VideoTweet}
+import com.kafka.experiments.shared.{ArticleTweet, AudioTweet, ExcludedTweet, VersionReleaseTweet, VideoTweet}
 import com.kafka.experiments.tweetscategorizer.categorize.Categorizer.categorize
 import com.kafka.experiments.tweetscategorizer.{Tweet, URLEntity, User}
 import org.scalatest.flatspec.AnyFlatSpec
@@ -63,7 +63,7 @@ class CategorizerTest extends AnyFlatSpec with Matchers {
 
   "A tweet thas has no category nor even a link" should "not be considered interesting" in {
     val tweet = goodTweet.copy(Text = "nothing special", URLEntities = List())
-    categorize(tweet) shouldBe a[DroppedTweet]
+    categorize(tweet) shouldBe a[ExcludedTweet]
   }
 
 }

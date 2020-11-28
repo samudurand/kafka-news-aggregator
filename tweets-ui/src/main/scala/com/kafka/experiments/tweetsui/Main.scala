@@ -4,7 +4,7 @@ import cats.effect.{Blocker, ExitCode, IO, IOApp, Resource}
 import com.kafka.experiments.shared.{
   ArticleTweet,
   AudioTweet,
-  DroppedTweet,
+  ExcludedTweet,
   InterestingTweet,
   VersionReleaseTweet,
   VideoTweet
@@ -53,15 +53,15 @@ object Main extends IOApp with StrictLogging {
             mongoService.articleTweets().flatMap(Ok(_))
           case VersionReleaseTweet.typeName =>
             mongoService.versionTweets().flatMap(Ok(_))
-          case DroppedTweet.typeName =>
-            mongoService.droppedTweets().flatMap(Ok(_))
+          case ExcludedTweet.typeName =>
+            mongoService.excludedTweets().flatMap(Ok(_))
           case _ => BadRequest()
         }
 
       case GET -> Root / category / "count" =>
         category match {
           case InterestingTweet.typeName | AudioTweet.typeName | VideoTweet.typeName | ArticleTweet.typeName |
-              VersionReleaseTweet.typeName | DroppedTweet.typeName =>
+              VersionReleaseTweet.typeName | ExcludedTweet.typeName =>
             mongoService.tweetsCount(category).flatMap(count => Ok(CountResult(count)))
           case _ => BadRequest()
         }

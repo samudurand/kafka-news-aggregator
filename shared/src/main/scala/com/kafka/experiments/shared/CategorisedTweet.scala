@@ -5,12 +5,12 @@ import io.circe.generic.semiauto.deriveCodec
 
 trait CategorisedTweet
 
-object DroppedTweet {
-  val typeName = "dropped"
-  implicit val codec: Codec[DroppedTweet] = deriveCodec
+object ExcludedTweet {
+  val typeName = "excluded"
+  implicit val codec: Codec[ExcludedTweet] = deriveCodec
 }
 
-case class DroppedTweet(
+case class ExcludedTweet(
     id: String,
     reason: String,
     text: String,
