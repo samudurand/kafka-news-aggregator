@@ -10,19 +10,11 @@ import org.mongodb.scala.bson.codecs.Macros._
 import org.mongodb.scala.model.Sorts.{descending, orderBy}
 import org.mongodb.scala.{Document, MongoClient, MongoCollection}
 
+import scala.reflect.ClassTag
+
 trait MongoService {
 
-  def interestingTweets(): IO[Seq[InterestingTweet]]
-
-  def audioTweets(): IO[Seq[AudioTweet]]
-
-  def videoTweets(): IO[Seq[VideoTweet]]
-
-  def articleTweets(): IO[Seq[ArticleTweet]]
-
-  def versionTweets(): IO[Seq[VersionReleaseTweet]]
-
-  def excludedTweets(): IO[Seq[ExcludedTweet]]
+  def tweets[T](category: String)(implicit ct: ClassTag[T]): IO[Seq[T]]
 
   def tweetsCount(category: String): IO[Long]
 
@@ -64,45 +56,9 @@ class DefaultMongoService(config: MongodbConfig)(implicit c: ContextShift[IO]) e
   private val maxResults = 5
   private val createdAtField = "createdAt"
 
-  override def interestingTweets(): IO[Seq[InterestingTweet]] = {
-    val tweets = collInterestingTweets
-      .find[InterestingTweet]()
-      .sort(orderBy(descending(createdAtField)))
-      .limit(maxResults)
-      .toFuture()
-    IO.fromFuture(IO(tweets))
-  }
-
-  override def audioTweets(): IO[Seq[AudioTweet]] = {
-    val tweets = collAudioTweets
-      .find[AudioTweet]()
-      .sort(orderBy(descending(createdAtField)))
-      .limit(maxResults)
-      .toFuture()
-    IO.fromFuture(IO(tweets))
-  }
-
-  override def videoTweets(): IO[Seq[VideoTweet]] = {
-    val tweets = collVideoTweets
-      .find[VideoTweet]()
-      .sort(orderBy(descending(createdAtField)))
-      .limit(maxResults)
-      .toFuture()
-    IO.fromFuture(IO(tweets))
-  }
-
-  override def articleTweets(): IO[Seq[ArticleTweet]] = {
-    val tweets = collArticleTweets
-      .find[ArticleTweet]()
-      .sort(orderBy(descending(createdAtField)))
-      .limit(maxResults)
-      .toFuture()
-    IO.fromFuture(IO(tweets))
-  }
-
-  override def versionTweets(): IO[Seq[VersionReleaseTweet]] = {
-    val tweets = collVersionTweets
-      .find[VersionReleaseTweet]()
+  override def tweets[T](category: String)(implicit ct: ClassTag[T]): IO[Seq[T]] = {
+    val tweets = collectionFromCategory(category)
+      .find[T]()
       .sort(orderBy(descending(createdAtField)))
       .limit(maxResults)
       .toFuture()
@@ -111,15 +67,6 @@ class DefaultMongoService(config: MongodbConfig)(implicit c: ContextShift[IO]) e
 
   override def tweetsCount(category: String): IO[Long] = {
     IO.fromFuture(IO(collectionFromCategory(category).countDocuments().toFuture()))
-  }
-
-  override def excludedTweets(): IO[Seq[ExcludedTweet]] = {
-    val tweets = collExcludedTweets
-      .find[ExcludedTweet]()
-      .sort(orderBy(descending(createdAtField)))
-      .limit(maxResults)
-      .toFuture()
-    IO.fromFuture(IO(tweets))
   }
 
   override def move(sourceColl: String, targetColl: String, tweetId: String): IO[Unit] = {
@@ -139,7 +86,7 @@ class DefaultMongoService(config: MongodbConfig)(implicit c: ContextShift[IO]) e
     category match {
       case ArticleTweet.typeName        => collArticleTweets
       case AudioTweet.typeName          => collAudioTweets
-      case ExcludedTweet.typeName        => collExcludedTweets
+      case ExcludedTweet.typeName       => collExcludedTweets
       case config.collExaminate         => collExaminateTweets
       case InterestingTweet.typeName    => collInterestingTweets
       case config.collPromotion         => collPromotionTweets
