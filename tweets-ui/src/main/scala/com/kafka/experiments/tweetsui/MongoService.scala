@@ -26,7 +26,7 @@ trait MongoService {
 
   def tweetsCount(category: String): IO[Long]
 
-  def moveForExamination(tweetId: String): IO[Unit]
+  def move(sourceColl: String, targetColl: String, tweetId: String): IO[Unit]
 
   def delete(category: String, tweetId: String): IO[Unit]
 }
@@ -51,13 +51,15 @@ class DefaultMongoService(config: MongodbConfig)(implicit c: ContextShift[IO]) e
   private val mongoClient = MongoClient(s"mongodb://${config.host}:${config.port}")
   private val database = mongoClient.getDatabase(config.tweetsDb).withCodecRegistry(codecRegistry)
 
-  private val collDroppedTweets = database.getCollection(config.collDropped)
   private val collAudioTweets = database.getCollection(config.collAudio)
-  private val collVideoTweets = database.getCollection(config.collVideo)
   private val collArticleTweets = database.getCollection(config.collArticle)
-  private val collVersionTweets = database.getCollection(config.collVersion)
   private val collInterestingTweets = database.getCollection(config.collInteresting)
+  private val collVersionTweets = database.getCollection(config.collVersion)
+  private val collVideoTweets = database.getCollection(config.collVideo)
+
+  private val collDroppedTweets = database.getCollection(config.collDropped)
   private val collExaminateTweets = database.getCollection(config.collInteresting)
+  private val collPromotionTweets = database.getCollection(config.collPromotion)
 
   private val maxResults = 5
   private val createdAtField = "createdAt"
@@ -120,9 +122,10 @@ class DefaultMongoService(config: MongodbConfig)(implicit c: ContextShift[IO]) e
     IO.fromFuture(IO(tweets))
   }
 
-  override def moveForExamination(tweetId: String): IO[Unit] = {
-    val result = collDroppedTweets.findOneAndDelete(Document("id" -> BsonString(tweetId)))
-      .map(tweetDocument => collExaminateTweets.insertOne(tweetDocument))
+  override def move(sourceColl: String, targetColl: String, tweetId: String): IO[Unit] = {
+    val result = collectionFromCategory(sourceColl)
+      .findOneAndDelete(Document("id" -> BsonString(tweetId)))
+      .map(tweetDocument => collectionFromCategory(targetColl).insertOne(tweetDocument))
     IO.fromFuture(IO(result.toFuture())).map(_ => ())
   }
 
@@ -134,12 +137,14 @@ class DefaultMongoService(config: MongodbConfig)(implicit c: ContextShift[IO]) e
 
   private def collectionFromCategory(category: String): MongoCollection[Document] = {
     category match {
-      case DroppedTweet.typeName        => collDroppedTweets
-      case InterestingTweet.typeName    => collInterestingTweets
-      case AudioTweet.typeName          => collAudioTweets
-      case VideoTweet.typeName          => collVideoTweets
       case ArticleTweet.typeName        => collArticleTweets
+      case AudioTweet.typeName          => collAudioTweets
+      case DroppedTweet.typeName        => collDroppedTweets
+      case config.collExaminate         => collExaminateTweets
+      case InterestingTweet.typeName    => collInterestingTweets
+      case config.collPromotion         => collPromotionTweets
       case VersionReleaseTweet.typeName => collVersionTweets
+      case VideoTweet.typeName          => collVideoTweets
     }
   }
 }

@@ -23,7 +23,7 @@ object ToIgnore {
   /**
    * @return the reason why it should be ignored
    */
-  def shouldBeIgnored(tweet: Tweet): Option[String] = {
+  def shouldBeDropped(tweet: Tweet): Option[String] = {
     tweet match {
       case t if doesNotMentionKafka(t) => Some(reasonDoesNotMentionKafka)
       case t if hasSourceToBeIgnored(t) => Some(reasonHasSourceToBeIgnored)
