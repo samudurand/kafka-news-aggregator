@@ -4,6 +4,7 @@ import java.time.Duration
 import java.util.Properties
 
 import com.kafka.experiments.shared._
+import com.kafka.experiments.tweetscategorizer.KnownSources.hasSourceToBeAutoAccepted
 import com.kafka.experiments.tweetscategorizer.Tweet.codec
 import com.kafka.experiments.tweetscategorizer.categorize.Categorizer
 import com.kafka.experiments.tweetscategorizer.ignore.ToExclude.shouldBeExcluded
@@ -41,11 +42,15 @@ object Main extends App with StrictLogging {
   val classifiedTweets = tweets
     .filterNot((_, tweet) => shouldBeSkipped(tweet))
     .mapValues(tweet => {
-      shouldBeExcluded(tweet) match {
-        case Some(reason) =>
-          logger.info(s"Tweet should be be excluded for reason [$reason]: $tweet")
-          ExcludedTweet(tweet.Id.toString, reason, tweet.Text, tweet.User.ScreenName, tweet.CreatedAt.toString)
-        case None => Categorizer.categorize(tweet)
+      if (hasSourceToBeAutoAccepted(tweet)) {
+        Categorizer.categorize(tweet)
+      } else {
+        shouldBeExcluded(tweet) match {
+          case Some(reason) =>
+            logger.info(s"Tweet should be be excluded for reason [$reason]: $tweet")
+            ExcludedTweet(tweet.Id.toString, reason, tweet.Text, tweet.User.ScreenName, tweet.CreatedAt.toString)
+          case None => Categorizer.categorize(tweet)
+        }
       }
     })
 
