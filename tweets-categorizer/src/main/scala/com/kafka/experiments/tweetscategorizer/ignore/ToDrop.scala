@@ -1,11 +1,11 @@
 package com.kafka.experiments.tweetscategorizer.ignore
 
-import com.kafka.experiments.tweetscategorizer.KnownSources.hasSourceToBeIgnored
+import com.kafka.experiments.tweetscategorizer.KnownSources.hasSourceToBeDropped
 import com.kafka.experiments.tweetscategorizer.TextUtils.{textContainAtLeastOneNumber, textLoweredCaseContainAnyOf}
 import com.kafka.experiments.tweetscategorizer.{Keywords, Tweet}
 import com.kafka.experiments.tweetscategorizer.ignore.FranzKafkaWriter.isAboutFranzKafka
 
-object ToIgnore {
+object ToDrop {
 
   val reasonDoesNotMentionKafka = "NO_KAFKA_MENTION"
   val reasonIsAboutAGame = "IS_ABOUT_A_GAME"
@@ -15,18 +15,17 @@ object ToIgnore {
   val reasonIsAJobOffer = "IS_A_JOB_OFFER"
   val reasonIsDiscountRelated = "IS_DISCOUNT_RELATED"
   val reasonIsMoneyRelated = "IS_MONEY_RELATED"
-  val reasonIsNotInEnglish = "IS_NOT_IN_ENGLISH"
   val reasonIsTooShort = "IS_TOO_SHORT"
-  val reasonHasSourceToBeIgnored = "HAS_SOURCE_TO_BE_IGNORED"
+  val reasonHasSourceToBeDropped = "HAS_SOURCE_TO_BE_DROPPED"
   val reasonHasUnrelatedWords = "HAS_UNRELATED_WORDS"
 
   /**
-   * @return the reason why it should be ignored
+   * @return the reason why it should be dropped
    */
   def shouldBeDropped(tweet: Tweet): Option[String] = {
     tweet match {
       case t if doesNotMentionKafka(t) => Some(reasonDoesNotMentionKafka)
-      case t if hasSourceToBeIgnored(t) => Some(reasonHasSourceToBeIgnored)
+      case t if hasSourceToBeDropped(t) => Some(reasonHasSourceToBeDropped)
       case t if hasUnrelatedWords(t) => Some(reasonHasUnrelatedWords)
       case t if isAboutACertification(t) => Some(reasonIsAboutACertification)
       case t if isAboutAGame(t) => Some(reasonIsAboutAGame)
@@ -35,7 +34,6 @@ object ToIgnore {
       case t if isAJobOffer(t) => Some(reasonIsAJobOffer)
       case t if isDiscountRelated(t) => Some(reasonIsDiscountRelated)
       case t if isMoneyRelated(t) => Some(reasonIsMoneyRelated)
-      case t if isNotInEnglish(t) => Some(reasonIsNotInEnglish)
       case t if isTooShort(t) => Some(reasonIsTooShort)
       case _ => None
     }
@@ -48,10 +46,6 @@ object ToIgnore {
 
   private def doesNotMentionKafka(tweet: Tweet): Boolean = {
     !textLoweredCaseContainAnyOf(tweet.Text, List("kafka"))
-  }
-
-  private def isNotInEnglish(tweet: Tweet) = {
-    !tweet.Lang.getOrElse("").toLowerCase.equals("en")
   }
 
   private def isTooShort(tweet: Tweet) = {

@@ -8,10 +8,15 @@ object KnownSources {
 
   private val config = ConfigSource.default.load[GlobalConfig].getOrElse(throw new Exception("Unable to load config"))
 
-  private val sourcesToBeIgnored = config.sources.ignored
+  private val sourcesToBeDropped = config.sources.dropped
+  private val sourcesToBeAutoAccepted = config.sources.accepted
 
-  def hasSourceToBeIgnored(tweet: Tweet): Boolean = {
-    sourcesToBeIgnored.exists(source => tweet.User.ScreenName.toLowerCase.equals(source.toLowerCase))
+  def hasSourceToBeDropped(tweet: Tweet): Boolean = {
+    sourcesToBeDropped.exists(source => tweet.User.ScreenName.toLowerCase.equals(source.toLowerCase))
+  }
+
+  def hasSourceToBeAutoAccepted(tweet: Tweet): Boolean = {
+    sourcesToBeAutoAccepted.exists(source => tweet.User.ScreenName.toLowerCase.equals(source.toLowerCase))
   }
 
 }

@@ -1,10 +1,10 @@
 package com.kafka.experiments.tweetscategorizer
 
-import com.kafka.experiments.tweetscategorizer.ignore.ToIgnore._
+import com.kafka.experiments.tweetscategorizer.ignore.ToDrop._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-class ToIgnoreTest extends AnyFlatSpec with Matchers {
+class ToDropTest extends AnyFlatSpec with Matchers {
 
   private val goodTweet = Tweet(
     1604688491000L,
@@ -19,81 +19,61 @@ class ToIgnoreTest extends AnyFlatSpec with Matchers {
     User(1234124134L, "someuser")
   )
 
-  "An interesting Tweet" should "not be ignored" in {
+  "An interesting Tweet" should "not be dropped" in {
     shouldBeDropped(goodTweet) shouldBe None
   }
 
-  "A Tweet that doesn't have kafka in the text" should "be ignored" in {
+  "A Tweet that doesn't have kafka in the text" should "be dropped" in {
     val tweet = goodTweet.copy(Text = "no mention of keyword")
     shouldBeDropped(tweet) shouldBe Some(reasonDoesNotMentionKafka)
   }
 
-  "A tweet in english" should "not be ignored" in {
-    val tweet = goodTweet.copy(Lang = Some("en"))
-    shouldBeDropped(tweet) shouldBe None
-  }
-
-  "A tweet in english" should "not be ignored disregarding the casing" in {
-    val tweet = goodTweet.copy(Lang = Some("eN"))
-    shouldBeDropped(tweet) shouldBe None
-  }
-
-  "A tweet without a language" should "be ignored" in {
-    val tweet = goodTweet.copy(Lang = None)
-    shouldBeDropped(tweet) shouldBe Some(reasonIsNotInEnglish)
-  }
-
-  "A tweet not in english" should "be ignored" in {
-    val tweet = goodTweet.copy(Lang = Some("fr"))
-    shouldBeDropped(tweet) shouldBe Some(reasonIsNotInEnglish)
-  }
-
-  "A tweet long enough" should "not be ignored" in {
+  "A tweet long enough" should "not be dropped" in {
     val tweet = goodTweet.copy(Text = "Some long enough #kafka text")
     shouldBeDropped(tweet) shouldBe None
   }
 
-  "A tweet too short" should "be ignored" in {
+  "A tweet too short" should "be dropped" in {
     val tweet = goodTweet.copy(Text = "kafka")
     shouldBeDropped(tweet) shouldBe Some(reasonIsTooShort)
   }
 
-  "A tweet about a job offer" should "be ignored" in {
+  "A tweet about a job offer" should "be dropped" in {
     val tweet = goodTweet.copy(Text = "We are hiring kafka devs!")
     shouldBeDropped(tweet) shouldBe Some(reasonIsAJobOffer)
   }
 
-  "A tweet about a game" should "be ignored" in {
+  "A tweet about a game" should "be dropped" in {
     val tweet = goodTweet.copy(Text = "We just released a great game about Kafka!")
     shouldBeDropped(tweet) shouldBe Some(reasonIsAboutAGame)
   }
 
-  "A tweet mentioning money with xxx$ format" should "be ignored" in {
+  "A tweet mentioning money with xxx$ format" should "be dropped" in {
     val tweet = goodTweet.copy(Text = "Here is your chance to win 1000$ and spend some on kafka!")
     shouldBeDropped(tweet) shouldBe Some(reasonIsMoneyRelated)
   }
 
-  "A tweet mentioning money with $xxxx format" should "be ignored" in {
+  "A tweet mentioning money with $xxxx format" should "be dropped" in {
     val tweet = goodTweet.copy(Text = "Here is your chance to win $1000 and spend some on Kafka!")
     shouldBeDropped(tweet) shouldBe Some(reasonIsMoneyRelated)
   }
 
-  "A tweet about a sale/special deal" should "be ignored" in {
+  "A tweet about a sale/special deal" should "be dropped" in {
     val tweet = goodTweet.copy(Text = "All courses on Kafka cheaper on Black friday!")
     shouldBeDropped(tweet) shouldBe Some(reasonIsMoneyRelated)
   }
 
-  "A tweet about a certification" should "be ignored" in {
+  "A tweet about a certification" should "be dropped" in {
     val tweet = goodTweet.copy(Text = "The best certification on Kafka is there!")
     shouldBeDropped(tweet) shouldBe Some(reasonIsAboutACertification)
   }
 
-  "A tweet which contains an ad" should "be ignored" in {
+  "A tweet which contains an ad" should "be dropped" in {
     val tweet = goodTweet.copy(Text = "[Sponsored] Check out that gread deal on Kafka!")
     shouldBeDropped(tweet) shouldBe Some(reasonIsAnAd)
   }
 
-  "A tweet which has completely unrelated words" should "be ignored" in {
+  "A tweet which has completely unrelated words" should "be dropped" in {
     val tweet = goodTweet.copy(Text = "It's about a Novel on Kafka")
     shouldBeDropped(tweet) shouldBe Some(reasonHasUnrelatedWords)
   }

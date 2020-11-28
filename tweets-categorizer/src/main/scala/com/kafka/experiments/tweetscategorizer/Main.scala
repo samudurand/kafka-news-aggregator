@@ -6,7 +6,8 @@ import java.util.Properties
 import com.kafka.experiments.shared._
 import com.kafka.experiments.tweetscategorizer.Tweet.codec
 import com.kafka.experiments.tweetscategorizer.categorize.Categorizer
-import com.kafka.experiments.tweetscategorizer.ignore.ToIgnore.shouldBeDropped
+import com.kafka.experiments.tweetscategorizer.ignore.ToDrop.shouldBeDropped
+import com.kafka.experiments.tweetscategorizer.ignore.ToSkip.{logger, shouldBeSkipped}
 import com.typesafe.scalalogging.StrictLogging
 import io.circe.parser.decode
 import io.circe.syntax._
@@ -38,10 +39,11 @@ object Main extends App with StrictLogging {
   val tweets = messages.flatMap((key, tweetJson) => parseJsonIntoTweet(key, tweetJson))
 
   val classifiedTweets = tweets
-    .filterNot((_, tweet) => tweet.Retweet) // Skip all retweets
+    .filterNot((_, tweet) => shouldBeSkipped(tweet))
     .mapValues(tweet => {
       shouldBeDropped(tweet) match {
         case Some(reason) =>
+          logger.info(s"Tweet should be be dropped for reason [$reason]: $tweet")
           DroppedTweet(tweet.Id.toString, reason, tweet.Text, tweet.User.ScreenName, tweet.CreatedAt.toString)
         case None => Categorizer.categorize(tweet)
       }
@@ -97,7 +99,7 @@ object Main extends App with StrictLogging {
   }
 
   private def parseJsonIntoTweet(key: String, tweetJson: String) = {
-    println(tweetJson)
+    logger.info(s"Received tweet: $tweetJson")
     decode[Tweet](tweetJson) match {
       case Right(tweet) => Some((key, tweet))
       case Left(error) =>

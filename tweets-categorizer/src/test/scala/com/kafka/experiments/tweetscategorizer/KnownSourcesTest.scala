@@ -19,14 +19,14 @@ class KnownSourcesTest extends AnyFlatSpec with Matchers {
     User(123414114423L, "someuser")
   )
 
-  "A Tweet from a random source" should "not be ignored" in {
+  "A Tweet from a random source" should "not be dropped" in {
     val tweet = goodTweet.copy(User = User(123131413L, "someguy"))
-    hasSourceToBeIgnored(tweet) shouldBe false
+    hasSourceToBeDropped(tweet) shouldBe false
   }
 
-  "A Tweet from a source that should be ignored" should "be identified" in {
+  "A Tweet from a source that should be dropped" should "be identified" in {
     val tweet = goodTweet.copy(User = User(123131413L, "functionalworks"))
-    hasSourceToBeIgnored(tweet) shouldBe true
+    hasSourceToBeDropped(tweet) shouldBe true
   }
 
 }
