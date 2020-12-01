@@ -2,13 +2,11 @@ package com.kafka.experiments.tweetsui
 
 import io.rocketbase.mail.EmailTemplateBuilder
 import io.rocketbase.mail.model.HtmlTextEmail
-import io.rocketbase.mail.model.HtmlTextEmail.HtmlTextEmailBuilder
 
 object ReportBuilder {
 
   def generateReport(): HtmlTextEmail = {
     import io.rocketbase.mail.config.TbConfiguration
-    import io.rocketbase.mail.model.HtmlTextEmail
     import java.math.BigDecimal
     val config = TbConfiguration.newInstance
     config.getContent.setFull(true)
@@ -17,7 +15,7 @@ object ReportBuilder {
     builder
       .configuration(config)
       .header
-      .text("Hello")
+      .text("Kafka Newsletter")
       .and
       .text("Hi {{name}},")
       .and

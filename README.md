@@ -1,3 +1,7 @@
+# Kafka News Aggregator
+
+This project uses data from Twitter (and potentially data from other sources) to find articles and other interesting publications related to Kafka and its ecosystem (articles, videos, version updates...). 
+
 ## Local Setup
 
 ### Dependencies

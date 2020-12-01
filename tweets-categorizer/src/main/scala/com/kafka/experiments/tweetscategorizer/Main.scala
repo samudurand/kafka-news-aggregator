@@ -10,6 +10,7 @@ import com.kafka.experiments.tweetscategorizer.categorize.Categorizer
 import com.kafka.experiments.tweetscategorizer.ignore.ToExclude.shouldBeExcluded
 import com.kafka.experiments.tweetscategorizer.ignore.ToSkip.{logger, shouldBeSkipped}
 import com.typesafe.scalalogging.StrictLogging
+import io.circe.Encoder
 import io.circe.parser.decode
 import io.circe.syntax._
 import org.apache.kafka.clients.consumer.ConsumerConfig
@@ -54,53 +55,33 @@ object Main extends App with StrictLogging {
       }
     })
 
-  classifiedTweets
-    .flatMap[String, String] {
-      case (key, tweet: ExcludedTweet) => Some((key, tweet.asJson.noSpaces))
-      case _                          => None
-    }
-    .to(sinkExcludedTopic)
-
-  classifiedTweets
-    .flatMap[String, String] {
-      case (key, tweet: ArticleTweet) => Some((key, tweet.asJson.noSpaces))
-      case _                          => None
-    }
-    .to(sinkArticleTopic)
-
-  classifiedTweets
-    .flatMap[String, String] {
-      case (key, tweet: AudioTweet) => Some((key, tweet.asJson.noSpaces))
-      case _                        => None
-    }
-    .to(sinkAudioTopic)
-
-  classifiedTweets
-    .flatMap[String, String] {
-      case (key, tweet: VideoTweet) => Some((key, tweet.asJson.noSpaces))
-      case _                        => None
-    }
-    .to(sinkVideoTopic)
-
-  classifiedTweets
-    .flatMap[String, String] {
-      case (key, tweet: VersionReleaseTweet) => Some((key, tweet.asJson.noSpaces))
-      case _                                 => None
-    }
-    .to(sinkVersionTopic)
-
-  classifiedTweets
-    .flatMap[String, String] {
-      case (key, tweet: InterestingTweet) => Some((key, tweet.asJson.noSpaces))
-      case _                              => None
-    }
-    .to(sinkInterestingTopic)
+  toTopicByType[ExcludedTweet](classifiedTweets, sinkExcludedTopic)
+  toTopicByType[ArticleTweet](classifiedTweets, sinkArticleTopic)
+  toTopicByType[AudioTweet](classifiedTweets, sinkAudioTopic)
+  toTopicByType[VideoTweet](classifiedTweets, sinkVideoTopic)
+  toTopicByType[VersionReleaseTweet](classifiedTweets, sinkVersionTopic)
+  toTopicByType[InterestingTweet](classifiedTweets, sinkInterestingTopic)
 
   val streams: KafkaStreams = new KafkaStreams(builder.build(), props)
   streams.start()
 
   sys.ShutdownHookThread {
     streams.close(Duration.ofSeconds(10))
+  }
+
+  // Using Manifest is not good for performance (Reflection)
+  private def toTopicByType[T <: CategorisedTweet: Manifest](
+      tweetsStream: KStream[String, CategorisedTweet],
+      sinkTopic: String
+  )(implicit
+      e: Encoder[T]
+  ): Unit = {
+    tweetsStream
+      .flatMap[String, String] {
+        case (key, tweet: T) => Some((key, tweet.asJson.noSpaces))
+        case _               => None
+      }
+      .to(sinkTopic)
   }
 
   private def parseJsonIntoTweet(key: String, tweetJson: String) = {

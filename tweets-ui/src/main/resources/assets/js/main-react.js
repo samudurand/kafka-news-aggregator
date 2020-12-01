@@ -139,12 +139,9 @@ class LikeButton extends React.Component {
             {
                 tweets.map((tweet) =>
                     <tr key={tweet.id}>
-                        <td>{moment.unix(tweet.createdAt / 1000).format("DD/MM hh:mm")}</td>
+                        <td><a target="_blank" href={`https://twitter.com/${tweet.user}/status/${tweet.id}`}>{moment.unix(tweet.createdAt / 1000).format("DD/MM hh:mm")}</a></td>
                         <td><Linkify>{tweet.text}</Linkify></td>
                         <td>{tweet.user}</td>
-                        {/*<td>*/}
-                        {/*    <a target="_blank" href={`https://twitter.com/${tweet.user}/status/${tweet.id}`}>Link</a>*/}
-                        {/*</td>*/}
                         {reasonCol ?
                             <td>
                                 <ReactBootstrap.Button className="mb-2" variant="warning"
