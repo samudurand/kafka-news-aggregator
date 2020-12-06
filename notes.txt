@@ -71,3 +71,8 @@ Other sources than Twitter:
     - Maven repo (assume we know which libs are interesting to follow):
         - already existing: https://www.artifact-listener.org/
         - my own implementation, maybe with a daily job to do it (play with airflow ?)
+
+Advanced Features:
+- detect when a Kafka event is happening (conference or other).
+    For instance with a stream app that will analyse the tweets rates (this should not use the same rules as article based tweets, since we are looking for kafka mentions)
+    Prob need a window concept, like tweets in an hour/day

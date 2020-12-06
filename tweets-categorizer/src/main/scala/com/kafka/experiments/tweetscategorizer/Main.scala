@@ -78,7 +78,7 @@ object Main extends App with StrictLogging {
   ): Unit = {
     tweetsStream
       .flatMap[String, String] {
-        case (key, tweet: T) => Some((key, tweet.asJson.noSpaces))
+        case (key, tweet: T) => Some((key, tweet.asJson.noSpaces)) // TODO Try to use a Serde to handle JSON directly !!!!!!!
         case _               => None
       }
       .to(sinkTopic)
