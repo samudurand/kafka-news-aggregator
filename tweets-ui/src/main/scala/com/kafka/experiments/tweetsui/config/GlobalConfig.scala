@@ -16,4 +16,4 @@ case class MongodbConfig(
     tweetsDb: String
 )
 
-case class ServerConfig(port: Int)
+case class ServerConfig(host: String, port: Int)
