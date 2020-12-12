@@ -2,7 +2,7 @@
 
 const e = React.createElement;
 
-class LikeButton extends React.Component {
+class TweetUI extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -15,6 +15,7 @@ class LikeButton extends React.Component {
         };
 
         this.deleteTweet = this.deleteTweet.bind(this);
+        this.deleteAllInCategory = this.deleteAllInCategory.bind(this);
         this.downloadTxtFile = this.downloadTxtFile.bind(this);
         this.moveCategory = this.moveCategory.bind(this);
         this.retrieveTweetsByCategory = this.retrieveTweetsByCategory.bind(this);
@@ -113,7 +114,10 @@ class LikeButton extends React.Component {
         return <ReactBootstrap.Card>
             <ReactBootstrap.Accordion.Toggle as={ReactBootstrap.Card.Header} eventKey={cardKey}>
                 <span><b>Tweets:</b> {cardTitle}</span>
-                <span style={{float: "right"}}><i>({count})</i></span>
+                <ReactBootstrap.Button style={{float: "right"}} className="mb-2" variant="warning"
+                                       onClick={(event) => {event.stopPropagation(); this.deleteAllInCategory(category)}}>
+                    Clean <b>({count})</b>
+                </ReactBootstrap.Button>
             </ReactBootstrap.Accordion.Toggle>
             <ReactBootstrap.Accordion.Collapse eventKey={cardKey}>
                 <ReactBootstrap.Card.Body>{this.tweetsTable(category, tweets)}</ReactBootstrap.Card.Body>
@@ -181,6 +185,18 @@ class LikeButton extends React.Component {
             )
     }
 
+    deleteAllInCategory(category) {
+        fetch(`/api/${category}`, {method: "DELETE"})
+            .then(
+                (res) => {
+                    this.retrieveTweetsByCategory(category, `${category}Tweets`)
+                    this.retrieveTweetsCountByCategory(category, `${category}Count`)
+                },
+                (error) => {
+                }
+            )
+    }
+
     moveCategory(source, target, tweetId) {
         fetch(`/api/move/${tweetId}?source=${source}&target=${target}`, {method: "PUT"})
             .then(
@@ -205,4 +221,4 @@ class LikeButton extends React.Component {
 }
 
 const domContainer = document.querySelector('#react-container');
-ReactDOM.render(e(LikeButton), domContainer);
+ReactDOM.render(e(TweetUI), domContainer);

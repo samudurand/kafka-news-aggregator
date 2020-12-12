@@ -1,7 +1,14 @@
 package com.kafka.experiments.tweetsui
 
 import cats.effect.{Blocker, ExitCode, IO, IOApp, Resource}
-import com.kafka.experiments.shared.{ArticleTweet, AudioTweet, ExcludedTweet, InterestingTweet, VersionReleaseTweet, VideoTweet}
+import com.kafka.experiments.shared.{
+  ArticleTweet,
+  AudioTweet,
+  ExcludedTweet,
+  InterestingTweet,
+  VersionReleaseTweet,
+  VideoTweet
+}
 import com.kafka.experiments.tweetsui.Encoders._
 import com.kafka.experiments.tweetsui.ReportBuilder.generateReport
 import com.kafka.experiments.tweetsui.config.GlobalConfig
@@ -12,7 +19,7 @@ import org.http4s.dsl.io._
 import org.http4s.headers.`Content-Type`
 import org.http4s.implicits._
 import org.http4s.server.blaze.BlazeServerBuilder
-import org.http4s.server.staticcontent.{ResourceService, resourceService}
+import org.http4s.server.staticcontent.{resourceService, ResourceService}
 import org.http4s.server.{Router, Server}
 import org.http4s.{Header, HttpRoutes}
 import pureconfig.ConfigSource
@@ -39,31 +46,10 @@ object Main extends IOApp with StrictLogging {
       case GET -> Root / "report" =>
         Ok(generateReport().getHtml, Header("Content-Type", "text/html"))
 
-      case GET -> Root / category =>
-        category match {
-          case InterestingTweet.typeName =>
-            mongoService.tweets[InterestingTweet](category).flatMap(Ok(_))
-          case AudioTweet.typeName =>
-            mongoService.tweets[AudioTweet](category).flatMap(Ok(_))
-          case VideoTweet.typeName =>
-            mongoService.tweets[VideoTweet](category).flatMap(Ok(_))
-          case ArticleTweet.typeName =>
-            mongoService.tweets[ArticleTweet](category).flatMap(Ok(_))
-          case VersionReleaseTweet.typeName =>
-            mongoService.tweets[VersionReleaseTweet](category).flatMap(Ok(_))
-          case ExcludedTweet.typeName =>
-            mongoService.tweets[ExcludedTweet](category).flatMap(Ok(_))
-          case _ => BadRequest()
-        }
+      case GET -> Root / category           => getTweetsByCategory(category)
+      case GET -> Root / category / "count" => getTweetsCountByCategory(category)
 
-      case GET -> Root / category / "count" =>
-        category match {
-          case InterestingTweet.typeName | AudioTweet.typeName | VideoTweet.typeName | ArticleTweet.typeName |
-              VersionReleaseTweet.typeName | ExcludedTweet.typeName =>
-            mongoService.tweetsCount(category).flatMap(count => Ok(CountResult(count)))
-          case _ => BadRequest()
-        }
-
+      case DELETE -> Root / category => deleteTweetsByCategory(category)
       case DELETE -> Root / category / tweetId =>
         mongoService.delete(category, tweetId).flatMap(_ => Ok("Deleted"))
 
@@ -71,6 +57,42 @@ object Main extends IOApp with StrictLogging {
           SourceCategoryQueryParamMatcher(source) +& TargetCategoryQueryParamMatcher(target) =>
         mongoService.move(source, target, tweetId).flatMap(_ => Ok("Moved To Examinate collection"))
     }
+
+  private def deleteTweetsByCategory(category: String) = {
+    category match {
+      case InterestingTweet.typeName | AudioTweet.typeName | VideoTweet.typeName | ArticleTweet.typeName |
+          VersionReleaseTweet.typeName | ExcludedTweet.typeName =>
+        mongoService.deleteAll(category).flatMap(count => Ok(s"All tweets in category ${category} deleted"))
+      case _ => BadRequest()
+    }
+  }
+
+  private def getTweetsCountByCategory(category: String) = {
+    category match {
+      case InterestingTweet.typeName | AudioTweet.typeName | VideoTweet.typeName | ArticleTweet.typeName |
+          VersionReleaseTweet.typeName | ExcludedTweet.typeName =>
+        mongoService.tweetsCount(category).flatMap(count => Ok(CountResult(count)))
+      case _ => BadRequest()
+    }
+  }
+
+  private def getTweetsByCategory(category: String) = {
+    category match {
+      case InterestingTweet.typeName =>
+        mongoService.tweets[InterestingTweet](category).flatMap(Ok(_))
+      case AudioTweet.typeName =>
+        mongoService.tweets[AudioTweet](category).flatMap(Ok(_))
+      case VideoTweet.typeName =>
+        mongoService.tweets[VideoTweet](category).flatMap(Ok(_))
+      case ArticleTweet.typeName =>
+        mongoService.tweets[ArticleTweet](category).flatMap(Ok(_))
+      case VersionReleaseTweet.typeName =>
+        mongoService.tweets[VersionReleaseTweet](category).flatMap(Ok(_))
+      case ExcludedTweet.typeName =>
+        mongoService.tweets[ExcludedTweet](category).flatMap(Ok(_))
+      case _ => BadRequest()
+    }
+  }
 
   def run(args: List[String]): IO[ExitCode] =
     app.use(_ => IO.never).as(ExitCode.Success)

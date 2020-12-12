@@ -21,6 +21,7 @@ trait MongoService {
   def move(sourceColl: String, targetColl: String, tweetId: String): IO[Unit]
 
   def delete(category: String, tweetId: String): IO[Unit]
+  def deleteAll(category: String): IO[Unit]
 }
 
 object MongoService {
@@ -79,6 +80,12 @@ class DefaultMongoService(config: MongodbConfig)(implicit c: ContextShift[IO]) e
   override def delete(category: String, tweetId: String): IO[Unit] = {
     IO.fromFuture(
       IO(collectionFromCategory(category).findOneAndDelete(Document("id" -> BsonString(tweetId))).toFuture())
+    ).map(_ => ())
+  }
+
+  override def deleteAll(category: String): IO[Unit] = {
+    IO.fromFuture(
+      IO(collectionFromCategory(category).deleteMany(Document()).toFuture())
     ).map(_ => ())
   }
 
