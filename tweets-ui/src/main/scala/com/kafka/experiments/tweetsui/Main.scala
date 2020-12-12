@@ -79,7 +79,7 @@ object Main extends IOApp with StrictLogging {
     for {
       blocker <- Blocker[IO]
       server <- BlazeServerBuilder[IO](global)
-        .bindHttp(config.server.port)
+        .bindHttp(config.server.port, "0.0.0.0")
         .withHttpApp(
           Router(
             "api" -> api,
