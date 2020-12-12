@@ -57,3 +57,17 @@ To start the Tweets Categorizer service, run:
 ```
 sbt "project tweetsCategorizer" run
 ```
+
+## Production 
+
+To build the jars:
+```
+sbt "project tweetsCategorizer" assembly
+sbt "project tweetsUI" assembly
+```
+
+To start the apps:
+```
+java -jar tweets-categorizer/target/scala_2.13/categorizer.jar
+java -jar tweets-ui/target/scala_2.13/tweetsui.jar
+```
