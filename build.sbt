@@ -35,7 +35,7 @@ lazy val tweetsUI = project
     libraryDependencies ++= Dependencies.TweetsUI,
 
     // Sbt assembly plugin
-    assemblyJarName in assembly := "tweetui.jar",
+    assemblyJarName in assembly := "tweetsui.jar",
     mainClass in assembly := Some("com.kafka.experiments.tweetsui.Main"),
     test in assembly := {},
     assemblyMergeStrategy in assembly := {
