@@ -10,13 +10,11 @@ import com.kafka.experiments.shared.{
   VideoTweet
 }
 import com.kafka.experiments.tweetsui.Encoders._
-import com.kafka.experiments.tweetsui.ReportBuilder.generateReport
 import com.kafka.experiments.tweetsui.config.GlobalConfig
 import com.typesafe.scalalogging.StrictLogging
 import io.circe.Codec
 import io.circe.generic.semiauto.deriveCodec
 import org.http4s.dsl.io._
-import org.http4s.headers.`Content-Type`
 import org.http4s.implicits._
 import org.http4s.server.blaze.BlazeServerBuilder
 import org.http4s.server.staticcontent.{resourceService, ResourceService}
@@ -40,20 +38,20 @@ object Main extends IOApp with StrictLogging {
   private val config = ConfigSource.default.loadOrThrow[GlobalConfig]
 
   private val mongoService = MongoService.apply(config.mongodb)
+  private val reportBuilder = new FreeMarkerGenerator()
 
   private val api: HttpRoutes[IO] = HttpRoutes
     .of[IO] {
       case GET -> Root / "report" =>
-        Ok(generateReport().getHtml, Header("Content-Type", "text/html"))
+        Ok(reportBuilder.generateHtml(), Header("Content-Type", "text/html"))
 
-      case GET -> Root / category           => getTweetsByCategory(category)
-      case GET -> Root / category / "count" => getTweetsCountByCategory(category)
-
-      case DELETE -> Root / category => deleteTweetsByCategory(category)
-      case DELETE -> Root / category / tweetId =>
+      case GET -> Root / "tweets" / category           => getTweetsByCategory(category)
+      case GET -> Root / "tweets" / category / "count" => getTweetsCountByCategory(category)
+      case DELETE -> Root / "tweets" / category        => deleteTweetsByCategory(category)
+      case DELETE -> Root / "tweets" / category / tweetId =>
         mongoService.delete(category, tweetId).flatMap(_ => Ok("Deleted"))
 
-      case PUT -> Root / "move" / tweetId :?
+      case PUT -> Root / "tweets" / "move" / tweetId :?
           SourceCategoryQueryParamMatcher(source) +& TargetCategoryQueryParamMatcher(target) =>
         mongoService.move(source, target, tweetId).flatMap(_ => Ok("Moved To Examinate collection"))
     }

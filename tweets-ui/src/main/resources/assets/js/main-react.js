@@ -39,7 +39,7 @@ class TweetUI extends React.Component {
     }
 
     retrieveTweetsByCategory(category, listName) {
-        fetch(`/api/${category}`)
+        fetch(`/api/tweets/${category}`)
             .then(res => res.json())
             .then(
                 (result) => {
@@ -54,7 +54,7 @@ class TweetUI extends React.Component {
     }
 
     retrieveTweetsCountByCategory(category, countName) {
-        fetch(`/api/${category}/count`)
+        fetch(`/api/tweets/${category}/count`)
             .then(res => res.json())
             .then(
                 (result) => {
@@ -174,7 +174,7 @@ class TweetUI extends React.Component {
     }
 
     deleteTweet(category, tweetId) {
-        fetch(`/api/${category}/${tweetId}`, {method: "DELETE"})
+        fetch(`/api/tweets/${category}/${tweetId}`, {method: "DELETE"})
             .then(
                 (res) => {
                     this.retrieveTweetsByCategory(category, `${category}Tweets`)
@@ -186,7 +186,7 @@ class TweetUI extends React.Component {
     }
 
     deleteAllInCategory(category) {
-        fetch(`/api/${category}`, {method: "DELETE"})
+        fetch(`/api/tweets/${category}`, {method: "DELETE"})
             .then(
                 (res) => {
                     this.retrieveTweetsByCategory(category, `${category}Tweets`)
@@ -198,7 +198,7 @@ class TweetUI extends React.Component {
     }
 
     moveCategory(source, target, tweetId) {
-        fetch(`/api/move/${tweetId}?source=${source}&target=${target}`, {method: "PUT"})
+        fetch(`/api/tweets/move/${tweetId}?source=${source}&target=${target}`, {method: "PUT"})
             .then(
                 (res) => {
                     this.retrieveTweetsByCategory(source, `${source}Tweets`)
