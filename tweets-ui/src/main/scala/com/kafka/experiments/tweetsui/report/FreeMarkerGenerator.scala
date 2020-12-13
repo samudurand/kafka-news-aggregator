@@ -1,11 +1,11 @@
-package com.kafka.experiments.tweetsui
+package com.kafka.experiments.tweetsui.report
 
 import com.typesafe.scalalogging.StrictLogging
 import freemarker.template.{Configuration, TemplateExceptionHandler}
 import in.wilsonl.minifyhtml
 import in.wilsonl.minifyhtml.MinifyHtml
 
-import java.io.{File, OutputStreamWriter, StringWriter, Writer}
+import java.io.{File, StringWriter, Writer}
 import scala.jdk.CollectionConverters._
 
 class FreeMarkerGenerator extends StrictLogging {
@@ -15,15 +15,10 @@ class FreeMarkerGenerator extends StrictLogging {
   private val minConfig = minifyConfiguration()
   private val fmConfig = freeMarkerConfiguration()
 
-  def generateHtml(): String = {
-    val root = Map[String, AnyRef](
-      "user" -> "samuel"
-    )
-
+  def generateHtml(data: Map[String, AnyRef]): String = {
     val template = fmConfig.getTemplate("template.html")
     val out: Writer = new StringWriter()
-    template.process(root.asJava, out)
-    out.toString
+    template.process(data.asJava, out)
 
     try {
       MinifyHtml.minify(out.toString, minConfig)

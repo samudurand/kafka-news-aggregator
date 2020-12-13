@@ -1,26 +1,21 @@
 package com.kafka.experiments.tweetsui
 
 import cats.effect.{Blocker, ExitCode, IO, IOApp, Resource}
-import com.kafka.experiments.shared.{
-  ArticleTweet,
-  AudioTweet,
-  ExcludedTweet,
-  InterestingTweet,
-  VersionReleaseTweet,
-  VideoTweet
-}
+import com.kafka.experiments.shared.{ArticleTweet, AudioTweet, ExcludedTweet, InterestingTweet, VersionReleaseTweet, VideoTweet}
 import com.kafka.experiments.tweetsui.Encoders._
 import com.kafka.experiments.tweetsui.config.GlobalConfig
+import com.kafka.experiments.tweetsui.report.ReportBuilder
 import com.typesafe.scalalogging.StrictLogging
 import io.circe.Codec
 import io.circe.generic.semiauto.deriveCodec
 import org.http4s.dsl.io._
 import org.http4s.implicits._
 import org.http4s.server.blaze.BlazeServerBuilder
-import org.http4s.server.staticcontent.{resourceService, ResourceService}
+import org.http4s.server.staticcontent.{ResourceService, resourceService}
 import org.http4s.server.{Router, Server}
 import org.http4s.{Header, HttpRoutes}
 import pureconfig.ConfigSource
+
 import pureconfig.generic.auto._
 
 import scala.concurrent.ExecutionContext.global
@@ -38,12 +33,12 @@ object Main extends IOApp with StrictLogging {
   private val config = ConfigSource.default.loadOrThrow[GlobalConfig]
 
   private val mongoService = MongoService.apply(config.mongodb)
-  private val reportBuilder = new FreeMarkerGenerator()
+  private val reportBuilder = new ReportBuilder()
 
   private val api: HttpRoutes[IO] = HttpRoutes
     .of[IO] {
       case GET -> Root / "report" =>
-        Ok(reportBuilder.generateHtml(), Header("Content-Type", "text/html"))
+        Ok(reportBuilder.buildReport(), Header("Content-Type", "text/html"))
 
       case GET -> Root / "tweets" / category           => getTweetsByCategory(category)
       case GET -> Root / "tweets" / category / "count" => getTweetsCountByCategory(category)
