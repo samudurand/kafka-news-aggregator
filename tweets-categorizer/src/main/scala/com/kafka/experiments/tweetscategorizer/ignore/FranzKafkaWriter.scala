@@ -6,6 +6,7 @@ object FranzKafkaWriter {
 
   private val bookNames = List(
     "Amerika",
+    "Before the Law",
     "Excursion into the Mountains",
     "Kafka on the Shore", // Not by F. Kafka but another popular book
     "Letters to Felice",

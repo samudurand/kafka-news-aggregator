@@ -3,6 +3,7 @@ package com.kafka.experiments.tweetsui
 import cats.effect.{ContextShift, IO}
 import com.kafka.experiments.shared._
 import com.kafka.experiments.tweetsui.config.MongodbConfig
+import jdk.jshell.spi.ExecutionControl.NotImplementedException
 import org.bson.codecs.configuration.CodecRegistries.{fromProviders, fromRegistries}
 import org.mongodb.scala.MongoClient.DEFAULT_CODEC_REGISTRY
 import org.mongodb.scala.bson.BsonString
@@ -13,15 +14,13 @@ import org.mongodb.scala.{Document, MongoClient, MongoCollection}
 import scala.reflect.ClassTag
 
 trait MongoService {
-
-  def tweets[T](category: String)(implicit ct: ClassTag[T]): IO[Seq[T]]
-
-  def tweetsCount(category: String): IO[Long]
+  def tweets[T](category: TweetCategory)(implicit ct: ClassTag[T]): IO[Seq[T]]
+  def tweetsCount(category: TweetCategory): IO[Long]
 
   def move(sourceColl: String, targetColl: String, tweetId: String): IO[Unit]
 
-  def delete(category: String, tweetId: String): IO[Unit]
-  def deleteAll(category: String): IO[Unit]
+  def delete(category: TweetCategory, tweetId: String): IO[Unit]
+  def deleteAll(category: TweetCategory): IO[Unit]
 }
 
 object MongoService {
@@ -57,7 +56,7 @@ class DefaultMongoService(config: MongodbConfig)(implicit c: ContextShift[IO]) e
   private val maxResults = 5
   private val createdAtField = "createdAt"
 
-  override def tweets[T](category: String)(implicit ct: ClassTag[T]): IO[Seq[T]] = {
+  override def tweets[T](category: TweetCategory)(implicit ct: ClassTag[T]): IO[Seq[T]] = {
     val tweets = collectionFromCategory(category)
       .find[T]()
       .sort(orderBy(descending(createdAtField)))
@@ -66,39 +65,38 @@ class DefaultMongoService(config: MongodbConfig)(implicit c: ContextShift[IO]) e
     IO.fromFuture(IO(tweets))
   }
 
-  override def tweetsCount(category: String): IO[Long] = {
+  override def tweetsCount(category: TweetCategory): IO[Long] = {
     IO.fromFuture(IO(collectionFromCategory(category).countDocuments().toFuture()))
   }
 
   override def move(sourceColl: String, targetColl: String, tweetId: String): IO[Unit] = {
-    val result = collectionFromCategory(sourceColl)
-      .findOneAndDelete(Document("id" -> BsonString(tweetId)))
-      .map(tweetDocument => collectionFromCategory(targetColl).insertOne(tweetDocument))
-    IO.fromFuture(IO(result.toFuture())).map(_ => ())
+    throw new NotImplementedException("This feature needs fixing")
+//    val result = collectionFromCategory(sourceColl)
+//      .findOneAndDelete(Document("id" -> BsonString(tweetId)))
+//      .map(tweetDocument => collectionFromCategory(targetColl).insertOne(tweetDocument))
+//    IO.fromFuture(IO(result.toFuture())).map(_ => ())
   }
 
-  override def delete(category: String, tweetId: String): IO[Unit] = {
+  override def delete(category: TweetCategory, tweetId: String): IO[Unit] = {
     IO.fromFuture(
       IO(collectionFromCategory(category).findOneAndDelete(Document("id" -> BsonString(tweetId))).toFuture())
     ).map(_ => ())
   }
 
-  override def deleteAll(category: String): IO[Unit] = {
+  override def deleteAll(category: TweetCategory): IO[Unit] = {
     IO.fromFuture(
       IO(collectionFromCategory(category).deleteMany(Document()).toFuture())
     ).map(_ => ())
   }
 
-  private def collectionFromCategory(category: String): MongoCollection[Document] = {
+  private def collectionFromCategory(category: TweetCategory): MongoCollection[Document] = {
     category match {
-      case ArticleTweet.typeName        => collArticleTweets
-      case AudioTweet.typeName          => collAudioTweets
-      case ExcludedTweet.typeName       => collExcludedTweets
-      case config.collExaminate         => collExaminateTweets
-      case InterestingTweet.typeName    => collInterestingTweets
-      case config.collPromotion         => collPromotionTweets
-      case VersionReleaseTweet.typeName => collVersionTweets
-      case VideoTweet.typeName          => collVideoTweets
+      case Article        => collArticleTweets
+      case Audio          => collAudioTweets
+      case Excluded       => collExcludedTweets
+      case Interesting    => collInterestingTweets
+      case VersionRelease => collVersionTweets
+      case Video          => collVideoTweets
     }
   }
 }

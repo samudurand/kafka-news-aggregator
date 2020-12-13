@@ -1822,53 +1822,69 @@
                                     </th>
                                 </tr>
                             </table>
-                            <table class="row">
-                                <tr>
-                                    <th class="small-12 first columns">
-                                        <h3>Articles</h3>
-                                    </th>
-                                </tr>
-                            </table>
-                            <#list videos as tweet>
+                            <#if listArticles?size gt 0>
+                                <table class="row">
+                                    <tr>
+                                        <th class="small-12 first columns">
+                                            <h3>Articles</h3>
+                                        </th>
+                                    </tr>
+                                </table>
+                            </#if>
+                            <#list listArticles as tweet>
                                 <table class="row">
                                     <tr>
                                         <th class="small-12 first columns article-line">
-                                            Get a #Kafka cluster up and running on #Kubernetes with #Strimzi and begin
-                                            tuning to be
-                                            productization ready -> <a href="https://t.co/kbBiTHTwmR">see more</a>
+                                            ${tweet.text} -> <a href="https://t.co/kbBiTHTwmR">see more</a>
                                         </th>
                                     </tr>
                                 </table>
                             </#list>
-                            <table class="row">
-                                <tr>
-                                    <th class="small-12 first columns">
-                                        <h3>Videos</h3>
-                                    </th>
-                                </tr>
-                            </table>
-                            <table class="row">
-                                <tr>
-                                    <th class="small-12 first columns">
-                                        <h3>Podcasts</h3>
-                                    </th>
-                                </tr>
-                            </table>
-                            <table class="row">
-                                <tr>
-                                    <th class="small-12 first columns">
-                                        <h3>Releases</h3>
-                                    </th>
-                                </tr>
-                            </table>
-                            <table class="row">
-                                <tr>
-                                    <th class="small-12 first columns">
-                                        <h3>Others</h3>
-                                    </th>
-                                </tr>
-                            </table>
-
+                            <#if listVideos?size gt 0>
+                                <table class="row">
+                                    <tr>
+                                        <th class="small-12 first columns">
+                                            <h3>Videos</h3>
+                                        </th>
+                                    </tr>
+                                </table>
+                            </#if>
+                            <#if listAudios?size gt 0>
+                                <table class="row">
+                                    <tr>
+                                        <th class="small-12 first columns">
+                                            <h3>Podcasts</h3>
+                                        </th>
+                                    </tr>
+                                </table>
+                            </#if>
+                            <#if listVersions?size gt 0>
+                                <table class="row">
+                                    <tr>
+                                        <th class="small-12 first columns">
+                                            <h3>Releases</h3>
+                                        </th>
+                                    </tr>
+                                </table>
+                            </#if>
+                            <#if listOthers?size gt 0>
+                                <table class="row">
+                                    <tr>
+                                        <th class="small-12 first columns">
+                                            <h3>Others</h3>
+                                        </th>
+                                    </tr>
+                                </table>
+                            </#if>
+                            <#list listOthers as tweet>
+                                <table class="row">
+                                    <tr>
+                                        <th class="small-12 first columns article-line">
+                                            ${tweet.text} -> <a href="https://t.co/kbBiTHTwmR">see more</a>
+                                        </th>
+                                    </tr>
+                                </table>
+                            </#list>
                         </td>
                     </tr>
                 </table>
