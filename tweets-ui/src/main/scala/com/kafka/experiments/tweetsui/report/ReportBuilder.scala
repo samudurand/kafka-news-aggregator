@@ -18,11 +18,11 @@ class ReportBuilder(mongoService: MongoService) {
       versionTweets <- mongoService.tweets[VersionReleaseTweet](VersionRelease)
       videoTweets <- mongoService.tweets[VideoTweet](Video)
       templateData = Map(
-        "listArticles" -> articleTweets.asJava,
-        "listAudios" -> audioTweets.asJava,
-        "listOthers" -> interestingTweets.asJava,
-        "listVersions" -> versionTweets.asJava,
-        "listVideos" -> videoTweets.asJava
+        "listArticles" -> articleTweets.map(ReportTweet(_)).asJava,
+        "listAudios" -> audioTweets.map(ReportTweet(_)).asJava,
+        "listOthers" -> interestingTweets.map(ReportTweet(_)).asJava,
+        "listVersions" -> versionTweets.map(ReportTweet(_)).asJava,
+        "listVideos" -> videoTweets.map(ReportTweet(_)).asJava
       )
     } yield (templateData))
       .map(data => freeMarkerGenerator.generateHtml(data))
