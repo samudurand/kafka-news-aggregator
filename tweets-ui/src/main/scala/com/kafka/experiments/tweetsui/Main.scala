@@ -5,7 +5,7 @@ import com.kafka.experiments.shared.{
   ArticleTweet,
   AudioTweet,
   ExcludedTweet,
-  InterestingTweet,
+  OtherTweet,
   VersionReleaseTweet,
   VideoTweet
 }
@@ -84,7 +84,7 @@ object Main extends IOApp with StrictLogging {
       case Some(category) =>
         category match {
           case Interesting =>
-            mongoService.tweets[InterestingTweet](category).flatMap(Ok(_))
+            mongoService.tweets[OtherTweet](category).flatMap(Ok(_))
           case Audio =>
             mongoService.tweets[AudioTweet](category).flatMap(Ok(_))
           case Video =>

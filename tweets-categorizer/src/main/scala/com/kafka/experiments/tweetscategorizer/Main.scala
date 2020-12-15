@@ -60,7 +60,7 @@ object Main extends App with StrictLogging {
   toTopicByType[AudioTweet](classifiedTweets, sinkAudioTopic)
   toTopicByType[VideoTweet](classifiedTweets, sinkVideoTopic)
   toTopicByType[VersionReleaseTweet](classifiedTweets, sinkVersionTopic)
-  toTopicByType[InterestingTweet](classifiedTweets, sinkInterestingTopic)
+  toTopicByType[OtherTweet](classifiedTweets, sinkInterestingTopic)
 
   val streams: KafkaStreams = new KafkaStreams(builder.build(), props)
   streams.start()

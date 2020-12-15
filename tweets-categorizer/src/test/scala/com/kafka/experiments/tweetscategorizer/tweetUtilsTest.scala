@@ -1,6 +1,6 @@
 package com.kafka.experiments.tweetscategorizer
 
-import com.kafka.experiments.tweetscategorizer.tweetUtils.hasLink
+import com.kafka.experiments.tweetscategorizer.tweetUtils.hasValidLink
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -20,17 +20,17 @@ class tweetUtilsTest extends AnyFlatSpec with Matchers {
   )
 
   "Tweet with a link" should "be identified" in {
-    hasLink(goodTweet) shouldBe true
+    hasValidLink(goodTweet) shouldBe true
   }
 
   "Tweet without a link" should "be identified" in {
     val tweet = goodTweet.copy(URLEntities = List())
-    hasLink(tweet) shouldBe false
+    hasValidLink(tweet) shouldBe false
   }
 
   "Tweet with only a twitter link" should "be identified" in {
     val tweet = goodTweet.copy(URLEntities = List(URLEntity("https://t.co/0lztrRpQTK", "https://twitter.com/some/tweet")))
-    hasLink(tweet) shouldBe false
+    hasValidLink(tweet) shouldBe false
   }
 
 }

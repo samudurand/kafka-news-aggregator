@@ -34,7 +34,7 @@ class DefaultMongoService(config: MongodbConfig)(implicit c: ContextShift[IO]) e
     classOf[AudioTweet],
     classOf[VideoTweet],
     classOf[ExcludedTweet],
-    classOf[InterestingTweet],
+    classOf[OtherTweet],
     classOf[VersionReleaseTweet]
   )
 

@@ -17,6 +17,14 @@ case class ExcludedTweet(
     override val createdAt: String
 ) extends CategorisedTweet(id, text, user, createdAt)
 
+abstract class InterestingTweet(
+    override val id: String,
+    override val text: String,
+    val url: String,
+    override val user: String,
+    override val createdAt: String
+) extends CategorisedTweet(id, text, user, createdAt)
+
 object AudioTweet {
   implicit val codec: Codec[AudioTweet] = deriveCodec
 }
@@ -24,9 +32,10 @@ object AudioTweet {
 case class AudioTweet(
     override val id: String,
     override val text: String,
+    override val url: String,
     override val user: String,
     override val createdAt: String
-) extends CategorisedTweet(id, text, user, createdAt)
+) extends InterestingTweet(id, text, url, user, createdAt)
 
 object VideoTweet {
   implicit val codec: Codec[VideoTweet] = deriveCodec
@@ -35,9 +44,10 @@ object VideoTweet {
 case class VideoTweet(
     override val id: String,
     override val text: String,
+    override val url: String,
     override val user: String,
     override val createdAt: String
-) extends CategorisedTweet(id, text, user, createdAt)
+) extends InterestingTweet(id, text, url, user, createdAt)
 
 object VersionReleaseTweet {
   implicit val codec: Codec[VersionReleaseTweet] = deriveCodec
@@ -46,9 +56,10 @@ object VersionReleaseTweet {
 case class VersionReleaseTweet(
     override val id: String,
     override val text: String,
+    override val url: String,
     override val user: String,
     override val createdAt: String
-) extends CategorisedTweet(id, text, user, createdAt)
+) extends InterestingTweet(id, text, url, user, createdAt)
 
 object ArticleTweet {
   implicit val codec: Codec[ArticleTweet] = deriveCodec
@@ -57,17 +68,19 @@ object ArticleTweet {
 case class ArticleTweet(
     override val id: String,
     override val text: String,
+    override val url: String,
     override val user: String,
     override val createdAt: String
-) extends CategorisedTweet(id, text, user, createdAt)
+) extends InterestingTweet(id, text, url, user, createdAt)
 
-object InterestingTweet {
-  implicit val codec: Codec[InterestingTweet] = deriveCodec
+object OtherTweet {
+  implicit val codec: Codec[OtherTweet] = deriveCodec
 }
 
-case class InterestingTweet(
+case class OtherTweet(
     override val id: String,
     override val text: String,
+    override val url: String,
     override val user: String,
     override val createdAt: String
-) extends CategorisedTweet(id, text, user, createdAt)
+) extends InterestingTweet(id, text, url, user, createdAt)

@@ -1753,8 +1753,16 @@
             padding-right: 16px;
         }
 
+        .ml-10 {
+            margin-left: 10px;
+        }
+
         .pt-20 {
             padding-top: 20px;
+        }
+
+        span.username {
+            font-weight: bold;
         }
 
     </style>
@@ -1816,7 +1824,7 @@
                                             a Kafka based system (with a tiny bit of human intervention for final
                                             cleanup).</p>
                                         <p>This is still a work in progress, so expect further rapid changes and
-                                            evolutions in format and content. You can learn more about this project
+                                            evolutions in format and content. You can learn more... about this project
                                             <a href="https://github.com/samudurand/kafka-news-aggregator"
                                                target="_blank">here</a>.</p>
                                     </th>
@@ -1835,7 +1843,9 @@
                                 <table class="row">
                                     <tr>
                                         <th class="small-12 first columns article-line">
-                                            ${tweet.text()} -> <a href="https://t.co/kbBiTHTwmR">see more</a>
+                                            <span class="username">@${tweet.user()}</span>: ${tweet.text()}
+                                            <br />
+                                            <span class="ml-10">--> <a href="${tweet.url()}" target="_blank">learn more...</a></span>
                                         </th>
                                     </tr>
                                 </table>
@@ -1849,6 +1859,17 @@
                                     </tr>
                                 </table>
                             </#if>
+                            <#list listVideos as tweet>
+                                <table class="row">
+                                    <tr>
+                                        <th class="small-12 first columns article-line">
+                                            <span class="username">@${tweet.user()}</span>: ${tweet.text()}
+                                            <br />
+                                            <span class="ml-10">--> <a href="${tweet.url()}" target="_blank">learn more...</a></span>
+                                        </th>
+                                    </tr>
+                                </table>
+                            </#list>
                             <#if listAudios?size gt 0>
                                 <table class="row">
                                     <tr>
@@ -1858,6 +1879,17 @@
                                     </tr>
                                 </table>
                             </#if>
+                            <#list listAudios as tweet>
+                                <table class="row">
+                                    <tr>
+                                        <th class="small-12 first columns article-line">
+                                            <span class="username">@${tweet.user()}</span>: ${tweet.text()}
+                                            <br />
+                                            <span class="ml-10">--> <a href="${tweet.url()}" target="_blank">learn more...</a></span>
+                                        </th>
+                                    </tr>
+                                </table>
+                            </#list>
                             <#if listVersions?size gt 0>
                                 <table class="row">
                                     <tr>
@@ -1867,6 +1899,17 @@
                                     </tr>
                                 </table>
                             </#if>
+                            <#list listVersions as tweet>
+                                <table class="row">
+                                    <tr>
+                                        <th class="small-12 first columns article-line">
+                                            <span class="username">@${tweet.user()}</span>: ${tweet.text()}
+                                            <br />
+                                            <span class="ml-10">--> <a href="${tweet.url()}" target="_blank">learn more...</a></span>
+                                        </th>
+                                    </tr>
+                                </table>
+                            </#list>
                             <#if listOthers?size gt 0>
                                 <table class="row">
                                     <tr>
@@ -1880,7 +1923,9 @@
                                 <table class="row">
                                     <tr>
                                         <th class="small-12 first columns article-line">
-                                            ${tweet.text()} -> <a href="https://t.co/kbBiTHTwmR">see more</a>
+                                            <span class="username">@${tweet.user()}</span>: ${tweet.text()}
+                                            <br />
+                                            <span class="ml-10">--> <a href="${tweet.url()}" target="_blank">learn more...</a></span>
                                         </th>
                                     </tr>
                                 </table>

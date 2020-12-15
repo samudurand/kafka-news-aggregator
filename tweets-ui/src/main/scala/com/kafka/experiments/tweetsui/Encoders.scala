@@ -7,7 +7,7 @@ import org.http4s.circe.jsonEncoderOf
 
 object Encoders {
   implicit val intEncoder: EntityEncoder[IO, Long] = jsonEncoderOf[IO, Long]
-  implicit val interestingEncoder: EntityEncoder[IO, Seq[InterestingTweet]] = jsonEncoderOf[IO, Seq[InterestingTweet]]
+  implicit val interestingEncoder: EntityEncoder[IO, Seq[OtherTweet]] = jsonEncoderOf[IO, Seq[OtherTweet]]
   implicit val audioEncoder: EntityEncoder[IO, Seq[AudioTweet]] = jsonEncoderOf[IO, Seq[AudioTweet]]
   implicit val videoEncoder: EntityEncoder[IO, Seq[VideoTweet]] = jsonEncoderOf[IO, Seq[VideoTweet]]
   implicit val articleEncoder: EntityEncoder[IO, Seq[ArticleTweet]] = jsonEncoderOf[IO, Seq[ArticleTweet]]
