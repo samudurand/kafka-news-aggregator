@@ -21,9 +21,9 @@ class ReportBuilder(mongoService: MongoService) {
       templateData = Map(
         "listArticles" -> articleTweets.map(ReportTweet(_)),
         "listAudios" -> audioTweets.map(ReportTweet(_)),
-        "listOthers" -> interestingTweets.map(ReportTweet(_)),
+        "listVideos" -> videoTweets.map(ReportTweet(_)),
         "listVersions" -> versionTweets.map(ReportTweet(_)),
-        "listVideos" -> videoTweets.map(ReportTweet(_))
+        "listOthers" -> interestingTweets.map(ReportTweet(_))
       )
     } yield templateData)
       .map { data => removeUrls(data) }
