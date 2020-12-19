@@ -1,7 +1,14 @@
 package com.kafka.experiments.tweetsui
 
 import cats.effect.{Blocker, ContextShift, ExitCode, IO, IOApp, Resource, Timer}
-import com.kafka.experiments.shared.{ArticleTweet, AudioTweet, ExcludedTweet, OtherTweet, VersionReleaseTweet, VideoTweet}
+import com.kafka.experiments.shared.{
+  ArticleTweet,
+  AudioTweet,
+  ExcludedTweet,
+  OtherTweet,
+  VersionReleaseTweet,
+  VideoTweet
+}
 import com.kafka.experiments.tweetsui.Encoders._
 import com.kafka.experiments.tweetsui.config.GlobalConfig
 import com.kafka.experiments.tweetsui.report.NewsletterBuilder
@@ -13,9 +20,9 @@ import org.http4s.client.blaze.BlazeClientBuilder
 import org.http4s.dsl.io._
 import org.http4s.implicits._
 import org.http4s.server.blaze.BlazeServerBuilder
-import org.http4s.server.staticcontent.{ResourceService, resourceService}
+import org.http4s.server.staticcontent.{resourceService, ResourceService}
 import org.http4s.server.{Router, Server}
-import org.http4s.{Header, HttpRoutes}
+import org.http4s.{Header, HttpRoutes, Response}
 import pureconfig.ConfigSource
 import pureconfig.generic.auto._
 
@@ -36,11 +43,12 @@ object Main extends IOApp with StrictLogging {
   private val mongoService = MongoService(config.mongodb)
   private val newsletterBuilder = new NewsletterBuilder(mongoService)
 
-  private def api(sendGridClient: SendGridClient[IO]): HttpRoutes[IO] = HttpRoutes
+  private def api(sendGridClient: SendGridClient): HttpRoutes[IO] = HttpRoutes
     .of[IO] {
-      case GET -> Root / "report" =>
+      case GET -> Root / "newsletter" =>
         newsletterBuilder.buildNewsletter().flatMap(Ok(_, Header("Content-Type", "text/html")))
 
+      case POST -> Root / "newsletter" / id               => sendNewsletter(id, sendGridClient)
       case GET -> Root / "tweets" / category              => getTweetsByCategory(category)
       case GET -> Root / "tweets" / category / "count"    => getTweetsCountByCategory(category)
       case DELETE -> Root / "tweets" / category           => deleteTweetsByCategory(category)
@@ -49,6 +57,14 @@ object Main extends IOApp with StrictLogging {
           SourceCategoryQueryParamMatcher(source) +& TargetCategoryQueryParamMatcher(target) =>
         mongoService.move(source, target, tweetId).flatMap(_ => Ok("Moved To Examinate collection"))
     }
+
+  def sendNewsletter(newsletterId: String, sendGridClient: SendGridClient): IO[Response[IO]] = {
+    (for {
+      html <- newsletterBuilder.buildNewsletter()
+      uuid <- sendGridClient.createSingleSend(html)
+      _ <- sendGridClient.sendSingleSendNow(uuid)
+    } yield ()).flatMap(_ => Ok())
+  }
 
   private def deleteTweet(categoryName: String, tweetId: String) = {
     TweetCategory.fromName(categoryName) match {
@@ -101,7 +117,7 @@ object Main extends IOApp with StrictLogging {
     for {
       blocker <- Blocker[IO]
       httpClient <- BlazeClientBuilder[IO](global).resource
-      sendGridClient = SendGridClient[IO](config.sendgrid, httpClient)
+      sendGridClient = SendGridClient(config.sendgrid, httpClient)
       server <- BlazeServerBuilder[IO](global)
         .bindHttp(config.server.port, config.server.host)
         .withHttpApp(
