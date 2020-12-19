@@ -8,6 +8,7 @@ case class MongodbConfig(
     collExcluded: String,
     collExaminate: String,
     collInteresting: String,
+    collNewsletter: String,
     collPromotion: String,
     collVersion: String,
     collVideo: String,

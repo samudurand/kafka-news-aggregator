@@ -15,12 +15,20 @@ import scala.reflect.ClassTag
 
 trait MongoService {
   def tweets[T](category: TweetCategory)(implicit ct: ClassTag[T]): IO[Seq[T]]
+
   def tweetsCount(category: TweetCategory): IO[Long]
 
   def move(sourceColl: String, targetColl: String, tweetId: String): IO[Unit]
 
   def delete(category: TweetCategory, tweetId: String): IO[Unit]
+
   def deleteAll(category: TweetCategory): IO[Unit]
+
+  def moveToNewsletter(category: TweetCategory, tweetIds: Seq[String]): IO[Unit]
+
+  def tweetsForNewsletter(category: TweetCategory): IO[Seq[NewsletterTweet]]
+
+  def deleteAllInNewsletter(): IO[Unit]
 }
 
 object MongoService {
@@ -53,6 +61,8 @@ class DefaultMongoService(config: MongodbConfig)(implicit c: ContextShift[IO]) e
   private val collExaminateTweets = database.getCollection(config.collInteresting)
   private val collPromotionTweets = database.getCollection(config.collPromotion)
 
+  private val collNewsletter = database.getCollection(config.collNewsletter)
+
   private val maxResults = 5
   private val createdAtField = "createdAt"
 
@@ -60,7 +70,7 @@ class DefaultMongoService(config: MongodbConfig)(implicit c: ContextShift[IO]) e
     val tweets = collectionFromCategory(category)
       .find[T]()
       .sort(orderBy(descending(createdAtField)))
-      .limit(maxResults)
+      //      .limit(maxResults)
       .toFuture()
     IO.fromFuture(IO(tweets))
   }
@@ -71,10 +81,10 @@ class DefaultMongoService(config: MongodbConfig)(implicit c: ContextShift[IO]) e
 
   override def move(sourceColl: String, targetColl: String, tweetId: String): IO[Unit] = {
     throw new NotImplementedException("This feature needs fixing")
-//    val result = collectionFromCategory(sourceColl)
-//      .findOneAndDelete(Document("id" -> BsonString(tweetId)))
-//      .map(tweetDocument => collectionFromCategory(targetColl).insertOne(tweetDocument))
-//    IO.fromFuture(IO(result.toFuture())).map(_ => ())
+    //    val result = collectionFromCategory(sourceColl)
+    //      .findOneAndDelete(Document("id" -> BsonString(tweetId)))
+    //      .map(tweetDocument => collectionFromCategory(targetColl).insertOne(tweetDocument))
+    //    IO.fromFuture(IO(result.toFuture())).map(_ => ())
   }
 
   override def delete(category: TweetCategory, tweetId: String): IO[Unit] = {
@@ -87,6 +97,36 @@ class DefaultMongoService(config: MongodbConfig)(implicit c: ContextShift[IO]) e
     IO.fromFuture(
       IO(collectionFromCategory(category).deleteMany(Document()).toFuture())
     ).map(_ => ())
+  }
+
+  override def deleteAllInNewsletter(): IO[Unit] = {
+    IO.fromFuture(
+      IO(collNewsletter.deleteMany(Document()).toFuture())
+    ).map(_ => ())
+  }
+
+  override def tweetsForNewsletter(category: TweetCategory): IO[Seq[NewsletterTweet]] = {
+    val tweets = collNewsletter
+      .find[NewsletterTweet]()
+      .sort(orderBy(descending(createdAtField)))
+      //      .limit(maxResults)
+      .toFuture()
+    IO.fromFuture(IO(tweets))
+  }
+
+  override def moveToNewsletter(category: TweetCategory, tweetIds: Seq[String]): IO[Unit] = {
+    import cats.implicits._
+
+    tweetIds
+      .map(tweetId =>
+        collectionFromCategory(category)
+          .findOneAndDelete(Document("id" -> BsonString(tweetId)))
+          .flatMap(tweetDocument => collNewsletter.insertOne(tweetDocument))
+      )
+      .map(result => IO.fromFuture(IO(result.map(_.wasAcknowledged()).toFuture())))
+      .toList
+      .sequence
+      .map(_ => ()) // No special handling of failures for now
   }
 
   private def collectionFromCategory(category: TweetCategory): MongoCollection[Document] = {

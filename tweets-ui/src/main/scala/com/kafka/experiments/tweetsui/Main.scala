@@ -47,8 +47,8 @@ object Main extends IOApp with StrictLogging {
     .of[IO] {
       case GET -> Root / "newsletter" =>
         newsletterBuilder.buildNewsletter().flatMap(Ok(_, Header("Content-Type", "text/html")))
-
       case POST -> Root / "newsletter" / id               => sendNewsletter(id, sendGridClient)
+
       case GET -> Root / "tweets" / category              => getTweetsByCategory(category)
       case GET -> Root / "tweets" / category / "count"    => getTweetsCountByCategory(category)
       case DELETE -> Root / "tweets" / category           => deleteTweetsByCategory(category)
