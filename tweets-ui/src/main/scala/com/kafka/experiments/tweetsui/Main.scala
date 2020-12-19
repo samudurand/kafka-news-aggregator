@@ -1,28 +1,22 @@
 package com.kafka.experiments.tweetsui
 
-import cats.effect.{Blocker, ExitCode, IO, IOApp, Resource}
-import com.kafka.experiments.shared.{
-  ArticleTweet,
-  AudioTweet,
-  ExcludedTweet,
-  OtherTweet,
-  VersionReleaseTweet,
-  VideoTweet
-}
+import cats.effect.{Blocker, ContextShift, ExitCode, IO, IOApp, Resource, Timer}
+import com.kafka.experiments.shared.{ArticleTweet, AudioTweet, ExcludedTweet, OtherTweet, VersionReleaseTweet, VideoTweet}
 import com.kafka.experiments.tweetsui.Encoders._
 import com.kafka.experiments.tweetsui.config.GlobalConfig
-import com.kafka.experiments.tweetsui.report.ReportBuilder
+import com.kafka.experiments.tweetsui.report.NewsletterBuilder
+import com.kafka.experiments.tweetsui.sendgrid.SendGridClient
 import com.typesafe.scalalogging.StrictLogging
 import io.circe.Codec
 import io.circe.generic.semiauto.deriveCodec
+import org.http4s.client.blaze.BlazeClientBuilder
 import org.http4s.dsl.io._
 import org.http4s.implicits._
 import org.http4s.server.blaze.BlazeServerBuilder
-import org.http4s.server.staticcontent.{resourceService, ResourceService}
+import org.http4s.server.staticcontent.{ResourceService, resourceService}
 import org.http4s.server.{Router, Server}
 import org.http4s.{Header, HttpRoutes}
 import pureconfig.ConfigSource
-
 import pureconfig.generic.auto._
 
 import scala.concurrent.ExecutionContext.global
@@ -39,13 +33,13 @@ object Main extends IOApp with StrictLogging {
 
   private val config = ConfigSource.default.loadOrThrow[GlobalConfig]
 
-  private val mongoService = MongoService.apply(config.mongodb)
-  private val reportBuilder = new ReportBuilder(mongoService)
+  private val mongoService = MongoService(config.mongodb)
+  private val newsletterBuilder = new NewsletterBuilder(mongoService)
 
-  private val api: HttpRoutes[IO] = HttpRoutes
+  private def api(sendGridClient: SendGridClient[IO]): HttpRoutes[IO] = HttpRoutes
     .of[IO] {
       case GET -> Root / "report" =>
-        reportBuilder.buildReport().flatMap(Ok(_, Header("Content-Type", "text/html")))
+        newsletterBuilder.buildNewsletter().flatMap(Ok(_, Header("Content-Type", "text/html")))
 
       case GET -> Root / "tweets" / category              => getTweetsByCategory(category)
       case GET -> Root / "tweets" / category / "count"    => getTweetsCountByCategory(category)
@@ -106,11 +100,13 @@ object Main extends IOApp with StrictLogging {
   val app: Resource[IO, Server[IO]] =
     for {
       blocker <- Blocker[IO]
+      httpClient <- BlazeClientBuilder[IO](global).resource
+      sendGridClient = SendGridClient[IO](config.sendgrid, httpClient)
       server <- BlazeServerBuilder[IO](global)
         .bindHttp(config.server.port, config.server.host)
         .withHttpApp(
           Router(
-            "api" -> api,
+            "api" -> api(sendGridClient),
             "" -> resourceService[IO](ResourceService.Config("/assets", blocker))
           ).orNotFound
         )

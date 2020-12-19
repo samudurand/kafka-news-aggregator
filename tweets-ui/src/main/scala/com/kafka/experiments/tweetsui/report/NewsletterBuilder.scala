@@ -7,11 +7,11 @@ import scala.jdk.CollectionConverters._
 import com.kafka.experiments.shared.{ArticleTweet, AudioTweet, OtherTweet, VersionReleaseTweet, VideoTweet}
 import com.linkedin.urls.detection.{UrlDetector, UrlDetectorOptions}
 
-class ReportBuilder(mongoService: MongoService) {
+class NewsletterBuilder(mongoService: MongoService) {
 
   val freeMarkerGenerator = new FreeMarkerGenerator()
 
-  def buildReport(): IO[String] = {
+  def buildNewsletter(): IO[String] = {
     (for {
       articleTweets <- mongoService.tweets[ArticleTweet](Article)
       audioTweets <- mongoService.tweets[AudioTweet](Audio)
