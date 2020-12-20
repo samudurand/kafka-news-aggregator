@@ -1,6 +1,5 @@
 package com.kafka.experiments.tweetsui.newsletter
 
-import com.kafka.experiments.tweetsui.Other
 import io.circe.Codec
 import io.circe.generic.semiauto.deriveCodec
 

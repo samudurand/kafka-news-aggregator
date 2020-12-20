@@ -45,7 +45,8 @@ class DefaultMongoService(config: MongodbConfig)(implicit c: ContextShift[IO]) e
     classOf[VideoTweet],
     classOf[ExcludedTweet],
     classOf[OtherTweet],
-    classOf[VersionReleaseTweet]
+    classOf[VersionReleaseTweet],
+    classOf[CompleteNewsletterTweet]
   )
 
   private val codecRegistry = fromRegistries(customCodecs, DEFAULT_CODEC_REGISTRY)

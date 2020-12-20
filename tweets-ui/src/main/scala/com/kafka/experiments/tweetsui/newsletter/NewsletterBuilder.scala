@@ -28,8 +28,8 @@ class NewsletterBuilder(mongoService: MongoService) {
             }
           }
       )
-      .map { data => removeUrls(data) }
-      .map { data => data.view.mapValues(_.asJava).toMap }
+      .map(removeUrls)
+      .map(_.view.mapValues(_.asJava).toMap)
       .map(data => freeMarkerGenerator.generateHtml(data))
   }
 

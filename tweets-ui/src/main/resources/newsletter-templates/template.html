@@ -407,7 +407,7 @@
                                 </tr>
                                 </tbody>
                             </table>
-                            <#if listArticles?size gt 0>
+                            <#if (listArticles!)?size gt 0>
                                 <table class="row"
                                        style="border-collapse: collapse; border-spacing: 0; display: table; padding: 0; position: relative; text-align: left; vertical-align: top; width: 100%;">
                                     <tbody>
@@ -421,7 +421,7 @@
                                     </tbody>
                                 </table>
                             </#if>
-                            <#list listArticles as tweet>
+                            <#list (listArticles!) as tweet>
                                 <table class="row"
                                        style="border-collapse: collapse; border-spacing: 0; display: table; padding: 0; position: relative; text-align: left; vertical-align: top; width: 100%;">
                                     <tbody>
@@ -438,7 +438,7 @@
                                     </tbody>
                                 </table>
                             </#list>
-                            <#if listAudios?size gt 0>
+                            <#if (listAudios!)?size gt 0>
                                 <table class="row"
                                        style="border-collapse: collapse; border-spacing: 0; display: table; padding: 0; position: relative; text-align: left; vertical-align: top; width: 100%;">
                                     <tbody>
@@ -452,7 +452,7 @@
                                     </tbody>
                                 </table>
                             </#if>
-                            <#list listAudios as tweet>
+                            <#list (listAudios!) as tweet>
                                 <table class="row"
                                        style="border-collapse: collapse; border-spacing: 0; display: table; padding: 0; position: relative; text-align: left; vertical-align: top; width: 100%;">
                                     <tbody>
@@ -469,7 +469,7 @@
                                     </tbody>
                                 </table>
                             </#list>
-                            <#if listVideos?size gt 0>
+                            <#if (listVideos!)?size gt 0>
                                 <table class="row"
                                        style="border-collapse: collapse; border-spacing: 0; display: table; padding: 0; position: relative; text-align: left; vertical-align: top; width: 100%;">
                                     <tbody>
@@ -483,7 +483,7 @@
                                     </tbody>
                                 </table>
                             </#if>
-                            <#list listVideos as tweet>
+                            <#list (listVideos!) as tweet>
                                 <table class="row"
                                        style="border-collapse: collapse; border-spacing: 0; display: table; padding: 0; position: relative; text-align: left; vertical-align: top; width: 100%;">
                                     <tbody>
@@ -500,7 +500,7 @@
                                     </tbody>
                                 </table>
                             </#list>
-                            <#if listVersions?size gt 0>
+                            <#if (listVersions!)?size gt 0>
                                 <table class="row"
                                        style="border-collapse: collapse; border-spacing: 0; display: table; padding: 0; position: relative; text-align: left; vertical-align: top; width: 100%;">
                                     <tbody>
@@ -514,7 +514,7 @@
                                     </tbody>
                                 </table>
                             </#if>
-                            <#list listVersions as tweet>
+                            <#list (listVersions!) as tweet>
                                 <table class="row"
                                        style="border-collapse: collapse; border-spacing: 0; display: table; padding: 0; position: relative; text-align: left; vertical-align: top; width: 100%;">
                                     <tbody>
@@ -531,7 +531,7 @@
                                     </tbody>
                                 </table>
                             </#list>
-                            <#if listOthers?size gt 0>
+                            <#if (listOthers!)?size gt 0>
                                 <table class="row"
                                        style="border-collapse: collapse; border-spacing: 0; display: table; padding: 0; position: relative; text-align: left; vertical-align: top; width: 100%;">
                                     <tbody>
@@ -545,7 +545,7 @@
                                     </tbody>
                                 </table>
                             </#if>
-                            <#list listOthers as tweet>
+                            <#list (listOthers!) as tweet>
                                 <table class="row"
                                        style="border-collapse: collapse; border-spacing: 0; display: table; padding: 0; position: relative; text-align: left; vertical-align: top; width: 100%;">
                                     <tbody>
