@@ -3,6 +3,8 @@ package com.kafka.experiments.tweetsui
 import cats.effect.{ContextShift, IO}
 import com.kafka.experiments.shared._
 import com.kafka.experiments.tweetsui.config.MongodbConfig
+import com.kafka.experiments.tweetsui.newsletter.{CompleteNewsletterTweet, NewsletterTweet}
+import com.typesafe.scalalogging.StrictLogging
 import jdk.jshell.spi.ExecutionControl.NotImplementedException
 import org.bson.codecs.configuration.CodecRegistries.{fromProviders, fromRegistries}
 import org.mongodb.scala.MongoClient.DEFAULT_CODEC_REGISTRY
@@ -24,18 +26,18 @@ trait MongoService {
 
   def deleteAll(category: TweetCategory): IO[Unit]
 
-  def moveToNewsletter(category: TweetCategory, tweetIds: Seq[String]): IO[Unit]
-
-  def tweetsForNewsletter(category: TweetCategory): IO[Seq[NewsletterTweet]]
+  def moveToNewsletter(category: TweetCategory, tweetIds: Seq[String]): IO[Int]
 
   def deleteAllInNewsletter(): IO[Unit]
+
+  def tweetsForNewsletter(): IO[Seq[CompleteNewsletterTweet]]
 }
 
 object MongoService {
   def apply(config: MongodbConfig)(implicit c: ContextShift[IO]): MongoService = new DefaultMongoService(config)
 }
 
-class DefaultMongoService(config: MongodbConfig)(implicit c: ContextShift[IO]) extends MongoService {
+class DefaultMongoService(config: MongodbConfig)(implicit c: ContextShift[IO]) extends MongoService with StrictLogging {
 
   private val customCodecs = fromProviders(
     classOf[ArticleTweet],
@@ -105,28 +107,44 @@ class DefaultMongoService(config: MongodbConfig)(implicit c: ContextShift[IO]) e
     ).map(_ => ())
   }
 
-  override def tweetsForNewsletter(category: TweetCategory): IO[Seq[NewsletterTweet]] = {
+  override def tweetsForNewsletter(): IO[Seq[CompleteNewsletterTweet]] = {
     val tweets = collNewsletter
-      .find[NewsletterTweet]()
+      .find[CompleteNewsletterTweet]()
       .sort(orderBy(descending(createdAtField)))
-      //      .limit(maxResults)
       .toFuture()
     IO.fromFuture(IO(tweets))
   }
 
-  override def moveToNewsletter(category: TweetCategory, tweetIds: Seq[String]): IO[Unit] = {
+  override def moveToNewsletter(category: TweetCategory, tweetIds: Seq[String]): IO[Int] = {
     import cats.implicits._
+    import io.circe.parser.decode
+    import io.circe.syntax._
 
     tweetIds
       .map(tweetId =>
         collectionFromCategory(category)
           .findOneAndDelete(Document("id" -> BsonString(tweetId)))
-          .flatMap(tweetDocument => collNewsletter.insertOne(tweetDocument))
+          .flatMap(tweetDocument => {
+            decode[NewsletterTweet](tweetDocument.toJson()) match {
+              case Right(tweet) => {
+                val categorisedTweet = CompleteNewsletterTweet(category.name, tweet)
+                val document = Document.apply(categorisedTweet.asJson.toString())
+                collNewsletter.insertOne(document)
+              }
+              // TODO improve, currently the tweet is lost if something goes wrong
+              case Left(error) =>
+                throw new RuntimeException(s"Unable to move tweet [$tweetDocument], tweet has been lost: $error")
+            }
+          })
       )
-      .map(result => IO.fromFuture(IO(result.map(_.wasAcknowledged()).toFuture())))
+      .map(result => IO.fromFuture(IO(result.toFuture())))
       .toList
       .sequence
-      .map(_ => ()) // No special handling of failures for now
+      .map(tweets => {
+        val count = tweets.map(_.count(_.wasAcknowledged())).sum
+        logger.info(s"Moved $count tweets from category $category to the newsletter")
+        count
+      }) // No special handling of failures for no
   }
 
   private def collectionFromCategory(category: TweetCategory): MongoCollection[Document] = {
@@ -134,7 +152,7 @@ class DefaultMongoService(config: MongodbConfig)(implicit c: ContextShift[IO]) e
       case Article        => collArticleTweets
       case Audio          => collAudioTweets
       case Excluded       => collExcludedTweets
-      case Interesting    => collInterestingTweets
+      case Other          => collInterestingTweets
       case VersionRelease => collVersionTweets
       case Video          => collVideoTweets
     }

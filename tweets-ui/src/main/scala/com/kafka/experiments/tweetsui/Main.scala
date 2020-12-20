@@ -1,6 +1,6 @@
 package com.kafka.experiments.tweetsui
 
-import cats.effect.{Blocker, ContextShift, ExitCode, IO, IOApp, Resource, Timer}
+import cats.effect.{Blocker, ExitCode, IO, IOApp, Resource}
 import com.kafka.experiments.shared.{
   ArticleTweet,
   AudioTweet,
@@ -11,7 +11,7 @@ import com.kafka.experiments.shared.{
 }
 import com.kafka.experiments.tweetsui.Encoders._
 import com.kafka.experiments.tweetsui.config.GlobalConfig
-import com.kafka.experiments.tweetsui.report.NewsletterBuilder
+import com.kafka.experiments.tweetsui.newsletter.NewsletterBuilder
 import com.kafka.experiments.tweetsui.sendgrid.SendGridClient
 import com.typesafe.scalalogging.StrictLogging
 import io.circe.Codec
@@ -22,9 +22,11 @@ import org.http4s.implicits._
 import org.http4s.server.blaze.BlazeServerBuilder
 import org.http4s.server.staticcontent.{resourceService, ResourceService}
 import org.http4s.server.{Router, Server}
-import org.http4s.{Header, HttpRoutes, Response}
+import org.http4s.{EntityDecoder, Header, HttpRoutes, Request, Response}
 import pureconfig.ConfigSource
 import pureconfig.generic.auto._
+import io.circe.generic.auto._
+import org.http4s.circe.jsonOf
 
 import scala.concurrent.ExecutionContext.global
 
@@ -33,10 +35,14 @@ object CountResult {
 }
 case class CountResult(count: Long)
 
+case class MoveTweetsToNewsletter(tweetIds: Map[String, List[String]])
+
 object SourceCategoryQueryParamMatcher extends QueryParamDecoderMatcher[String]("source")
 object TargetCategoryQueryParamMatcher extends QueryParamDecoderMatcher[String]("target")
 
 object Main extends IOApp with StrictLogging {
+  implicit val decoder: EntityDecoder[IO, MoveTweetsToNewsletter] = jsonOf[IO, MoveTweetsToNewsletter]
+  import cats.implicits._
 
   private val config = ConfigSource.default.loadOrThrow[GlobalConfig]
 
@@ -47,18 +53,34 @@ object Main extends IOApp with StrictLogging {
     .of[IO] {
       case GET -> Root / "newsletter" =>
         newsletterBuilder.buildNewsletter().flatMap(Ok(_, Header("Content-Type", "text/html")))
-      case POST -> Root / "newsletter" / id               => sendNewsletter(id, sendGridClient)
+      case POST -> Root / "newsletter" / "send"         => sendNewsletter(sendGridClient)
+      case req @ PUT -> Root / "newsletter" / "prepare" => prepareNewsletterData(req)
 
-      case GET -> Root / "tweets" / category              => getTweetsByCategory(category)
       case GET -> Root / "tweets" / category / "count"    => getTweetsCountByCategory(category)
+      case GET -> Root / "tweets" / category              => getTweetsByCategory(category)
       case DELETE -> Root / "tweets" / category           => deleteTweetsByCategory(category)
       case DELETE -> Root / "tweets" / category / tweetId => deleteTweet(category, tweetId)
-      case PUT -> Root / "tweets" / "move" / tweetId :?
-          SourceCategoryQueryParamMatcher(source) +& TargetCategoryQueryParamMatcher(target) =>
-        mongoService.move(source, target, tweetId).flatMap(_ => Ok("Moved To Examinate collection"))
+//      case PUT -> Root / "tweets" / "move" / tweetId :?
+//          SourceCategoryQueryParamMatcher(source) +& TargetCategoryQueryParamMatcher(target) =>
+//        mongoService.move(source, target, tweetId).flatMap(_ => Ok("Moved To Examinate collection"))
     }
 
-  def sendNewsletter(newsletterId: String, sendGridClient: SendGridClient): IO[Response[IO]] = {
+  private def prepareNewsletterData(req: Request[IO]) = {
+    logger.info(req.as[MoveTweetsToNewsletter].toString())
+    for {
+      body <- req.as[MoveTweetsToNewsletter]
+      counts <-
+        body.tweetIds
+          .map { case (category, tweetIds) =>
+            mongoService.moveToNewsletter(TweetCategory.fromName(category).get, tweetIds)
+          }
+          .toList
+          .sequence
+      resp <- Ok(s"Moved ${counts.sum} tweets in the newsletter")
+    } yield resp
+  }
+
+  def sendNewsletter(sendGridClient: SendGridClient): IO[Response[IO]] = {
     (for {
       html <- newsletterBuilder.buildNewsletter()
       uuid <- sendGridClient.createSingleSend(html)
@@ -93,7 +115,7 @@ object Main extends IOApp with StrictLogging {
       case None => BadRequest()
       case Some(category) =>
         category match {
-          case Interesting =>
+          case Other =>
             mongoService.tweets[OtherTweet](category).flatMap(Ok(_))
           case Audio =>
             mongoService.tweets[AudioTweet](category).flatMap(Ok(_))

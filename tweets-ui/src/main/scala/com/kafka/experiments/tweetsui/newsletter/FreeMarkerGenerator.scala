@@ -1,4 +1,4 @@
-package com.kafka.experiments.tweetsui.report
+package com.kafka.experiments.tweetsui.newsletter
 
 import com.typesafe.scalalogging.StrictLogging
 import freemarker.template.{Configuration, TemplateExceptionHandler}
