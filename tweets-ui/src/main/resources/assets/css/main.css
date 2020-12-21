@@ -11,3 +11,7 @@ div.card-header:hover {
 div.card-header {
     font-size: 1.3em;
 }
+
+.btn-primary:disabled {
+    background-color: #007bffbf;
+}

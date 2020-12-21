@@ -11,35 +11,58 @@ class TweetUI extends React.Component {
             versionTweets: [],
             interestingTweets: [],
             videoTweets: [],
-            excludedTweets: []
+            excludedTweets: [],
+            newsletterTweets: [],
+            creationInProgress: false,
+            reloadInProgress: false
         };
 
         this.deleteTweet = this.deleteTweet.bind(this);
         this.deleteAllInCategory = this.deleteAllInCategory.bind(this);
-        this.downloadTxtFile = this.downloadTxtFile.bind(this);
         this.moveCategory = this.moveCategory.bind(this);
         this.retrieveTweetsByCategory = this.retrieveTweetsByCategory.bind(this);
         this.retrieveTweetsCountByCategory = this.retrieveTweetsCountByCategory.bind(this);
+
+        this.loadAllData = this.loadAllData.bind(this);
+        this.prepareNewsletter = this.prepareNewsletter.bind(this);
+        this.resetNewsletter = this.resetNewsletter.bind(this);
+        this.retrieveTweetsIncludedInNewsletter = this.retrieveTweetsIncludedInNewsletter.bind(this);
+        this.createNewsletterDraft = this.createNewsletterDraft.bind(this);
     }
 
     componentDidMount() {
-        this.retrieveTweetsCountByCategory("audio", "audioCount");
-        this.retrieveTweetsCountByCategory("article", "articleCount");
-        this.retrieveTweetsCountByCategory("version", "versionCount");
-        this.retrieveTweetsCountByCategory("video", "videoCount");
-        this.retrieveTweetsCountByCategory("interesting", "interestingCount");
-        this.retrieveTweetsCountByCategory("excluded", "excludedCount");
+        this.loadAllData();
+    }
 
-        this.retrieveTweetsByCategory("audio", "audioTweets");
-        this.retrieveTweetsByCategory("article", "articleTweets");
-        this.retrieveTweetsByCategory("version", "versionTweets");
-        this.retrieveTweetsByCategory("video", "videoTweets");
-        this.retrieveTweetsByCategory("interesting", "interestingTweets");
-        this.retrieveTweetsByCategory("excluded", "excludedTweets");
+    loadAllData() {
+        const audio = this.retrieveTweetsCountByCategory("audio", "audioCount");
+        const article = this.retrieveTweetsCountByCategory("article", "articleCount");
+        const version = this.retrieveTweetsCountByCategory("version", "versionCount");
+        const video = this.retrieveTweetsCountByCategory("video", "videoCount");
+        const other = this.retrieveTweetsCountByCategory("interesting", "interestingCount");
+        const excluded = this.retrieveTweetsCountByCategory("excluded", "excludedCount");
+
+        const audioCount = this.retrieveTweetsByCategory("audio", "audioTweets");
+        const articleCount = this.retrieveTweetsByCategory("article", "articleTweets");
+        const versionCount = this.retrieveTweetsByCategory("version", "versionTweets");
+        const videoCount = this.retrieveTweetsByCategory("video", "videoTweets");
+        const otherCount = this.retrieveTweetsByCategory("interesting", "interestingTweets");
+        const excludedCount = this.retrieveTweetsByCategory("excluded", "excludedTweets");
+
+        const included = this.retrieveTweetsIncludedInNewsletter();
+
+        return this.setState({reloadInProgress: true}, () => {
+                return Promise.all([
+                    audio, article, version, video, other, excluded,
+                    audioCount, articleCount, versionCount, videoCount, otherCount, excludedCount,
+                    included
+                ]).then(() => this.setState({reloadInProgress: false}))
+            }
+        )
     }
 
     retrieveTweetsByCategory(category, listName) {
-        fetch(`/api/tweets/${category}`)
+        return fetch(`/api/tweets/${category}`)
             .then(res => res.json())
             .then(
                 (result) => {
@@ -50,11 +73,11 @@ class TweetUI extends React.Component {
                 (error) => {
                     console.log(`Unable to load '${category}' tweets: ${error}`);
                 }
-            )
+            );
     }
 
     retrieveTweetsCountByCategory(category, countName) {
-        fetch(`/api/tweets/${category}/count`)
+        return fetch(`/api/tweets/${category}/count`)
             .then(res => res.json())
             .then(
                 (result) => {
@@ -65,7 +88,22 @@ class TweetUI extends React.Component {
                 (error) => {
                     console.log(`Unable to get '${category}' tweets count: ${error}`);
                 }
-            )
+            );
+    }
+
+    retrieveTweetsIncludedInNewsletter() {
+        return fetch(`/api/newsletter/included`)
+            .then(res => res.json())
+            .then(
+                (result) => {
+                    this.setState({
+                        newsletterTweets: result
+                    });
+                },
+                (error) => {
+                    console.log(`Unable to retrieve current tweets included in newsletter: ${error}`);
+                }
+            );
     }
 
     render() {
@@ -82,17 +120,49 @@ class TweetUI extends React.Component {
             articleTweets,
             versionTweets,
             interestingTweets,
-            excludedTweets
+            excludedTweets,
+
+            newsletterTweets,
+            creationInProgress,
+            reloadInProgress
         } = this.state;
+
+        const newsletterDataPresent = newsletterTweets.length > 0
 
         return (
             <ReactBootstrap.Container fluid>
                 <ReactBootstrap.Row>
-                    <ReactBootstrap.Col>
-                        <ReactBootstrap.Button className="mb-2" variant="primary" onClick={this.downloadTxtFile}>
-                            Weekly Report
-                        </ReactBootstrap.Button>
-                    </ReactBootstrap.Col>
+                    <ReactBootstrap.Button className="mb-2 ml-3" variant="info" onClick={this.loadAllData}>
+                        {
+                            reloadInProgress ?
+                                <ReactBootstrap.Spinner animation="border" role="status">
+                                    <span className="sr-only">Loading...</span>
+                                </ReactBootstrap.Spinner>
+                                : <span>Refresh</span>
+                        }
+                    </ReactBootstrap.Button>
+                    <ReactBootstrap.Button className="mb-2 ml-2" disabled={newsletterDataPresent}
+                                           variant="primary" onClick={this.prepareNewsletter}>
+                        Move to Newsletter
+                    </ReactBootstrap.Button>
+                    <ReactBootstrap.Button className="mb-2 ml-2" disabled={!newsletterDataPresent}
+                                           variant="secondary" target="_blank" href="/api/newsletter/html">
+                        Check Newsletter
+                    </ReactBootstrap.Button>
+                    <ReactBootstrap.Button className="mb-2 ml-2" disabled={!newsletterDataPresent}
+                                           variant="success" onClick={this.createNewsletterDraft}>
+                        {
+                            creationInProgress ?
+                                <ReactBootstrap.Spinner animation="border" role="status">
+                                    <span className="sr-only">Creating...</span>
+                                </ReactBootstrap.Spinner>
+                                : <span>Create Newsletter Draft</span>
+                        }
+                    </ReactBootstrap.Button>
+                    <ReactBootstrap.Button className="mb-2 ml-2" disabled={!newsletterDataPresent}
+                                           variant="warning" onClick={this.resetNewsletter}>
+                        Reset Newsletter
+                    </ReactBootstrap.Button>
                 </ReactBootstrap.Row>
                 <ReactBootstrap.Row>
                     <ReactBootstrap.Col>
@@ -115,7 +185,10 @@ class TweetUI extends React.Component {
             <ReactBootstrap.Accordion.Toggle as={ReactBootstrap.Card.Header} eventKey={cardKey}>
                 <span><b>Tweets:</b> {cardTitle}</span>
                 <ReactBootstrap.Button style={{float: "right"}} className="mb-2" variant="warning"
-                                       onClick={(event) => {event.stopPropagation(); this.deleteAllInCategory(category)}}>
+                                       onClick={(event) => {
+                                           event.stopPropagation();
+                                           this.deleteAllInCategory(category)
+                                       }}>
                     Clean <b>({count})</b>
                 </ReactBootstrap.Button>
             </ReactBootstrap.Accordion.Toggle>
@@ -133,7 +206,6 @@ class TweetUI extends React.Component {
                 <th width={120}>Date</th>
                 <th>Text</th>
                 <th>User</th>
-                {/*<th>Link</th>*/}
                 {reasonCol ? <th>Move</th> : <th>Prom</th>}
                 <th>Delete</th>
                 {reasonCol ? <th>Reason</th> : ''}
@@ -143,7 +215,9 @@ class TweetUI extends React.Component {
             {
                 tweets.map((tweet) =>
                     <tr key={tweet.id}>
-                        <td><a target="_blank" href={`https://twitter.com/${tweet.user}/status/${tweet.id}`}>{moment.unix(tweet.createdAt / 1000).format("DD/MM hh:mm")}</a></td>
+                        <td><a target="_blank"
+                               href={`https://twitter.com/${tweet.user}/status/${tweet.id}`}>{moment.unix(tweet.createdAt / 1000).format("DD/MM hh:mm")}</a>
+                        </td>
                         <td><Linkify>{tweet.text}</Linkify></td>
                         <td>{tweet.user}</td>
                         {reasonCol ?
@@ -197,6 +271,28 @@ class TweetUI extends React.Component {
             )
     }
 
+    resetNewsletter() {
+        fetch(`/api/newsletter/reset`, {method: "DELETE"})
+            .then(
+                (res) => {
+                    this.retrieveTweetsIncludedInNewsletter()
+                }
+            )
+    }
+
+    createNewsletterDraft() {
+        this.setState({creationInProgress: true},
+            () => fetch(`/api/newsletter/create`, {method: "POST"})
+                .then(
+                    (res) => {
+                        this.setState({
+                            creationInProgress: false
+                        })
+                    }
+                )
+        )
+    }
+
     moveCategory(source, target, tweetId) {
         fetch(`/api/tweets/move/${tweetId}?source=${source}&target=${target}`, {method: "PUT"})
             .then(
@@ -209,14 +305,32 @@ class TweetUI extends React.Component {
             )
     }
 
-    downloadTxtFile() {
-        const element = document.createElement("a");
-        const file = new Blob(["hello\nhi"],
-            {type: 'text/plain;charset=utf-8'});
-        element.href = URL.createObjectURL(file);
-        element.download = "myFile.txt";
-        document.body.appendChild(element);
-        element.click();
+    prepareNewsletter() {
+        const {articleTweets, audioTweets, versionTweets, interestingTweets, videoTweets} = this.state;
+
+        const tweetIds = {
+            "article": articleTweets.map(t => t.id),
+            "audio": audioTweets.map(t => t.id),
+            "interesting": interestingTweets.map(t => t.id),
+            "version": versionTweets.map(t => t.id),
+            "video": videoTweets.map(t => t.id)
+        }
+
+        fetch(`/api/newsletter/prepare`, {
+            body: JSON.stringify({"tweetIds": tweetIds}),
+            headers: {
+                "Content-Type": "application/json"
+            },
+            method: "PUT"
+        })
+            .then(
+                (res) => {
+                    this.loadAllData();
+                },
+                (error) => {
+                    console.error(`Unable to prepare the newsletter: ${error}`)
+                }
+            )
     }
 }
 

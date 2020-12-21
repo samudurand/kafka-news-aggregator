@@ -67,7 +67,9 @@ class DefaultSendGridClient(config: SendGridConfig, httpClient: Client[IO])
         json.hcursor.downField(singleSendIdField).as[String].map(UUID.fromString) match {
           case Left(idParsingError) =>
             throw new RuntimeException("Unable to extract SingleSend UUID", idParsingError)
-          case Right(id) => id
+          case Right(id) =>
+            logger.info(s"New single send created with id [$id]")
+            id
         }
     }
   }

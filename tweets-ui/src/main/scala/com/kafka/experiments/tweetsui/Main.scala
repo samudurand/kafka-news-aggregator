@@ -37,8 +37,8 @@ case class CountResult(count: Long)
 
 case class MoveTweetsToNewsletter(tweetIds: Map[String, List[String]])
 
-object SourceCategoryQueryParamMatcher extends QueryParamDecoderMatcher[String]("source")
-object TargetCategoryQueryParamMatcher extends QueryParamDecoderMatcher[String]("target")
+//object SourceCategoryQueryParamMatcher extends QueryParamDecoderMatcher[String]("source")
+//object TargetCategoryQueryParamMatcher extends QueryParamDecoderMatcher[String]("target")
 
 object Main extends IOApp with StrictLogging {
   implicit val decoder: EntityDecoder[IO, MoveTweetsToNewsletter] = jsonOf[IO, MoveTweetsToNewsletter]
@@ -51,10 +51,11 @@ object Main extends IOApp with StrictLogging {
 
   private def api(sendGridClient: SendGridClient): HttpRoutes[IO] = HttpRoutes
     .of[IO] {
-      case GET -> Root / "newsletter" =>
-        newsletterBuilder.buildNewsletter().flatMap(Ok(_, Header("Content-Type", "text/html")))
-      case POST -> Root / "newsletter" / "send"         => sendNewsletter(sendGridClient)
+      case GET -> Root / "newsletter" / "html"          => loadCurrentHtmlNewsletter()
+      case GET -> Root / "newsletter" / "included"      => loadCurrentlyIncludedInNewsletter()
       case req @ PUT -> Root / "newsletter" / "prepare" => prepareNewsletterData(req)
+      case POST -> Root / "newsletter" / "create"       => createNewsletterDraft(sendGridClient)
+      case DELETE -> Root / "newsletter" / "reset"      => resetNewsletterData()
 
       case GET -> Root / "tweets" / category / "count"    => getTweetsCountByCategory(category)
       case GET -> Root / "tweets" / category              => getTweetsByCategory(category)
@@ -64,6 +65,14 @@ object Main extends IOApp with StrictLogging {
 //          SourceCategoryQueryParamMatcher(source) +& TargetCategoryQueryParamMatcher(target) =>
 //        mongoService.move(source, target, tweetId).flatMap(_ => Ok("Moved To Examinate collection"))
     }
+
+  private def loadCurrentlyIncludedInNewsletter(): IO[Response[IO]] = {
+    mongoService.tweetsForNewsletter().flatMap(Ok(_))
+  }
+
+  private def loadCurrentHtmlNewsletter() = {
+    newsletterBuilder.buildNewsletter().flatMap(Ok(_, Header("Content-Type", "text/html")))
+  }
 
   private def prepareNewsletterData(req: Request[IO]) = {
     logger.info(req.as[MoveTweetsToNewsletter].toString())
@@ -80,11 +89,11 @@ object Main extends IOApp with StrictLogging {
     } yield resp
   }
 
-  def sendNewsletter(sendGridClient: SendGridClient): IO[Response[IO]] = {
+  def createNewsletterDraft(sendGridClient: SendGridClient): IO[Response[IO]] = {
     (for {
       html <- newsletterBuilder.buildNewsletter()
-      uuid <- sendGridClient.createSingleSend(html)
-      _ <- sendGridClient.sendSingleSendNow(uuid)
+      _ <- sendGridClient.createSingleSend(html)
+      // _ <- sendGridClient.sendSingleSendNow(uuid) // Currently done manually to avoid misfire
     } yield ()).flatMap(_ => Ok())
   }
 
@@ -101,6 +110,10 @@ object Main extends IOApp with StrictLogging {
         mongoService.deleteAll(category).flatMap(count => Ok(s"All tweets in category ${category} deleted"))
       case _ => BadRequest()
     }
+  }
+
+  private def resetNewsletterData() = {
+    mongoService.deleteAllInNewsletter().flatMap(Ok(_))
   }
 
   private def getTweetsCountByCategory(categoryName: String) = {
