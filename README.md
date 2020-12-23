@@ -60,7 +60,14 @@ sbt "project tweetsCategorizer" run
 
 ## Production 
 
-To build the jars:
+The TweetUI service needs the freemarker templates available in the file system (fatjar cannot access files in resources). 
+Copy the `tweets-ui/src/main/resourcse/newsletter-templates` folder onto the target system, then put the absolute path 
+to this folder into the environment variable:
+```
+export FREEMARKER_TEMPLATES_FOLDER=/var/freemarker/newsletter-templates
+```
+
+To build the fatjars:
 ```
 sbt "project tweetsCategorizer" assembly
 sbt "project tweetsUI" assembly

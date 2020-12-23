@@ -1,14 +1,15 @@
 package com.kafka.experiments.tweetsui.newsletter
 
 import cats.effect.IO
+import com.kafka.experiments.tweetsui.config.FreeMarkerConfig
 import com.kafka.experiments.tweetsui.{Article, Audio, MongoService, Other, VersionRelease, Video}
 
 import scala.jdk.CollectionConverters._
 import com.linkedin.urls.detection.{UrlDetector, UrlDetectorOptions}
 
-class NewsletterBuilder(mongoService: MongoService) {
+class NewsletterBuilder(mongoService: MongoService, freeMarkerConfig: FreeMarkerConfig) {
 
-  val freeMarkerGenerator = new FreeMarkerGenerator()
+  val freeMarkerGenerator = new FreeMarkerGenerator(freeMarkerConfig)
 
   def buildNewsletter(): IO[String] = {
     mongoService

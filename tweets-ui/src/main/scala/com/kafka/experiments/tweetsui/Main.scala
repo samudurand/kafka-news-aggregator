@@ -47,7 +47,7 @@ object Main extends IOApp with StrictLogging {
   private val config = ConfigSource.default.loadOrThrow[GlobalConfig]
 
   private val mongoService = MongoService(config.mongodb)
-  private val newsletterBuilder = new NewsletterBuilder(mongoService)
+  private val newsletterBuilder = new NewsletterBuilder(mongoService, config.freemarker)
 
   private def api(sendGridClient: SendGridClient): HttpRoutes[IO] = HttpRoutes
     .of[IO] {

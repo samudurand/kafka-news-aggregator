@@ -1,5 +1,6 @@
 package com.kafka.experiments.tweetsui.newsletter
 
+import com.kafka.experiments.tweetsui.config.FreeMarkerConfig
 import com.typesafe.scalalogging.StrictLogging
 import freemarker.template.{Configuration, TemplateExceptionHandler}
 import in.wilsonl.minifyhtml
@@ -8,9 +9,14 @@ import in.wilsonl.minifyhtml.MinifyHtml
 import java.io.{File, StringWriter, Writer}
 import scala.jdk.CollectionConverters._
 
-class FreeMarkerGenerator extends StrictLogging {
+class FreeMarkerGenerator(freeMarkerConfig: FreeMarkerConfig) extends StrictLogging {
 
-  val templateFolder = new File(getClass.getClassLoader.getResource("newsletter-templates").getFile)
+  private val templateFolder = {
+    freeMarkerConfig.templatesFolderSystemPath match {
+      case Some(fileSystemPath) => new File(fileSystemPath)
+      case _                    => new File(getClass.getClassLoader.getResource("newsletter-templates").getFile)
+    }
+  }
 
   private val minConfig = minifyConfiguration()
   private val fmConfig = freeMarkerConfiguration()
