@@ -25,7 +25,6 @@ object Dependencies {
   val KafkaStreams = "org.apache.kafka" %% "kafka-streams-scala" % Versions.KafkaStreams
   val Logback = "ch.qos.logback" % "logback-classic" % Versions.Logback
   val MongoDB = "org.mongodb.scala" %% "mongo-scala-driver" % Versions.MongoDB
-  val MinifyHtml = "in.wilsonl.minifyhtml" % "minify-html" % Versions.MinifyHtml
   val PureConfig = "com.github.pureconfig" %% "pureconfig" % Versions.PureConfig
   val ScalaLogging = "com.typesafe.scala-logging" %% "scala-logging" % Versions.ScalaLogging
   val UrlDetector = "io.github.url-detector" % "url-detector" % Versions.UrlDetector
@@ -51,7 +50,6 @@ object Dependencies {
     Http4sDsl,
     Http4sClient,
     Http4sServer,
-    MinifyHtml,
     MongoDB,
     PureConfig,
     ScalaLogging,
