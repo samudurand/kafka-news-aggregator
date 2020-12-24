@@ -76,3 +76,12 @@ Advanced Features:
 - detect when a Kafka event is happening (conference or other).
     For instance with a stream app that will analyse the tweets rates (this should not use the same rules as article based tweets, since we are looking for kafka mentions)
     Prob need a window concept, like tweets in an hour/day
+
+
+- score tweet value:
+    - twitter account popular ?
+    - retweet count, likes count, maybe apply different scales depending on how long the tweet has been out
+    - if video then video length > 10 min ? (youtube https://stackoverflow.com/questions/15596753/how-do-i-get-video-durations-with-youtube-api-version-3)
+    - if article then
+        - link domain ? (medium, ...)
+        - text length ? (prob not a good meter)

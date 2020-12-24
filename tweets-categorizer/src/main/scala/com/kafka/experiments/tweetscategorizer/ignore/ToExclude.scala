@@ -26,7 +26,7 @@ object ToExclude {
     tweet match {
       case t if doesNotMentionKafka(t) => Some(reasonDoesNotMentionKafka)
       case t if hasSourceToBeExcluded(t) => Some(reasonHasSourceToBeExcluded)
-      case t if hasUnrelatedWords(t) => Some(reasonHasUnrelatedWords)
+      case t if hasUnrelatedContent(t) => Some(reasonHasUnrelatedWords)
       case t if isAboutACertification(t) => Some(reasonIsAboutACertification)
       case t if isAboutAGame(t) => Some(reasonIsAboutAGame)
       case t if isAboutFranzKafka(t) => Some(reasonIsAboutFranzKafka)
@@ -83,7 +83,8 @@ object ToExclude {
     textLoweredCaseContainAnyOf(tweet.Text, adWords)
   }
 
-  private def hasUnrelatedWords(tweet: Tweet) = {
-    textLoweredCaseContainAnyOf(tweet.Text, Keywords.unrelatedWords)
+  private def hasUnrelatedContent(tweet: Tweet) = {
+    textLoweredCaseContainAnyOf(tweet.Text, Keywords.unrelatedWords) ||
+      Keywords.unrelatedDomains.exists(domain => tweet.URLEntities.exists(_.ExpandedURL.contains(domain)))
   }
 }

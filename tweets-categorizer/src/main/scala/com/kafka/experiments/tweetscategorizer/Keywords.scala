@@ -14,6 +14,7 @@ object Keywords {
   val discountWords: Seq[String] = config.discount
   val franzKafkaRelatedWords: Seq[String] = config.fkafka
   val jobOfferWords: Seq[String] = config.job
+  val unrelatedDomains: Seq[String] = config.unrelateddomains
   val unrelatedWords: Seq[String] = config.unrelated
   val versionReleaseWords: Seq[String] = config.version
   val videoWords: Seq[String] = config.video
