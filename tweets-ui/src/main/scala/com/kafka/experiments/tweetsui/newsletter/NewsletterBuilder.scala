@@ -1,15 +1,12 @@
 package com.kafka.experiments.tweetsui.newsletter
 
 import cats.effect.IO
-import com.kafka.experiments.tweetsui.config.FreeMarkerConfig
-import com.kafka.experiments.tweetsui.{Article, Audio, MongoService, Other, VersionRelease, Video}
-
-import scala.jdk.CollectionConverters._
+import com.kafka.experiments.tweetsui._
 import com.linkedin.urls.detection.{UrlDetector, UrlDetectorOptions}
 
-class NewsletterBuilder(mongoService: MongoService, freeMarkerConfig: FreeMarkerConfig) {
+import scala.jdk.CollectionConverters._
 
-  val freeMarkerGenerator = new FreeMarkerGenerator(freeMarkerConfig)
+class NewsletterBuilder(mongoService: MongoService, fmGenerator: FreeMarkerGenerator) {
 
   def buildNewsletter(): IO[String] = {
     mongoService
@@ -31,7 +28,7 @@ class NewsletterBuilder(mongoService: MongoService, freeMarkerConfig: FreeMarker
       )
       .map(removeUrls)
       .map(_.view.mapValues(_.asJava).toMap)
-      .map(data => freeMarkerGenerator.generateHtml(data))
+      .map(data => fmGenerator.generateHtml(data))
   }
 
   private def removeUrls(data: Map[String, Seq[CompleteNewsletterTweet]]) = {

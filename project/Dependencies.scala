@@ -11,6 +11,7 @@ object Versions {
   val MongoDB = "4.1.1"
   val PureConfig = "0.14.0"
   val ScalaLogging = "3.9.2"
+  val Scalamock = "5.1.0"
   val Scalatest = "3.2.2"
   val UrlDetector = "0.1.23"
 }
@@ -34,6 +35,7 @@ object Dependencies {
 
   val KafkaStreamTest = "org.apache.kafka" % "kafka-streams-test-utils" % Versions.KafkaStreams % "test"
   val Scalatest = "org.scalatest" %% "scalatest" % Versions.Scalatest % "test"
+  val Scalamock = "org.scalamock" %% "scalamock" % Versions.Scalamock
 
   val Shared: Seq[ModuleID] = Seq(
     CirceGeneric,
@@ -59,6 +61,7 @@ object Dependencies {
     MongoDB,
     PureConfig,
     ScalaLogging,
+    Scalamock,
     Scalatest,
     UrlDetector
   )

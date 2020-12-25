@@ -4,7 +4,7 @@ import com.kafka.experiments.tweetscategorizer.tweetUtils.hasValidLink
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-class tweetUtilsTest extends AnyFlatSpec with Matchers {
+class TweetUtilsTest extends AnyFlatSpec with Matchers {
 
   private val goodTweet = Tweet(
     1604688491000L,

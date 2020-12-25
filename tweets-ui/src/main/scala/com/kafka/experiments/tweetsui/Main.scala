@@ -1,17 +1,10 @@
 package com.kafka.experiments.tweetsui
 
 import cats.effect.{Blocker, ExitCode, IO, IOApp, Resource}
-import com.kafka.experiments.shared.{
-  ArticleTweet,
-  AudioTweet,
-  ExcludedTweet,
-  OtherTweet,
-  VersionReleaseTweet,
-  VideoTweet
-}
+import com.kafka.experiments.shared.{ArticleTweet, AudioTweet, ExcludedTweet, OtherTweet, VersionReleaseTweet, VideoTweet}
 import com.kafka.experiments.tweetsui.Encoders._
 import com.kafka.experiments.tweetsui.config.GlobalConfig
-import com.kafka.experiments.tweetsui.newsletter.NewsletterBuilder
+import com.kafka.experiments.tweetsui.newsletter.{FreeMarkerGenerator, NewsletterBuilder}
 import com.kafka.experiments.tweetsui.sendgrid.SendGridClient
 import com.typesafe.scalalogging.StrictLogging
 import io.circe.Codec
@@ -20,7 +13,7 @@ import org.http4s.client.blaze.BlazeClientBuilder
 import org.http4s.dsl.io._
 import org.http4s.implicits._
 import org.http4s.server.blaze.BlazeServerBuilder
-import org.http4s.server.staticcontent.{resourceService, ResourceService}
+import org.http4s.server.staticcontent.{ResourceService, resourceService}
 import org.http4s.server.{Router, Server}
 import org.http4s.{EntityDecoder, Header, HttpRoutes, Request, Response}
 import pureconfig.ConfigSource
@@ -47,7 +40,8 @@ object Main extends IOApp with StrictLogging {
   private val config = ConfigSource.default.loadOrThrow[GlobalConfig]
 
   private val mongoService = MongoService(config.mongodb)
-  private val newsletterBuilder = new NewsletterBuilder(mongoService, config.freemarker)
+  private val fmGenerator = new FreeMarkerGenerator(config.freemarker)
+  private val newsletterBuilder = new NewsletterBuilder(mongoService, fmGenerator)
 
   private def api(sendGridClient: SendGridClient): HttpRoutes[IO] = HttpRoutes
     .of[IO] {

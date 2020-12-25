@@ -9,14 +9,7 @@ import scala.jdk.CollectionConverters._
 
 class FreeMarkerGenerator(freeMarkerConfig: FreeMarkerConfig) extends StrictLogging {
 
-  private val templateFolder = {
-    freeMarkerConfig.templatesFolderSystemPath match {
-      case Some(fileSystemPath) => new File(fileSystemPath)
-      case _                    => new File(getClass.getClassLoader.getResource("newsletter-templates").getFile)
-    }
-  }
-
-  private val fmConfig = freeMarkerConfiguration()
+  private lazy val fmConfig = freeMarkerConfiguration()
 
   def generateHtml(data: Map[String, AnyRef]): String = {
     val template = fmConfig.getTemplate("template.html")
@@ -27,12 +20,19 @@ class FreeMarkerGenerator(freeMarkerConfig: FreeMarkerConfig) extends StrictLogg
 
   private def freeMarkerConfiguration(): Configuration = {
     val cfg = new Configuration(Configuration.VERSION_2_3_30)
-    cfg.setDirectoryForTemplateLoading(templateFolder)
+    cfg.setDirectoryForTemplateLoading(templateFolder())
     cfg.setDefaultEncoding("UTF-8")
-    cfg.setTemplateExceptionHandler(TemplateExceptionHandler.DEBUG_HANDLER)
+    cfg.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER) // Use DEBUG_HANDLER when developing
     cfg.setLogTemplateExceptions(false)
     cfg.setWrapUncheckedExceptions(true)
     cfg.setFallbackOnNullLoopVariable(false)
     cfg
+  }
+
+  private def templateFolder() = {
+    freeMarkerConfig.templatesFolderSystemPath match {
+      case Some(fileSystemPath) => new File(fileSystemPath)
+      case _                    => new File(getClass.getClassLoader.getResource("newsletter-templates").getFile)
+    }
   }
 }
