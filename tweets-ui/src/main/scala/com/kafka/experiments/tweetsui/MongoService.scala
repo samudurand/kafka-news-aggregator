@@ -34,10 +34,14 @@ trait MongoService {
 }
 
 object MongoService {
-  def apply(config: MongodbConfig)(implicit c: ContextShift[IO]): MongoService = new DefaultMongoService(config)
+
+  def apply(config: MongodbConfig)(implicit c: ContextShift[IO]): MongoService =
+    new DefaultMongoService(config, MongoClient(s"mongodb://${config.host}:${config.port}"))
 }
 
-class DefaultMongoService(config: MongodbConfig)(implicit c: ContextShift[IO]) extends MongoService with StrictLogging {
+class DefaultMongoService(config: MongodbConfig, mongoClient: MongoClient)(implicit c: ContextShift[IO])
+    extends MongoService
+    with StrictLogging {
 
   private val customCodecs = fromProviders(
     classOf[ArticleTweet],
@@ -51,7 +55,6 @@ class DefaultMongoService(config: MongodbConfig)(implicit c: ContextShift[IO]) e
 
   private val codecRegistry = fromRegistries(customCodecs, DEFAULT_CODEC_REGISTRY)
 
-  private val mongoClient = MongoClient(s"mongodb://${config.host}:${config.port}")
   private val database = mongoClient.getDatabase(config.tweetsDb).withCodecRegistry(codecRegistry)
 
   private val collAudioTweets = database.getCollection(config.collAudio)
@@ -66,14 +69,12 @@ class DefaultMongoService(config: MongodbConfig)(implicit c: ContextShift[IO]) e
 
   private val collNewsletter = database.getCollection(config.collNewsletter)
 
-  private val maxResults = 5
   private val createdAtField = "createdAt"
 
   override def tweets[T](category: TweetCategory)(implicit ct: ClassTag[T]): IO[Seq[T]] = {
     val tweets = collectionFromCategory(category)
       .find[T]()
       .sort(orderBy(descending(createdAtField)))
-      //      .limit(maxResults)
       .toFuture()
     IO.fromFuture(IO(tweets))
   }
@@ -145,7 +146,7 @@ class DefaultMongoService(config: MongodbConfig)(implicit c: ContextShift[IO]) e
         val count = tweets.map(_.count(_.wasAcknowledged())).sum
         logger.info(s"Moved $count tweets from category $category to the newsletter")
         count
-      }) // No special handling of failures for no
+      }) // No special handling of failures for now
   }
 
   private def collectionFromCategory(category: TweetCategory): MongoCollection[Document] = {
