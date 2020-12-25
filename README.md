@@ -52,10 +52,30 @@ curl -s -X PUT http://localhost:8083/connectors/twitter_source/resume
 
 ### Tweets Categorizer
 
+To build and run the tests:
+
+```
+sbt "project tweetsCategorizer" coverage test coverageReport
+```
+
 To start the Tweets Categorizer service, run:
 
 ```
 sbt "project tweetsCategorizer" run
+```
+
+### Tweets UI
+
+To build and run the tests:
+
+```
+sbt "project tweetsUI" coverage test coverageReport
+```
+
+To start the Tweets UI service, run:
+
+```
+sbt "project tweetsUI" run
 ```
 
 ## Production 

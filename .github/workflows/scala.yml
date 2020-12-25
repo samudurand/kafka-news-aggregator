@@ -17,5 +17,7 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: 1.11
-    - name: Run tests
-      run: sbt compile test
+    - name: Build Categorizer
+      run: sbt "project tweetsCategorizer" coverage test coverageReport
+    - name: Build UI
+      run: sbt "project tweetsUI" coverage test coverageReport

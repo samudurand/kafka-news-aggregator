@@ -53,7 +53,6 @@ object Categorizer {
   private def isAboutAnArticle(tweet: Tweet): Boolean = {
     textLoweredCaseContainAnyOf(tweet.Text, Keywords.articleWords) ||
     Keywords.articleDomains.exists(domain => tweet.URLEntities.exists(_.ExpandedURL.contains(domain)))
-
   }
 
 }

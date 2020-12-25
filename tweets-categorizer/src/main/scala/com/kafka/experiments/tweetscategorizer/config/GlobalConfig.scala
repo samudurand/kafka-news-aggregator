@@ -1,6 +1,8 @@
 package com.kafka.experiments.tweetscategorizer.config
 
-case class GlobalConfig(sources: SourceConfig, keywords: KeywordsConfig)
+case class GlobalConfig(kafka: KafkaConfig, sources: SourceConfig, keywords: KeywordsConfig)
+
+case class KafkaConfig(bootstrapServers: String)
 
 case class SourceConfig(accepted: List[String], excluded: List[String])
 

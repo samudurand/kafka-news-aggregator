@@ -1,8 +1,6 @@
 import sbt.Keys._
 import sbt._
 
-
-
 lazy val shared = project
   .in(file("shared"))
   .settings(
@@ -48,6 +46,9 @@ lazy val tweetsUI = project
   .dependsOn(shared)
 
 val CommonSettings: Seq[Def.Setting[_]] = Seq(
+  coverageEnabled := true,
+  coverageMinimum := 90,
+  coverageFailOnMinimum := true,
   scalaVersion := "2.13.1",
   scalacOptions ++= Seq(
     "-deprecation",

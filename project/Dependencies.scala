@@ -4,7 +4,7 @@ object Versions {
   val Circe = "0.13.0"
   val FreeMarker = "2.3.30"
   val Http4s = "0.21.8"
-  val KafkaStreams = "2.5.1"
+  val KafkaStreams = "2.7.0"
   val Logback = "1.2.3"
   val MinifyHtml = "0.3.9"
   val MongoDB = "4.1.1"
@@ -29,6 +29,7 @@ object Dependencies {
   val ScalaLogging = "com.typesafe.scala-logging" %% "scala-logging" % Versions.ScalaLogging
   val UrlDetector = "io.github.url-detector" % "url-detector" % Versions.UrlDetector
 
+  val KafkaStreamTest = "org.apache.kafka" % "kafka-streams-test-utils" % Versions.KafkaStreams % "test"
   val Scalatest = "org.scalatest" %% "scalatest" % Versions.Scalatest % "test"
 
   val Shared: Seq[ModuleID] = Seq(
@@ -39,6 +40,7 @@ object Dependencies {
 
   val TweetsCategorizer: Seq[ModuleID] = Seq(
     KafkaStreams,
+    KafkaStreamTest,
     PureConfig,
     ScalaLogging,
     Scalatest

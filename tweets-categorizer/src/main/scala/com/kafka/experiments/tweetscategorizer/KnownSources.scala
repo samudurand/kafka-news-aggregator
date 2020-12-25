@@ -12,11 +12,15 @@ object KnownSources {
   private val sourcesToBeAutoAccepted = config.sources.accepted
 
   def hasSourceToBeExcluded(tweet: Tweet): Boolean = {
-    sourcesToBeExcluded.exists(source => tweet.User.ScreenName.toLowerCase.equals(source.toLowerCase))
+    hasKnownSource(tweet, sourcesToBeExcluded)
   }
 
   def hasSourceToBeAutoAccepted(tweet: Tweet): Boolean = {
-    sourcesToBeAutoAccepted.exists(source => tweet.User.ScreenName.toLowerCase.equals(source.toLowerCase))
+    hasKnownSource(tweet, sourcesToBeAutoAccepted)
+  }
+
+  private def hasKnownSource(tweet: Tweet, known: List[String]): Boolean = {
+    known.exists(source => tweet.User.ScreenName.toLowerCase.equals(source.toLowerCase))
   }
 
 }
