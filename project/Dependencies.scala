@@ -6,6 +6,7 @@ object Versions {
   val Http4s = "0.21.8"
   val KafkaStreams = "2.7.0"
   val Logback = "1.2.3"
+  val LogstashEncoder = "6.5"
   val MinifyHtml = "0.3.9"
   val MongoDB = "4.1.1"
   val PureConfig = "0.14.0"
@@ -24,6 +25,8 @@ object Dependencies {
   val Http4sServer = "org.http4s" %% "http4s-blaze-server" % Versions.Http4s
   val KafkaStreams = "org.apache.kafka" %% "kafka-streams-scala" % Versions.KafkaStreams
   val Logback = "ch.qos.logback" % "logback-classic" % Versions.Logback
+  val LogstashLogbackEncoder = "net.logstash.logback" % "logstash-logback-encoder" % Versions.LogstashEncoder
+
   val MongoDB = "org.mongodb.scala" %% "mongo-scala-driver" % Versions.MongoDB
   val PureConfig = "com.github.pureconfig" %% "pureconfig" % Versions.PureConfig
   val ScalaLogging = "com.typesafe.scala-logging" %% "scala-logging" % Versions.ScalaLogging
@@ -35,7 +38,8 @@ object Dependencies {
   val Shared: Seq[ModuleID] = Seq(
     CirceGeneric,
     CirceParser,
-    Logback
+    Logback,
+    LogstashLogbackEncoder
   )
 
   val TweetsCategorizer: Seq[ModuleID] = Seq(
