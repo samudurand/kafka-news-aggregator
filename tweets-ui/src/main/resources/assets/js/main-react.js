@@ -141,7 +141,7 @@ class TweetUI extends React.Component {
                                 : <span>Refresh</span>
                         }
                     </ReactBootstrap.Button>
-                    <ReactBootstrap.Button className="mb-2 ml-2" disabled={newsletterDataPresent}
+                    <ReactBootstrap.Button className="mb-2 ml-2"
                                            variant="primary" onClick={this.prepareNewsletter}>
                         Move to Newsletter
                     </ReactBootstrap.Button>

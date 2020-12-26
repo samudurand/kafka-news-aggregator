@@ -43,7 +43,7 @@ object Main extends IOApp with StrictLogging {
   private val fmGenerator = new FreeMarkerGenerator(config.freemarker)
   private val newsletterBuilder = new NewsletterBuilder(mongoService, fmGenerator)
 
-  private def api(sendGridClient: SendGridClient): HttpRoutes[IO] = HttpRoutes
+  def api(sendGridClient: SendGridClient): HttpRoutes[IO] = HttpRoutes
     .of[IO] {
       case GET -> Root / "newsletter" / "html"          => loadCurrentHtmlNewsletter()
       case GET -> Root / "newsletter" / "included"      => loadCurrentlyIncludedInNewsletter()
@@ -87,7 +87,6 @@ object Main extends IOApp with StrictLogging {
     (for {
       html <- newsletterBuilder.buildNewsletter()
       _ <- sendGridClient.createSingleSend(html)
-      // _ <- sendGridClient.sendSingleSendNow(uuid) // Currently done manually to avoid misfire
     } yield ()).flatMap(_ => Ok())
   }
 
