@@ -1,7 +1,12 @@
 package com.kafka.experiments.tweetsui
 
 import cats.effect.{ContextShift, IO}
-import com.dimafeng.testcontainers.{FixedHostPortGenericContainer, ForEachTestContainer, GenericContainer, MongoDBContainer}
+import com.dimafeng.testcontainers.{
+  FixedHostPortGenericContainer,
+  ForEachTestContainer,
+  GenericContainer,
+  MongoDBContainer
+}
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{aResponse, get, urlPathEqualTo}
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig
@@ -22,7 +27,7 @@ class AppTest extends AnyFlatSpec with ForEachTestContainer with BeforeAndAfterE
   implicit val contextShift: ContextShift[IO] = IO.contextShift(global)
 
   override val container = new FixedHostPortGenericContainer(
-    "mongo",
+    "mongo:4.4.2",
     exposedContainerPort = 27017,
     exposedHostPort = 28017
   )
@@ -61,9 +66,7 @@ class AppTest extends AnyFlatSpec with ForEachTestContainer with BeforeAndAfterE
   ): Unit = {
     val actualResp = actual.unsafeRunSync()
     actualResp.status shouldBe expectedStatus
-    expectedBody.foreach(expected =>
-      actualResp.as[A].unsafeRunSync() shouldBe expected
-    )
+    expectedBody.foreach(expected => actualResp.as[A].unsafeRunSync() shouldBe expected)
   }
 
 }
