@@ -199,16 +199,13 @@ class TweetUI extends React.Component {
     }
 
     tweetsTable(category, tweets) {
-        const reasonCol = (category === "excluded")
         return <ReactBootstrap.Table striped bordered hover>
             <thead>
             <tr>
                 <th width={120}>Date</th>
                 <th>Text</th>
                 <th>User</th>
-                {reasonCol ? <th>Move</th> : <th>Prom</th>}
                 <th>Delete</th>
-                {reasonCol ? <th>Reason</th> : ''}
             </tr>
             </thead>
             <tbody>
@@ -220,26 +217,12 @@ class TweetUI extends React.Component {
                         </td>
                         <td><Linkify>{tweet.text}</Linkify></td>
                         <td>{tweet.user}</td>
-                        {reasonCol ?
-                            <td>
-                                <ReactBootstrap.Button className="mb-2" variant="warning"
-                                                       onClick={() => this.moveCategory("excluded", "examinate", tweet.id)}>
-                                    Move
-                                </ReactBootstrap.Button>
-                            </td> :
-                            <td>
-                                <ReactBootstrap.Button className="mb-2" variant="warning"
-                                                       onClick={() => this.moveCategory(category, "promotion", tweet.id)}>
-                                    Prom
-                                </ReactBootstrap.Button>
-                            </td>}
                         <td>
                             <ReactBootstrap.Button variant="danger"
                                                    onClick={() => this.deleteTweet(category, tweet.id)}>
                                 Del
                             </ReactBootstrap.Button>
                         </td>
-                        {reasonCol ? <td>{tweet.reason.substr(0, 17)}</td> : ''}
                     </tr>
                 )
             }

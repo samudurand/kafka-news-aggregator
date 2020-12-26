@@ -4,7 +4,7 @@ import cats.effect.{ConcurrentEffect, IO}
 import com.kafka.experiments.tweetsui.config.SendGridConfig
 import com.typesafe.scalalogging.StrictLogging
 import io.circe.syntax.EncoderOps
-import org.http4s.{AuthScheme, Credentials, MediaType, Method, Request}
+import org.http4s.{AuthScheme, Credentials, MediaType, Method, Request, Uri}
 import org.http4s.client.Client
 import org.http4s.client.dsl.io._
 import org.http4s.Method.{POST, PUT}
@@ -32,11 +32,11 @@ class DefaultSendGridClient(config: SendGridConfig, httpClient: Client[IO])
     with Http4sClientDsl[IO]
     with StrictLogging {
 
-  val singleSendIdField = "id"
+  private val singleSendIdField = "id"
+  private val singleSendName = "Kafka Weekly Topics"
+  private val subject = "Kafka Weekly Topics"
 
-  val singleSendName = "Kafka Weekly Topics"
-  val subject = "Kafka Weekly Topics"
-  val singleSendUri = uri"https://api.sendgrid.com/v3/marketing/singlesends"
+  private val singleSendUri: Uri = Uri.fromString(s"${config.baseUrl}/v3/marketing/singlesends").getOrElse(uri"")
 
   override def createSingleSend(html: String): IO[UUID] = {
     import org.http4s.circe._

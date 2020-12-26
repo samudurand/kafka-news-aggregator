@@ -29,10 +29,15 @@ lazy val tweetsCategorizer = project
 
 lazy val tweetsUI = project
   .in(file("tweets-ui"))
+  .configs(IntegrationTest)
   .settings(
     name := "tweets-ui",
     CommonSettings,
     libraryDependencies ++= Dependencies.TweetsUI,
+
+    Defaults.itSettings,
+    Test / fork := true,
+    IntegrationTest / fork := true,
 
     // Sbt assembly plugin
     assemblyJarName in assembly := "tweetsui.jar",

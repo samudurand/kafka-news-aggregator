@@ -13,7 +13,9 @@ object Versions {
   val ScalaLogging = "3.9.2"
   val Scalamock = "5.1.0"
   val Scalatest = "3.2.2"
+  val TestContainers = "0.38.8"
   val UrlDetector = "0.1.23"
+  val Wiremock = "2.27.2"
 }
 
 object Dependencies {
@@ -34,8 +36,11 @@ object Dependencies {
   val UrlDetector = "io.github.url-detector" % "url-detector" % Versions.UrlDetector
 
   val KafkaStreamTest = "org.apache.kafka" % "kafka-streams-test-utils" % Versions.KafkaStreams % "test"
-  val Scalatest = "org.scalatest" %% "scalatest" % Versions.Scalatest % "test"
-  val Scalamock = "org.scalamock" %% "scalamock" % Versions.Scalamock
+  val Scalatest = "org.scalatest" %% "scalatest" % Versions.Scalatest % "it,test"
+  val Scalamock = "org.scalamock" %% "scalamock" % Versions.Scalamock % "test"
+  val TestContainers = "com.dimafeng" %% "testcontainers-scala-scalatest" % Versions.TestContainers % "it"
+  val TestContainersMongo = "com.dimafeng" %% "testcontainers-scala-mongodb" % Versions.TestContainers % "it"
+  val Wiremock = "com.github.tomakehurst" % "wiremock-jre8" % Versions.Wiremock % "it"
 
   val Shared: Seq[ModuleID] = Seq(
     CirceGeneric,
@@ -63,6 +68,9 @@ object Dependencies {
     ScalaLogging,
     Scalamock,
     Scalatest,
-    UrlDetector
+    TestContainers,
+    TestContainersMongo,
+    UrlDetector,
+    Wiremock
   )
 }

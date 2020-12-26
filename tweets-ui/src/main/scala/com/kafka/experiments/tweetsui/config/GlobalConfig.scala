@@ -24,6 +24,6 @@ case class MongodbConfig(
 
 case class ServerConfig(host: String, port: Int)
 
-case class SendGridConfig(apiKey: String, senderId: Int, listIds: List[String], unsubscribeListId: Int)
+case class SendGridConfig(baseUrl: String, apiKey: String, senderId: Int, listIds: List[String], unsubscribeListId: Int)
 
 case class FreeMarkerConfig(templatesFolderSystemPath: Option[String])
