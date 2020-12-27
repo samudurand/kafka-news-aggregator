@@ -17,7 +17,7 @@ lazy val tweetsCategorizer = project
     CommonSettings,
     libraryDependencies ++= Dependencies.TweetsCategorizer,
     Defaults.itSettings,
-    coverageMinimum := 90,
+    coverageMinimum := 80,
 
     // Sbt assembly plugin
     assemblyJarName in assembly := "categorizer.jar",
