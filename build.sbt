@@ -17,6 +17,7 @@ lazy val tweetsCategorizer = project
     CommonSettings,
     libraryDependencies ++= Dependencies.TweetsCategorizer,
     Defaults.itSettings,
+    coverageMinimum := 90,
 
     // Sbt assembly plugin
     assemblyJarName in assembly := "categorizer.jar",
@@ -37,6 +38,7 @@ lazy val tweetsUI = project
     CommonSettings,
     libraryDependencies ++= Dependencies.TweetsUI,
     Defaults.itSettings,
+    coverageMinimum := 70,
 
     // Sbt assembly plugin
     assemblyJarName in assembly := "tweetsui.jar",
@@ -53,7 +55,6 @@ val CommonSettings: Seq[Def.Setting[_]] = Seq(
   Test / fork := true,
   IntegrationTest / fork := true,
   coverageEnabled := true,
-  coverageMinimum := 90,
   coverageFailOnMinimum := true,
   scalaVersion := "2.13.1",
   scalacOptions ++= Seq(

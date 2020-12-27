@@ -1,7 +1,15 @@
 package com.kafka.experiments.tweetsui
 
 import cats.effect.{Blocker, ExitCode, IO, IOApp, Resource}
-import com.kafka.experiments.shared.{ArticleTweet, AudioTweet, ExcludedTweet, OtherTweet, VersionReleaseTweet, VideoTweet}
+import com.kafka.experiments.shared.{
+  ArticleTweet,
+  AudioTweet,
+  ExcludedTweet,
+  OtherTweet,
+  VersionReleaseTweet,
+  VideoTweet
+}
+import com.kafka.experiments.tweetsui.Decoders._
 import com.kafka.experiments.tweetsui.Encoders._
 import com.kafka.experiments.tweetsui.config.GlobalConfig
 import com.kafka.experiments.tweetsui.newsletter.{FreeMarkerGenerator, NewsletterBuilder}
@@ -13,13 +21,11 @@ import org.http4s.client.blaze.BlazeClientBuilder
 import org.http4s.dsl.io._
 import org.http4s.implicits._
 import org.http4s.server.blaze.BlazeServerBuilder
-import org.http4s.server.staticcontent.{ResourceService, resourceService}
+import org.http4s.server.staticcontent.{resourceService, ResourceService}
 import org.http4s.server.{Router, Server}
-import org.http4s.{EntityDecoder, Header, HttpRoutes, Request, Response}
+import org.http4s.{Header, HttpRoutes, Request, Response}
 import pureconfig.ConfigSource
 import pureconfig.generic.auto._
-import io.circe.generic.auto._
-import org.http4s.circe.jsonOf
 
 import scala.concurrent.ExecutionContext.global
 
@@ -28,13 +34,15 @@ object CountResult {
 }
 case class CountResult(count: Long)
 
+object MoveTweetsToNewsletter {
+  implicit val codec: Codec[MoveTweetsToNewsletter] = deriveCodec
+}
 case class MoveTweetsToNewsletter(tweetIds: Map[String, List[String]])
 
 //object SourceCategoryQueryParamMatcher extends QueryParamDecoderMatcher[String]("source")
 //object TargetCategoryQueryParamMatcher extends QueryParamDecoderMatcher[String]("target")
 
 object Main extends IOApp with StrictLogging {
-  implicit val decoder: EntityDecoder[IO, MoveTweetsToNewsletter] = jsonOf[IO, MoveTweetsToNewsletter]
   import cats.implicits._
 
   private val config = ConfigSource.default.loadOrThrow[GlobalConfig]
@@ -45,9 +53,9 @@ object Main extends IOApp with StrictLogging {
 
   def api(sendGridClient: SendGridClient): HttpRoutes[IO] = HttpRoutes
     .of[IO] {
-      case GET -> Root / "newsletter" / "html"          => loadCurrentHtmlNewsletter()
-      case GET -> Root / "newsletter" / "included"      => loadCurrentlyIncludedInNewsletter()
       case req @ PUT -> Root / "newsletter" / "prepare" => prepareNewsletterData(req)
+      case GET -> Root / "newsletter" / "included"      => loadCurrentlyIncludedInNewsletter()
+      case GET -> Root / "newsletter" / "html"          => loadCurrentHtmlNewsletter()
       case POST -> Root / "newsletter" / "create"       => createNewsletterDraft(sendGridClient)
       case DELETE -> Root / "newsletter" / "reset"      => resetNewsletterData()
 

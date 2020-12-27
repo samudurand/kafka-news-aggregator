@@ -1,49 +1,149 @@
 package com.kafka.experiments.tweetsui
 
-import cats.effect.{ContextShift, IO}
-import com.dimafeng.testcontainers.{FixedHostPortGenericContainer, ForEachTestContainer}
-import com.github.tomakehurst.wiremock.WireMockServer
-import com.github.tomakehurst.wiremock.client.WireMock.{aResponse, get, urlPathEqualTo}
-import com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig
-import com.kafka.experiments.shared.ArticleTweet
+import cats.effect.IO
+import com.dimafeng.testcontainers.ForEachTestContainer
+import com.github.tomakehurst.wiremock.client.WireMock.{
+  aResponse,
+  equalTo,
+  get,
+  post,
+  postRequestedFor,
+  urlEqualTo,
+  urlPathEqualTo,
+  verify
+}
+import com.kafka.experiments.shared.{ArticleTweet, AudioTweet}
 import com.kafka.experiments.tweetsui.Decoders._
+import com.kafka.experiments.tweetsui.Encoders._
 import com.kafka.experiments.tweetsui.config.SendGridConfig
+import com.kafka.experiments.tweetsui.newsletter.CompleteNewsletterTweet
 import com.kafka.experiments.tweetsui.sendgrid.SendGridClient
 import org.http4s._
+import org.http4s.client.Client
 import org.http4s.client.blaze.BlazeClientBuilder
 import org.http4s.implicits.{http4sLiteralsSyntax, _}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
+import java.util.UUID
 import scala.concurrent.ExecutionContext.global
 
-class NewsletterApiTest extends AnyFlatSpec with ForEachTestContainer with BeforeAndAfterEach with Matchers {
-  implicit val contextShift: ContextShift[IO] = IO.contextShift(global)
+class NewsletterApiTest
+    extends AnyFlatSpec
+    with ForEachTestContainer
+    with BeforeAndAfterEach
+    with Matchers
+    with MongoDatabase
+    with MockSendGrid {
 
-  override val container = new FixedHostPortGenericContainer(
-    "mongo:4.4.2",
-    exposedContainerPort = 27017,
-    exposedHostPort = 28017
-  )
+  private val sendGridConfig = SendGridConfig(mockSendGridUrl, "key", 11, List("id"), 22)
+  private var httpClient: Client[IO] = _
+  private var sendGridClient: SendGridClient = _
+  private var api: HttpApp[IO] = _
 
-  private val sendGridConfig = SendGridConfig("http://localhost:4000", "key", 11, List("id"), 22)
+  override def beforeEach: Unit = {
+    super.beforeEach()
+    httpClient = BlazeClientBuilder[IO](global).allocated.unsafeRunSync()._1
+    sendGridClient = SendGridClient(sendGridConfig, httpClient)
+    api = Main.api(sendGridClient).orNotFound
+  }
 
-  "Tweet API" should "retrieve tweets in category Article" in {
-    val httpClient = BlazeClientBuilder[IO](global).allocated.unsafeRunSync()._1
-    val sendGridClient = SendGridClient(sendGridConfig, httpClient)
-    val api: HttpRoutes[IO] = Main.api(sendGridClient)
+  "Newsletter API" should "be used to prepare and create the email draft in SendGrid" in {
+    val tweet = ArticleTweet("124142314", "Some good Kafka stuff", "http://medium.com/123445", "mlmenace", "1609020620")
+    val tweet2 = AudioTweet("124142334", "Even move Kafka stuff", "http://medium.com/789445", "justin", "1605020620")
+    mongoService.createTweet(tweet, Article).unsafeRunSync()
+    mongoService.createTweet(tweet2, Audio).unsafeRunSync()
+    val tweetsToInclude = MoveTweetsToNewsletter(
+      Map(
+        "article" -> List("124142314"),
+        "audio" -> List("124142334")
+      )
+    )
 
-    val response = api.orNotFound.run(Request(method = Method.GET, uri = uri"/tweets/article"))
-    check[Seq[ArticleTweet]](response, Status.Ok, Some(List()))
+    // Prepare the tweets that should be included in the Newsletter
+    val response1 = api.run(Request(method = Method.PUT, uri = uri"/newsletter/prepare").withEntity(tweetsToInclude))
+    check[String](response1, Status.Ok, None)
+
+    // Check the newsletter content
+    val response2 = api.run(Request(method = Method.GET, uri = uri"/newsletter/included"))
+    check[Seq[CompleteNewsletterTweet]](
+      response2,
+      Status.Ok,
+      Some(
+        List(
+          CompleteNewsletterTweet(
+            "124142314",
+            "mlmenace",
+            "Some good Kafka stuff",
+            "http://medium.com/123445",
+            "1609020620",
+            "article"
+          ),
+          CompleteNewsletterTweet(
+            "124142334",
+            "justin",
+            "Even move Kafka stuff",
+            "http://medium.com/789445",
+            "1605020620",
+            "audio"
+          )
+        )
+      )
+    )
+
+    // Check the Newsletter appearance
+    val response3 = api.run(Request(method = Method.GET, uri = uri"/newsletter/html"))
+    val htmlContent = check[String](response3, Status.Ok, None).as[String].unsafeRunSync()
+    htmlContent should include("Some good Kafka stuff")
+    htmlContent should include("Even move Kafka stuff")
+
+    // Create Email draft
+    wireMockServer.stubFor(
+      post(urlPathEqualTo("/v3/marketing/singlesends"))
+        .willReturn(
+          aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withStatus(200)
+            .withBody(s"""{"id":"${UUID.randomUUID()}"}""")
+        )
+    )
+    val response4 = api.run(Request(method = Method.POST, uri = uri"/newsletter/create"))
+    check[String](response4, Status.Ok, None)
+    wireMockServer.verify(
+      postRequestedFor(urlEqualTo("/v3/marketing/singlesends")).withHeader("Content-Type", equalTo("application/json"))
+    )
+  }
+
+  "Newsletter API" should "reset newsletter data" in {
+    val tweet = ArticleTweet("124142314", "Some good Kafka stuff", "http://medium.com/123445", "mlmenace", "1609020620")
+    val tweet2 = AudioTweet("124142334", "Even move Kafka stuff", "http://medium.com/789445", "justin", "1605020620")
+    mongoService.createTweet(tweet, Article).unsafeRunSync()
+    mongoService.createTweet(tweet2, Audio).unsafeRunSync()
+    val tweetsToInclude = MoveTweetsToNewsletter(
+      Map(
+        "article" -> List("124142314"),
+        "audio" -> List("124142334")
+      )
+    )
+
+    val response1 = api.run(Request(method = Method.PUT, uri = uri"/newsletter/prepare").withEntity(tweetsToInclude))
+    check[String](response1, Status.Ok, None)
+    val response2 = api.run(Request(method = Method.DELETE, uri = uri"/newsletter/reset"))
+    check[String](response2, Status.Ok, None)
+    val response3 = api.run(Request(method = Method.GET, uri = uri"/newsletter/included"))
+    check[Seq[CompleteNewsletterTweet]](response3, Status.Ok, Some(List[CompleteNewsletterTweet]()))
+
+    verifyZeroInteractionsWithSendGridServer()
   }
 
   def check[A](actual: IO[Response[IO]], expectedStatus: Status, expectedBody: Option[A])(implicit
       ev: EntityDecoder[IO, A]
-  ): Unit = {
+  ): Response[IO] = {
     val actualResp = actual.unsafeRunSync()
     actualResp.status shouldBe expectedStatus
     expectedBody.foreach(expected => actualResp.as[A].unsafeRunSync() shouldBe expected)
+    actualResp
   }
 
 }

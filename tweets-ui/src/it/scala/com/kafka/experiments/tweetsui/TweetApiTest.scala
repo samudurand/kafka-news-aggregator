@@ -21,17 +21,8 @@ import org.http4s.client.Client
 
 import scala.concurrent.ExecutionContext.global
 
-class TweetApiTest extends AnyFlatSpec with ForEachTestContainer with BeforeAndAfterEach with Matchers {
-  implicit val contextShift: ContextShift[IO] = IO.contextShift(global)
-
-  override val container = new FixedHostPortGenericContainer(
-    "mongo:4.4.2",
-    exposedContainerPort = 27017,
-    exposedHostPort = 28017
-  )
-
-  private val mongoService = MongoService(MongodbConfig("localhost", 28017))
-  private val sendGridConfig = SendGridConfig("http://localhost:4000", "key", 11, List("id"), 22)
+class TweetApiTest extends AnyFlatSpec with ForEachTestContainer with BeforeAndAfterEach with Matchers with MongoDatabase {
+  private val sendGridConfig = SendGridConfig("", "key", 11, List("id"), 22)
   private var httpClient: Client[IO] = _
   private var sendGridClient: SendGridClient = _
   private var api: HttpApp[IO] = _
