@@ -11,10 +11,12 @@ lazy val shared = project
 
 lazy val tweetsCategorizer = project
   .in(file("tweets-categorizer"))
+  .configs(IntegrationTest)
   .settings(
     name := "tweets-categorizer",
     CommonSettings,
     libraryDependencies ++= Dependencies.TweetsCategorizer,
+    Defaults.itSettings,
 
     // Sbt assembly plugin
     assemblyJarName in assembly := "categorizer.jar",
@@ -34,10 +36,7 @@ lazy val tweetsUI = project
     name := "tweets-ui",
     CommonSettings,
     libraryDependencies ++= Dependencies.TweetsUI,
-
     Defaults.itSettings,
-    Test / fork := true,
-    IntegrationTest / fork := true,
 
     // Sbt assembly plugin
     assemblyJarName in assembly := "tweetsui.jar",
@@ -51,6 +50,8 @@ lazy val tweetsUI = project
   .dependsOn(shared)
 
 val CommonSettings: Seq[Def.Setting[_]] = Seq(
+  Test / fork := true,
+  IntegrationTest / fork := true,
   coverageEnabled := true,
   coverageMinimum := 90,
   coverageFailOnMinimum := true,
