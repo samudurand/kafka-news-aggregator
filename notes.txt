@@ -86,3 +86,4 @@ Advanced Features:
     - if article then
         - link domain ? (medium, ...)
         - text length ? (prob not a good meter)
+    - medium: check the number of claps ? https://github.com/Medium/medium-api-docs
