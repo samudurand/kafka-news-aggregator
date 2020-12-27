@@ -2,6 +2,7 @@ package com.kafka.experiments.tweetsui
 
 import cats.effect.{ContextShift, IO}
 import com.kafka.experiments.shared._
+import com.kafka.experiments.tweetsui.MongoService.{collArticleName, collAudioName, collExcludedName, collNewsletterName, collOtherName, collVersionName, collVideoName, tweetsDb}
 import com.kafka.experiments.tweetsui.config.MongodbConfig
 import com.kafka.experiments.tweetsui.newsletter.{CompleteNewsletterTweet, NewsletterTweet}
 import com.typesafe.scalalogging.StrictLogging
@@ -12,10 +13,16 @@ import org.mongodb.scala.bson.BsonString
 import org.mongodb.scala.bson.codecs.Macros._
 import org.mongodb.scala.model.Sorts.{descending, orderBy}
 import org.mongodb.scala.{Document, MongoClient, MongoCollection}
+import cats.implicits._
+import io.circe.Encoder
+import io.circe.parser.decode
+import io.circe.syntax._
 
 import scala.reflect.ClassTag
 
 trait MongoService {
+  def createTweet[T](tweet: T, category: TweetCategory)(implicit encoder: Encoder[T]): IO[Unit]
+
   def tweets[T](category: TweetCategory)(implicit ct: ClassTag[T]): IO[Seq[T]]
 
   def tweetsCount(category: TweetCategory): IO[Long]
@@ -34,13 +41,21 @@ trait MongoService {
 }
 
 object MongoService {
+  val tweetsDb = "tweets"
+  val collArticleName = "article"
+  val collAudioName = "audio"
+  val collVersionName = "version"
+  val collVideoName = "video"
+  val collOtherName = "interesting"
+  val collExcludedName = "excluded"
+  val collNewsletterName = "newsletter"
 
   def apply(config: MongodbConfig)(implicit c: ContextShift[IO]): MongoService =
     new DefaultMongoService(config, MongoClient(s"mongodb://${config.host}:${config.port}"))
 }
 
 class DefaultMongoService(config: MongodbConfig, mongoClient: MongoClient)(implicit c: ContextShift[IO])
-    extends MongoService
+  extends MongoService
     with StrictLogging {
 
   private val customCodecs = fromProviders(
@@ -55,21 +70,24 @@ class DefaultMongoService(config: MongodbConfig, mongoClient: MongoClient)(impli
 
   private val codecRegistry = fromRegistries(customCodecs, DEFAULT_CODEC_REGISTRY)
 
-  private val database = mongoClient.getDatabase(config.tweetsDb).withCodecRegistry(codecRegistry)
+  private val database = mongoClient.getDatabase(tweetsDb).withCodecRegistry(codecRegistry)
 
-  private val collAudioTweets = database.getCollection(config.collAudio)
-  private val collArticleTweets = database.getCollection(config.collArticle)
-  private val collInterestingTweets = database.getCollection(config.collInteresting)
-  private val collVersionTweets = database.getCollection(config.collVersion)
-  private val collVideoTweets = database.getCollection(config.collVideo)
+  private val collArticleTweets = database.getCollection(collArticleName)
+  private val collAudioTweets = database.getCollection(collAudioName)
+  private val collVersionTweets = database.getCollection(collVersionName)
+  private val collVideoTweets = database.getCollection(collVideoName)
+  private val collOtherTweets = database.getCollection(collOtherName)
 
-  private val collExcludedTweets = database.getCollection(config.collExcluded)
-  private val collExaminateTweets = database.getCollection(config.collInteresting)
-  private val collPromotionTweets = database.getCollection(config.collPromotion)
+  private val collExcludedTweets = database.getCollection(collExcludedName)
 
-  private val collNewsletter = database.getCollection(config.collNewsletter)
+  private val collNewsletter = database.getCollection(collNewsletterName)
 
   private val createdAtField = "createdAt"
+
+  override def createTweet[T](tweet: T, category: TweetCategory)(implicit encoder: Encoder[T]): IO[Unit] = {
+    val res = collectionFromCategory(category).insertOne(Document(tweet.asJson.noSpaces))
+    IO.fromFuture(IO(res.toFuture())).map(_ => ())
+  }
 
   override def tweets[T](category: TweetCategory)(implicit ct: ClassTag[T]): IO[Seq[T]] = {
     val tweets = collectionFromCategory(category)
@@ -118,10 +136,6 @@ class DefaultMongoService(config: MongodbConfig, mongoClient: MongoClient)(impli
   }
 
   override def moveToNewsletter(category: TweetCategory, tweetIds: Seq[String]): IO[Int] = {
-    import cats.implicits._
-    import io.circe.parser.decode
-    import io.circe.syntax._
-
     tweetIds
       .map(tweetId =>
         collectionFromCategory(category)
@@ -154,7 +168,7 @@ class DefaultMongoService(config: MongodbConfig, mongoClient: MongoClient)(impli
       case Article        => collArticleTweets
       case Audio          => collAudioTweets
       case Excluded       => collExcludedTweets
-      case Other          => collInterestingTweets
+      case Other          => collOtherTweets
       case VersionRelease => collVersionTweets
       case Video          => collVideoTweets
     }

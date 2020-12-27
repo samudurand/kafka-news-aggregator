@@ -8,18 +8,8 @@ case class GlobalConfig(
 )
 
 case class MongodbConfig(
-    collArticle: String,
-    collAudio: String,
-    collExcluded: String,
-    collExaminate: String,
-    collInteresting: String,
-    collNewsletter: String,
-    collPromotion: String,
-    collVersion: String,
-    collVideo: String,
     host: String,
-    port: Int,
-    tweetsDb: String
+    port: Int
 )
 
 case class ServerConfig(host: String, port: Int)
