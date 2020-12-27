@@ -18,6 +18,6 @@ jobs:
       with:
         java-version: 1.11
     - name: Build Categorizer
-      run: sbt "project tweetsCategorizer" coverage test coverageReport
+      run: sbt "project tweetsCategorizer" test it:test coverageReport
     - name: Build UI
-      run: sbt "project tweetsUI" coverage test coverageReport
+      run: sbt "project tweetsUI" test it:test coverageReport
