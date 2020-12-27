@@ -1,6 +1,12 @@
 package com.kafka.experiments.tweetscategorizer.config
 
-case class GlobalConfig(kafka: KafkaConfig, sources: SourceConfig, keywords: KeywordsConfig)
+case class GlobalConfig(
+    dropIfNoLink: Boolean,
+    kafka: KafkaConfig,
+    sources: SourceConfig,
+    keywords: KeywordsConfig,
+    redis: RedisConfig
+)
 
 case class KafkaConfig(bootstrapServers: String)
 
@@ -19,3 +25,5 @@ case class KeywordsConfig(
     video: Seq[String],
     videodomains: Seq[String]
 )
+
+case class RedisConfig(host: String, port: Int)

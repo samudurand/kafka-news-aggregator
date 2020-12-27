@@ -1,12 +1,14 @@
 package com.kafka.experiments.tweetscategorizer.categorize
 
-import com.kafka.experiments.shared.{ArticleTweet, AudioTweet, ExcludedTweet, VersionReleaseTweet, VideoTweet}
-import com.kafka.experiments.tweetscategorizer.categorize.Categorizer.categorize
-import com.kafka.experiments.tweetscategorizer.{Tweet, URLEntity, User}
+import com.kafka.experiments.shared.{ArticleTweet, AudioTweet, ExcludedTweet, OtherTweet, VersionReleaseTweet, VideoTweet}
+import com.kafka.experiments.tweetscategorizer.config.RedisConfig
+import com.kafka.experiments.tweetscategorizer.{RedisService, Tweet, URLEntity, User}
+import org.scalamock.scalatest.MockFactory
+import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-class CategorizerTest extends AnyFlatSpec with Matchers {
+class CategorizerTest extends AnyFlatSpec with Matchers with MockFactory with BeforeAndAfterEach {
 
   private val goodTweet = Tweet(
     1604688491000L,
@@ -21,49 +23,71 @@ class CategorizerTest extends AnyFlatSpec with Matchers {
     User(1234124134L, "someuser")
   )
 
+  private var redisService: RedisService = _
+  private var categorizer: Categorizer = _
+
+  override def beforeEach: Unit = {
+    redisService = mock[RedisService]
+    categorizer = Categorizer(redisService)
+  }
+
   "A Tweet not mentioning audio keywords" should "not be identified as Audio publication" in {
+    (redisService.putWithExpire _).expects(*).returning(false)
     val tweet = goodTweet.copy(Text = "check out this written post about Kafka")
-    categorize(tweet) should not be an[AudioTweet]
+
+    categorizer.categorize(tweet) shouldBe an[OtherTweet]
   }
 
   "A Tweet mentioning audio keywords" should "be identified as Audio publication" in {
+    (redisService.putWithExpire _).expects(*).returning(false)
     val tweet = goodTweet.copy(Text = "check out this audio post about Kafka")
-    categorize(tweet) shouldBe an[AudioTweet]
+
+    categorizer.categorize(tweet) shouldBe an[AudioTweet]
   }
 
   "A Tweet mentioning audio but without a link" should "not be identified as Audio publication" in {
     val tweet = goodTweet.copy(Text = "check out this audio post about Kafka", URLEntities = List())
-    categorize(tweet) should not be an[AudioTweet]
+    categorizer.categorize(tweet) should not be an[AudioTweet]
   }
 
   "A Tweet mentioning video keywords" should "be identified as Video publication" in {
+    (redisService.putWithExpire _).expects(*).returning(false)
     val tweet = goodTweet.copy(Text = "check out this video post about Kafka")
-    categorize(tweet) shouldBe an[VideoTweet]
+
+    categorizer.categorize(tweet) shouldBe an[VideoTweet]
   }
 
   "A Tweet with a video link" should "be identified as Video publication" in {
+    (redisService.putWithExpire _).expects(*).returning(false)
     val tweet = goodTweet.copy(URLEntities = List(URLEntity("https://sdfs.com", "https://youtube.com/sdf")))
-    categorize(tweet) shouldBe an[VideoTweet]
+
+    categorizer.categorize(tweet) shouldBe an[VideoTweet]
   }
 
   "A Tweet mentioning a Version" should "be identified as an announcement about a new Version" in {
+    (redisService.putWithExpire _).expects(*).returning(false)
     val tweet = goodTweet.copy(Text = "new version 3 available!")
-    categorize(tweet) shouldBe a[VersionReleaseTweet]
+
+    categorizer.categorize(tweet) shouldBe a[VersionReleaseTweet]
   }
 
   "A Tweet mentioning an Article" should "be identified as article related" in {
+    (redisService.putWithExpire _).expects(*).returning(false)
     val tweet = goodTweet.copy(Text = "great article available!")
-    categorize(tweet) shouldBe a[ArticleTweet]
+
+    categorizer.categorize(tweet) shouldBe a[ArticleTweet]
   }
 
   "A Tweet containing a link to a known article domain" should "be identified as article related" in {
+    (redisService.putWithExpire _).expects(*).returning(false)
     val tweet = goodTweet.copy(URLEntities = List(URLEntity("http://tinylink.com", "https://dzone.com/some/article")))
-    categorize(tweet) shouldBe a[ArticleTweet]
+
+    categorizer.categorize(tweet) shouldBe a[ArticleTweet]
   }
 
   "A tweet thas has no category nor even a link" should "not be considered interesting" in {
     val tweet = goodTweet.copy(Text = "nothing special", URLEntities = List())
-    categorize(tweet) shouldBe a[ExcludedTweet]
+    categorizer.categorize(tweet) shouldBe a[ExcludedTweet]
   }
 
 }

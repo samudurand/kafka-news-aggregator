@@ -34,6 +34,7 @@ services:
       - zoo1
 
   connect:
+    container_name: connect
     build:
       context: .
       dockerfile: ./connect/Dockerfile-connect
@@ -60,6 +61,7 @@ services:
 
   connect-ui:
     image: landoop/kafka-connect-ui:0.9.7
+    container_name: connect-ui
     ports:
       - "8000:8000"
     environment:
@@ -76,3 +78,9 @@ services:
       - "27017:27017"
     volumes:
     - "./data/mongodb:/data/db"
+
+  redis:
+    image: "redis:rc-alpine3.12"
+    container_name: redis
+    ports:
+      - "6379:6379"

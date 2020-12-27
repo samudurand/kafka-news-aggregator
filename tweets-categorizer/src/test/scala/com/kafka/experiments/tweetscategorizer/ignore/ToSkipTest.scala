@@ -1,11 +1,12 @@
 package com.kafka.experiments.tweetscategorizer.ignore
 
-import com.kafka.experiments.tweetscategorizer.{Tweet, URLEntity, User}
-import com.kafka.experiments.tweetscategorizer.ignore.ToSkip.shouldBeSkipped
+import com.kafka.experiments.tweetscategorizer.{RedisService, Tweet, URLEntity, User}
+import org.scalamock.scalatest.MockFactory
+import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-class ToSkipTest extends AnyFlatSpec with Matchers {
+class ToSkipTest extends AnyFlatSpec with Matchers with MockFactory with BeforeAndAfterEach {
 
   private val goodTweet = Tweet(
     1604688491000L,
@@ -20,23 +21,43 @@ class ToSkipTest extends AnyFlatSpec with Matchers {
     User(1234124134L, "someuser")
   )
 
-  "A tweet in english" should "not be excluded" in {
+  private var redisService: RedisService = _
+  private var service: ToSkip = _
+
+  override def beforeEach: Unit = {
+    redisService = mock[RedisService]
+    service = new ToSkip(redisService)
+  }
+
+  "A tweet in english" should "not be skipped" in {
     val tweet = goodTweet.copy(Lang = Some("en"))
-    shouldBeSkipped(tweet) shouldBe false
+    (redisService.exists _).expects(*).returning(false)
+
+    service.shouldBeSkipped(tweet) shouldBe false
   }
 
-  "A tweet in english" should "not be excluded disregarding the casing" in {
+  "A tweet in english" should "not be skipped disregarding the casing" in {
     val tweet = goodTweet.copy(Lang = Some("eN"))
-    shouldBeSkipped(tweet) shouldBe false
+    (redisService.exists _).expects(*).returning(false)
+
+    service.shouldBeSkipped(tweet) shouldBe false
   }
 
-  "A tweet without a language" should "not be excluded" in {
+  "A tweet without a language" should "not be skipped" in {
     val tweet = goodTweet.copy(Lang = None)
-    shouldBeSkipped(tweet) shouldBe false
+    (redisService.exists _).expects(*).returning(false)
+
+    service.shouldBeSkipped(tweet) shouldBe false
   }
 
-  "A tweet not in english" should "be excluded" in {
+  "A tweet not in english" should "be skipped" in {
     val tweet = goodTweet.copy(Lang = Some("fr"))
-    shouldBeSkipped(tweet) shouldBe true
+    service.shouldBeSkipped(tweet) shouldBe true
+  }
+
+  "A tweet with a known URL" should "be skipped" in {
+    (redisService.exists _).expects(*).returning(true)
+
+    service.shouldBeSkipped(goodTweet) shouldBe true
   }
 }

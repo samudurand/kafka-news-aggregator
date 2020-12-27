@@ -4,7 +4,7 @@ import com.kafka.experiments.shared._
 import com.kafka.experiments.tweetscategorizer.KnownSources.hasSourceToBeAutoAccepted
 import com.kafka.experiments.tweetscategorizer.categorize.Categorizer
 import com.kafka.experiments.tweetscategorizer.ignore.ToExclude.shouldBeExcluded
-import com.kafka.experiments.tweetscategorizer.ignore.ToSkip.shouldBeSkipped
+import com.kafka.experiments.tweetscategorizer.ignore.ToSkip
 import com.typesafe.scalalogging.StrictLogging
 import io.circe.Encoder
 import io.circe.parser.decode
@@ -23,7 +23,7 @@ object StreamingTopology extends StrictLogging {
   val sinkVersionTopic = "category_version"
   val sinkVideoTopic = "category_video"
 
-  def topologyBuilder(): StreamsBuilder = {
+  def topologyBuilder(categorizer: Categorizer, toSkip: ToSkip): StreamsBuilder = {
 
     val builder: StreamsBuilder = new StreamsBuilder
     val messages: KStream[String, String] = builder.stream[String, String](sourceTopic)
@@ -31,16 +31,16 @@ object StreamingTopology extends StrictLogging {
     val tweets = messages.flatMap((key, tweetJson) => parseJsonIntoTweet(key, tweetJson))
 
     val classifiedTweets = tweets
-      .filterNot((_, tweet) => shouldBeSkipped(tweet))
+      .filterNot((_, tweet) => toSkip.shouldBeSkipped(tweet))
       .mapValues(tweet => {
         if (hasSourceToBeAutoAccepted(tweet)) {
-          Categorizer.categorize(tweet)
+          categorizer.categorize(tweet)
         } else {
           shouldBeExcluded(tweet) match {
             case Some(reason) =>
               logger.info(s"Tweet should be be excluded for reason [$reason]: $tweet")
               ExcludedTweet(tweet.Id.toString, reason, tweet.Text, tweet.User.ScreenName, tweet.CreatedAt.toString)
-            case None => Categorizer.categorize(tweet)
+            case None => categorizer.categorize(tweet)
           }
         }
       })

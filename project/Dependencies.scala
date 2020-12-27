@@ -10,6 +10,7 @@ object Versions {
   val MinifyHtml = "0.3.9"
   val MongoDB = "4.1.1"
   val PureConfig = "0.14.0"
+  val Redis = "3.30"
   val ScalaLogging = "3.9.2"
   val Scalamock = "5.1.0"
   val Scalatest = "3.2.2"
@@ -29,9 +30,9 @@ object Dependencies {
   val KafkaStreams = "org.apache.kafka" %% "kafka-streams-scala" % Versions.KafkaStreams
   val Logback = "ch.qos.logback" % "logback-classic" % Versions.Logback
   val LogstashLogbackEncoder = "net.logstash.logback" % "logstash-logback-encoder" % Versions.LogstashEncoder
-
   val MongoDB = "org.mongodb.scala" %% "mongo-scala-driver" % Versions.MongoDB
   val PureConfig = "com.github.pureconfig" %% "pureconfig" % Versions.PureConfig
+  val Redis ="net.debasishg" %% "redisclient" % Versions.Redis
   val ScalaLogging = "com.typesafe.scala-logging" %% "scala-logging" % Versions.ScalaLogging
   val UrlDetector = "io.github.url-detector" % "url-detector" % Versions.UrlDetector
 
@@ -53,7 +54,9 @@ object Dependencies {
     KafkaStreams,
     KafkaStreamTest,
     PureConfig,
+    Redis,
     ScalaLogging,
+    Scalamock,
     Scalatest
   )
 

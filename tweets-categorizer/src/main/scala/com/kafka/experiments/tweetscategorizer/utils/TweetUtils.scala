@@ -1,6 +1,8 @@
-package com.kafka.experiments.tweetscategorizer
+package com.kafka.experiments.tweetscategorizer.utils
 
-object tweetUtils {
+import com.kafka.experiments.tweetscategorizer.{Tweet, URLEntity}
+
+object TweetUtils {
 
   val twitterDomain = "https://twitter.com"
 

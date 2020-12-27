@@ -1,21 +1,28 @@
 package com.kafka.experiments.tweetscategorizer
 
 import com.kafka.experiments.tweetscategorizer.StreamingTopology._
+import com.kafka.experiments.tweetscategorizer.categorize.Categorizer
+import com.kafka.experiments.tweetscategorizer.ignore.ToSkip
 import io.circe.syntax._
 import org.apache.kafka.common.serialization.{StringDeserializer, StringSerializer}
 import org.apache.kafka.streams.{StreamsConfig, TestInputTopic, TestOutputTopic, TopologyTestDriver}
+import org.scalamock.scalatest.MockFactory
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
 import java.util.Properties
 
-class IntegrationTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach {
+class IntegrationTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach with MockFactory {
   val stringSerializer = new StringSerializer()
   val stringDeserializer = new StringDeserializer()
   var testDriver: TopologyTestDriver = _
   var inputTopic: TestInputTopic[String, String] = _
   var outputTopics: Map[String, TestOutputTopic[String, String]] = _
+
+  var categorizer: Categorizer = _
+  var redisService: RedisService = _
+  var toSkip: ToSkip = _
 
   private val tweet = Tweet(
     1604688491000L,
@@ -35,7 +42,11 @@ class IntegrationTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach 
     props.put(StreamsConfig.APPLICATION_ID_CONFIG, "test");
     props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "dummy:1234");
 
-    testDriver = new TopologyTestDriver(StreamingTopology.topologyBuilder().build(), props);
+    redisService = mock[RedisService]
+
+    categorizer = Categorizer(redisService)
+    toSkip = new ToSkip(redisService)
+    testDriver = new TopologyTestDriver(StreamingTopology.topologyBuilder(categorizer, toSkip).build(), props);
     inputTopic = createInputTopic()
     outputTopics = createOutputTopics()
   }
@@ -61,8 +72,10 @@ class IntegrationTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach 
   }
 
   it should "apply categorization to tweet from known source to be autoaccepted" in {
+    configureRedisMock()
     val tweetFromConfluent =
       tweet.copy(Text = "No keyword mention, but from confluent", User = User(12L, "confluentinc"))
+
     inputTopic.pipeInput(tweet.Id.toString, tweetFromConfluent.asJson.noSpaces)
 
     outputTopics.view.filterKeys(_ != sinkOtherTopic).values.foreach(topic => topic.isEmpty shouldBe true)
@@ -70,6 +83,7 @@ class IntegrationTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach 
   }
 
   it should "identify a tweet about a podcast" in {
+    configureRedisMock()
     val audioTweet = tweet.copy(Text = "Check out this new podcast on Kafka")
     inputTopic.pipeInput(tweet.Id.toString, audioTweet.asJson.noSpaces)
 
@@ -78,6 +92,7 @@ class IntegrationTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach 
   }
 
   it should "identify a tweet about a video" in {
+    configureRedisMock()
     val videoTweet = tweet.copy(Text = "Check out this new video on Kafka")
     inputTopic.pipeInput(tweet.Id.toString, videoTweet.asJson.noSpaces)
 
@@ -86,6 +101,7 @@ class IntegrationTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach 
   }
 
   it should "identify a tweet about a new version released" in {
+    configureRedisMock()
     val versionTweet = tweet.copy(Text = "Check out kafka version 0.11!")
     inputTopic.pipeInput(tweet.Id.toString, versionTweet.asJson.noSpaces)
 
@@ -94,6 +110,7 @@ class IntegrationTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach 
   }
 
   it should "identify a tweet about an article" in {
+    configureRedisMock()
     val articleTweet = tweet.copy(Text = "Check out this tutorial on Kafka!")
     inputTopic.pipeInput(tweet.Id.toString, articleTweet.asJson.noSpaces)
 
@@ -102,6 +119,7 @@ class IntegrationTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach 
   }
 
   it should "identify a tweet about anything else interesting" in {
+    configureRedisMock()
     val otherTweet = tweet.copy(Text = "Something about kafka that should be interesting")
     inputTopic.pipeInput(tweet.Id.toString, otherTweet.asJson.noSpaces)
 
@@ -110,11 +128,17 @@ class IntegrationTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach 
   }
 
   it should "identify a tweet that should be excluded" in {
+    (redisService.exists _).expects(*).returning(false)
     val excludedTweet = tweet.copy(Text = "Should be excluded")
     inputTopic.pipeInput(tweet.Id.toString, excludedTweet.asJson.noSpaces)
 
     outputTopics.view.filterKeys(_ != sinkExcludedTopic).values.foreach(topic => topic.isEmpty shouldBe true)
     outputTopics(sinkExcludedTopic).getQueueSize shouldBe 1
+  }
+
+  private def configureRedisMock() = {
+    (redisService.exists _).expects(*).returning(false)
+    (redisService.putWithExpire _).expects(*).returning(false)
   }
 
   private def createInputTopic() = {
