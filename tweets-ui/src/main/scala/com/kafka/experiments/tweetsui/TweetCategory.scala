@@ -15,7 +15,7 @@ object TweetCategory {
 sealed abstract class TweetCategory(val name: String) {}
 case object Article extends TweetCategory("article")
 case object Audio extends TweetCategory("audio")
-case object Other extends TweetCategory("interesting")
+case object Other extends TweetCategory("other")
 case object VersionRelease extends TweetCategory("version")
 case object Video extends TweetCategory("video")
 case object Excluded extends TweetCategory("excluded")

@@ -1,12 +1,12 @@
 {
-  "name": "mongo_sink_interesting",
+  "name": "mongo_sink_other",
   "config": {
     "connector.class": "com.mongodb.kafka.connect.MongoSinkConnector",
     "tasks.max": "1",
-    "topics": "category_interesting",
+    "topics": "category_other",
     "connection.uri": "mongodb://mongo:27017",
     "database": "tweets",
-    "collection": "interesting",
+    "collection": "other",
     "key.converter": "org.apache.kafka.connect.storage.StringConverter",
     "value.converter": "org.apache.kafka.connect.json.JsonConverter",
     "value.converter.schemas.enable": "false"

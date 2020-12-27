@@ -19,7 +19,7 @@ object StreamingTopology extends StrictLogging {
   val sinkArticleTopic = "category_article"
   val sinkAudioTopic = "category_audio"
   val sinkExcludedTopic = "category_excluded"
-  val sinkInterestingTopic = "category_interesting"
+  val sinkOtherTopic = "category_other"
   val sinkVersionTopic = "category_version"
   val sinkVideoTopic = "category_video"
 
@@ -50,7 +50,7 @@ object StreamingTopology extends StrictLogging {
     toTopicByType[AudioTweet](classifiedTweets, sinkAudioTopic)
     toTopicByType[VideoTweet](classifiedTweets, sinkVideoTopic)
     toTopicByType[VersionReleaseTweet](classifiedTweets, sinkVersionTopic)
-    toTopicByType[OtherTweet](classifiedTweets, sinkInterestingTopic)
+    toTopicByType[OtherTweet](classifiedTweets, sinkOtherTopic)
 
     builder
   }

@@ -1,21 +1,12 @@
 package com.kafka.experiments.tweetscategorizer
 
-import com.kafka.experiments.tweetscategorizer.StreamingTopology.{
-  sinkArticleTopic,
-  sinkAudioTopic,
-  sinkExcludedTopic,
-  sinkInterestingTopic,
-  sinkVersionTopic,
-  sinkVideoTopic
-}
-import org.apache.kafka.common.serialization
-import org.apache.kafka.common.serialization.{LongSerializer, StringDeserializer, StringSerializer}
-import org.apache.kafka.streams.test.OutputVerifier
+import com.kafka.experiments.tweetscategorizer.StreamingTopology._
+import io.circe.syntax._
+import org.apache.kafka.common.serialization.{StringDeserializer, StringSerializer}
 import org.apache.kafka.streams.{StreamsConfig, TestInputTopic, TestOutputTopic, TopologyTestDriver}
-import org.scalatest.{BeforeAndAfter, BeforeAndAfterEach}
+import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import io.circe.syntax._
 
 import java.util.Properties
 
@@ -70,11 +61,12 @@ class IntegrationTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach 
   }
 
   it should "apply categorization to tweet from known source to be autoaccepted" in {
-    val tweetFromConfluent = tweet.copy(Text = "No keyword mention, but from confluent", User = User(12L, "confluentinc"))
+    val tweetFromConfluent =
+      tweet.copy(Text = "No keyword mention, but from confluent", User = User(12L, "confluentinc"))
     inputTopic.pipeInput(tweet.Id.toString, tweetFromConfluent.asJson.noSpaces)
 
-    outputTopics.view.filterKeys(_ != sinkInterestingTopic).values.foreach(topic => topic.isEmpty shouldBe true)
-    outputTopics(sinkInterestingTopic).getQueueSize shouldBe 1
+    outputTopics.view.filterKeys(_ != sinkOtherTopic).values.foreach(topic => topic.isEmpty shouldBe true)
+    outputTopics(sinkOtherTopic).getQueueSize shouldBe 1
   }
 
   it should "identify a tweet about a podcast" in {
@@ -113,8 +105,8 @@ class IntegrationTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach 
     val otherTweet = tweet.copy(Text = "Something about kafka that should be interesting")
     inputTopic.pipeInput(tweet.Id.toString, otherTweet.asJson.noSpaces)
 
-    outputTopics.view.filterKeys(_ != sinkInterestingTopic).values.foreach(topic => topic.isEmpty shouldBe true)
-    outputTopics(sinkInterestingTopic).getQueueSize shouldBe 1
+    outputTopics.view.filterKeys(_ != sinkOtherTopic).values.foreach(topic => topic.isEmpty shouldBe true)
+    outputTopics(sinkOtherTopic).getQueueSize shouldBe 1
   }
 
   it should "identify a tweet that should be excluded" in {
@@ -133,7 +125,7 @@ class IntegrationTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach 
     List(
       sinkArticleTopic,
       sinkAudioTopic,
-      sinkInterestingTopic,
+      sinkOtherTopic,
       sinkVideoTopic,
       sinkVersionTopic,
       sinkExcludedTopic

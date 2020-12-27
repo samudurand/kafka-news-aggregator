@@ -46,15 +46,15 @@ object MongoService {
   val collAudioName = "audio"
   val collVersionName = "version"
   val collVideoName = "video"
-  val collOtherName = "interesting"
+  val collOtherName = "other"
   val collExcludedName = "excluded"
   val collNewsletterName = "newsletter"
 
   def apply(config: MongodbConfig)(implicit c: ContextShift[IO]): MongoService =
-    new DefaultMongoService(config, MongoClient(s"mongodb://${config.host}:${config.port}"))
+    new DefaultMongoService(MongoClient(s"mongodb://${config.host}:${config.port}"))
 }
 
-class DefaultMongoService(config: MongodbConfig, mongoClient: MongoClient)(implicit c: ContextShift[IO])
+class DefaultMongoService(mongoClient: MongoClient)(implicit c: ContextShift[IO])
   extends MongoService
     with StrictLogging {
 

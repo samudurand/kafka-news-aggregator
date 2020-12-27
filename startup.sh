@@ -12,7 +12,7 @@ kafka-topics.sh --zookeeper 127.0.0.1:2181 --create --topic kafka_tweets --parti
 kafka-topics.sh --zookeeper 127.0.0.1:2181 --create --topic category_audio --partitions 1 --replication-factor 1
 kafka-topics.sh --zookeeper 127.0.0.1:2181 --create --topic category_article --partitions 1 --replication-factor 1
 kafka-topics.sh --zookeeper 127.0.0.1:2181 --create --topic category_excluded --partitions 1 --replication-factor 1
-kafka-topics.sh --zookeeper 127.0.0.1:2181 --create --topic category_interesting --partitions 1 --replication-factor 1
+kafka-topics.sh --zookeeper 127.0.0.1:2181 --create --topic category_other --partitions 1 --replication-factor 1
 kafka-topics.sh --zookeeper 127.0.0.1:2181 --create --topic category_version --partitions 1 --replication-factor 1
 kafka-topics.sh --zookeeper 127.0.0.1:2181 --create --topic category_video --partitions 1 --replication-factor 1
 

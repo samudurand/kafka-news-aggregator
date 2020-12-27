@@ -9,7 +9,7 @@ class TweetUI extends React.Component {
             audioTweets: [],
             articleTweets: [],
             versionTweets: [],
-            interestingTweets: [],
+            otherTweets: [],
             videoTweets: [],
             excludedTweets: [],
             newsletterTweets: [],
@@ -39,14 +39,14 @@ class TweetUI extends React.Component {
         const article = this.retrieveTweetsCountByCategory("article", "articleCount");
         const version = this.retrieveTweetsCountByCategory("version", "versionCount");
         const video = this.retrieveTweetsCountByCategory("video", "videoCount");
-        const other = this.retrieveTweetsCountByCategory("interesting", "interestingCount");
+        const other = this.retrieveTweetsCountByCategory("other", "otherCount");
         const excluded = this.retrieveTweetsCountByCategory("excluded", "excludedCount");
 
         const audioCount = this.retrieveTweetsByCategory("audio", "audioTweets");
         const articleCount = this.retrieveTweetsByCategory("article", "articleTweets");
         const versionCount = this.retrieveTweetsByCategory("version", "versionTweets");
         const videoCount = this.retrieveTweetsByCategory("video", "videoTweets");
-        const otherCount = this.retrieveTweetsByCategory("interesting", "interestingTweets");
+        const otherCount = this.retrieveTweetsByCategory("other", "otherTweets");
         const excludedCount = this.retrieveTweetsByCategory("excluded", "excludedTweets");
 
         const included = this.retrieveTweetsIncludedInNewsletter();
@@ -112,14 +112,14 @@ class TweetUI extends React.Component {
             videoCount,
             articleCount,
             versionCount,
-            interestingCount,
+            otherCount,
             excludedCount,
 
             audioTweets,
             videoTweets,
             articleTweets,
             versionTweets,
-            interestingTweets,
+            otherTweets,
             excludedTweets,
 
             newsletterTweets,
@@ -171,7 +171,7 @@ class TweetUI extends React.Component {
                             {this.tweetsCard("video", "1", "Video", videoCount, videoTweets)}
                             {this.tweetsCard("article", "2", "Article", articleCount, articleTweets)}
                             {this.tweetsCard("version", "3", "Version", versionCount, versionTweets)}
-                            {this.tweetsCard("interesting", "4", "Interesting", interestingCount, interestingTweets)}
+                            {this.tweetsCard("other", "4", "Other", otherCount, otherTweets)}
                             {this.tweetsCard("excluded", "5", "Excluded", excludedCount, excludedTweets)}
                         </ReactBootstrap.Accordion>
                     </ReactBootstrap.Col>
@@ -289,12 +289,12 @@ class TweetUI extends React.Component {
     }
 
     prepareNewsletter() {
-        const {articleTweets, audioTweets, versionTweets, interestingTweets, videoTweets} = this.state;
+        const {articleTweets, audioTweets, versionTweets, otherTweets, videoTweets} = this.state;
 
         const tweetIds = {
             "article": articleTweets.map(t => t.id),
             "audio": audioTweets.map(t => t.id),
-            "interesting": interestingTweets.map(t => t.id),
+            "other": otherTweets.map(t => t.id),
             "version": versionTweets.map(t => t.id),
             "video": videoTweets.map(t => t.id)
         }
