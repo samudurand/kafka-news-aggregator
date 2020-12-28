@@ -19,7 +19,6 @@ class TweetUI extends React.Component {
 
         this.deleteTweet = this.deleteTweet.bind(this);
         this.deleteAllInCategory = this.deleteAllInCategory.bind(this);
-        this.moveCategory = this.moveCategory.bind(this);
         this.retrieveTweetsByCategory = this.retrieveTweetsByCategory.bind(this);
         this.retrieveTweetsCountByCategory = this.retrieveTweetsCountByCategory.bind(this);
 
@@ -53,9 +52,8 @@ class TweetUI extends React.Component {
 
         return this.setState({reloadInProgress: true}, () => {
                 return Promise.all([
-                    audio, article, version, video, other, excluded,
-                    audioCount, articleCount, versionCount, videoCount, otherCount, excludedCount,
-                    included
+                    audio, article, version, video, other, excluded, audioCount, articleCount,
+                    versionCount, videoCount, otherCount, excludedCount, included
                 ]).then(() => this.setState({reloadInProgress: false}))
             }
         )
@@ -173,6 +171,7 @@ class TweetUI extends React.Component {
                             {this.tweetsCard("version", "3", "Version", versionCount, versionTweets)}
                             {this.tweetsCard("other", "4", "Other", otherCount, otherTweets)}
                             {this.tweetsCard("excluded", "5", "Excluded", excludedCount, excludedTweets)}
+                            {this.newsletterCard(newsletterTweets)}
                         </ReactBootstrap.Accordion>
                     </ReactBootstrap.Col>
                 </ReactBootstrap.Row>
@@ -230,12 +229,75 @@ class TweetUI extends React.Component {
         </ReactBootstrap.Table>
     }
 
+    newsletterCard(tweets) {
+        return <ReactBootstrap.Card>
+            <ReactBootstrap.Accordion.Toggle as={ReactBootstrap.Card.Header} eventKey={10}>
+                <span><b>Newsletter</b></span>
+                <ReactBootstrap.Button style={{float: "right"}} className="mb-2" variant="warning"
+                                       onClick={(event) => {
+                                           event.stopPropagation();
+                                           return this.resetNewsletter();
+                                       }}>
+                    Clean <b>({tweets.length})</b>
+                </ReactBootstrap.Button>
+            </ReactBootstrap.Accordion.Toggle>
+            <ReactBootstrap.Accordion.Collapse eventKey={10}>
+                <ReactBootstrap.Card.Body>{this.newsletterTable(tweets)}</ReactBootstrap.Card.Body>
+            </ReactBootstrap.Accordion.Collapse>
+        </ReactBootstrap.Card>
+    }
+
+    newsletterTable(tweets) {
+        return <ReactBootstrap.Table striped bordered hover>
+            <thead>
+            <tr>
+                <th width={120}>Date</th>
+                <th>Text</th>
+                <th>User</th>
+                <th>Delete</th>
+            </tr>
+            </thead>
+            <tbody>
+            {
+                tweets.map((tweet) =>
+                    <tr key={tweet.id}>
+                        <td><a target="_blank"
+                               href={`https://twitter.com/${tweet.user}/status/${tweet.id}`}>{moment.unix(tweet.createdAt / 1000).format("DD/MM hh:mm")}</a>
+                        </td>
+                        <td><Linkify>{tweet.text}</Linkify></td>
+                        <td>{tweet.user}</td>
+                        <td>
+                            <ReactBootstrap.Button variant="danger"
+                                                   onClick={() => this.deleteNewsletterTweet(tweet.id)}>
+                                Del
+                            </ReactBootstrap.Button>
+                        </td>
+                    </tr>
+                )
+            }
+            </tbody>
+        </ReactBootstrap.Table>
+    }
+
     deleteTweet(category, tweetId) {
         fetch(`/api/tweets/${category}/${tweetId}`, {method: "DELETE"})
             .then(
                 (res) => {
-                    this.retrieveTweetsByCategory(category, `${category}Tweets`)
-                    this.retrieveTweetsCountByCategory(category, `${category}Count`)
+                    return Promise.all([
+                        this.retrieveTweetsByCategory(category, `${category}Tweets`),
+                        this.retrieveTweetsCountByCategory(category, `${category}Count`)
+                    ]);
+                },
+                (error) => {
+                }
+            )
+    }
+
+    deleteNewsletterTweet(tweetId) {
+        fetch(`/api/newsletter/tweet/${tweetId}`, {method: "DELETE"})
+            .then(
+                (res) => {
+                    return this.retrieveTweetsIncludedInNewsletter();
                 },
                 (error) => {
                 }
@@ -246,8 +308,10 @@ class TweetUI extends React.Component {
         fetch(`/api/tweets/${category}`, {method: "DELETE"})
             .then(
                 (res) => {
-                    this.retrieveTweetsByCategory(category, `${category}Tweets`)
-                    this.retrieveTweetsCountByCategory(category, `${category}Count`)
+                    return Promise.all([
+                        this.retrieveTweetsByCategory(category, `${category}Tweets`),
+                        this.retrieveTweetsCountByCategory(category, `${category}Count`)
+                    ])
                 },
                 (error) => {
                 }
@@ -258,7 +322,7 @@ class TweetUI extends React.Component {
         fetch(`/api/newsletter/reset`, {method: "DELETE"})
             .then(
                 (res) => {
-                    this.retrieveTweetsIncludedInNewsletter()
+                    return this.retrieveTweetsIncludedInNewsletter()
                 }
             )
     }
@@ -274,18 +338,6 @@ class TweetUI extends React.Component {
                     }
                 )
         )
-    }
-
-    moveCategory(source, target, tweetId) {
-        fetch(`/api/tweets/move/${tweetId}?source=${source}&target=${target}`, {method: "PUT"})
-            .then(
-                (res) => {
-                    this.retrieveTweetsByCategory(source, `${source}Tweets`)
-                    this.retrieveTweetsCountByCategory(source, `${source}Count`)
-                },
-                (error) => {
-                }
-            )
     }
 
     prepareNewsletter() {

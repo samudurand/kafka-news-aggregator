@@ -137,6 +137,35 @@ class NewsletterApiTest
     verifyZeroInteractionsWithSendGridServer()
   }
 
+  "Newsletter API" should "delete a specifc tweet in newsletter" in {
+    val tweet = ArticleTweet("124142314", "Some good Kafka stuff", "http://medium.com/123445", "mlmenace", "1609020620")
+    val tweet2 = AudioTweet("124142334", "Even move Kafka stuff", "http://medium.com/789445", "justin", "1605020620")
+    mongoService.createTweet(tweet, Article).unsafeRunSync()
+    mongoService.createTweet(tweet2, Audio).unsafeRunSync()
+    val tweetsToInclude = MoveTweetsToNewsletter(
+      Map(
+        "article" -> List("124142314"),
+        "audio" -> List("124142334")
+      )
+    )
+
+    val response1 = api.run(Request(method = Method.PUT, uri = uri"/newsletter/prepare").withEntity(tweetsToInclude))
+    check[String](response1, Status.Ok, None)
+    val response2 = api.run(Request(method = Method.DELETE, uri = uri"/newsletter/tweet/124142314"))
+    check[String](response2, Status.Ok, None)
+    val response3 = api.run(Request(method = Method.GET, uri = uri"/newsletter/included"))
+    check[Seq[CompleteNewsletterTweet]](response3, Status.Ok, Some(List[CompleteNewsletterTweet](
+      CompleteNewsletterTweet(
+            "124142334",
+            "justin",
+            "Even move Kafka stuff",
+            "http://medium.com/789445",
+            "1605020620",
+            "audio"
+          )
+    )))
+  }
+
   def check[A](actual: IO[Response[IO]], expectedStatus: Status, expectedBody: Option[A])(implicit
       ev: EntityDecoder[IO, A]
   ): Response[IO] = {

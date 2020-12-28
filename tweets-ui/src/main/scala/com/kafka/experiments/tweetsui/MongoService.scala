@@ -37,6 +37,8 @@ trait MongoService {
 
   def deleteAllInNewsletter(): IO[Unit]
 
+  def deleteInNewsletter(tweetId: String): IO[Unit]
+
   def tweetsForNewsletter(): IO[Seq[CompleteNewsletterTweet]]
 }
 
@@ -118,6 +120,12 @@ class DefaultMongoService(mongoClient: MongoClient)(implicit c: ContextShift[IO]
   override def deleteAll(category: TweetCategory): IO[Unit] = {
     IO.fromFuture(
       IO(collectionFromCategory(category).deleteMany(Document()).toFuture())
+    ).map(_ => ())
+  }
+
+  override def deleteInNewsletter(tweetId: String): IO[Unit] = {
+    IO.fromFuture(
+      IO(collNewsletter.deleteOne(Document("id" -> BsonString(tweetId))).toFuture())
     ).map(_ => ())
   }
 

@@ -7,7 +7,7 @@ The data retrieved is used to generate the Kafka "Weekly Topics" newsletter.
 
 ## Features
 
-Stream tweets out of Twitter based on #kafka and #apachekafka keywords, then do the following (more details in each sub-section):
+Stream tweets out of Twitter based on #kafka and #apachekafka keywords, then do one of the following (more details in each sub-section):
 - skip the tweet
 - mark it as "excluded"
 - categorise it (article, video, audio, version release, or miscellaneous)

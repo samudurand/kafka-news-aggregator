@@ -53,11 +53,12 @@ object Main extends IOApp with StrictLogging {
 
   def api(sendGridClient: SendGridClient): HttpRoutes[IO] = HttpRoutes
     .of[IO] {
-      case req @ PUT -> Root / "newsletter" / "prepare" => prepareNewsletterData(req)
-      case GET -> Root / "newsletter" / "included"      => loadCurrentlyIncludedInNewsletter()
-      case GET -> Root / "newsletter" / "html"          => loadCurrentHtmlNewsletter()
-      case POST -> Root / "newsletter" / "create"       => createNewsletterDraft(sendGridClient)
-      case DELETE -> Root / "newsletter" / "reset"      => resetNewsletterData()
+      case req @ PUT -> Root / "newsletter" / "prepare"      => prepareNewsletterData(req)
+      case GET -> Root / "newsletter" / "included"           => loadCurrentlyIncludedInNewsletter()
+      case GET -> Root / "newsletter" / "html"               => loadCurrentHtmlNewsletter()
+      case POST -> Root / "newsletter" / "create"            => createNewsletterDraft(sendGridClient)
+      case DELETE -> Root / "newsletter" / "reset"           => resetNewsletterData()
+      case DELETE -> Root / "newsletter" / "tweet" / tweetId => deleteNewsletterTweet(tweetId)
 
       case GET -> Root / "tweets" / category / "count"    => getTweetsCountByCategory(category)
       case GET -> Root / "tweets" / category              => getTweetsByCategory(category)
@@ -111,6 +112,10 @@ object Main extends IOApp with StrictLogging {
         mongoService.deleteAll(category).flatMap(count => Ok(s"All tweets in category ${category} deleted"))
       case _ => BadRequest()
     }
+  }
+
+  private def deleteNewsletterTweet(tweetId: String) = {
+    mongoService.deleteInNewsletter(tweetId).flatMap(Ok(_))
   }
 
   private def resetNewsletterData() = {
