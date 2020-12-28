@@ -40,8 +40,7 @@ object ToExclude {
   }
 
   private def isAboutAGame(tweet: Tweet): Boolean = {
-    val gameWords = List("game", "indie")
-    textLoweredCaseContainAnyOf(tweet.Text, List(), gameWords)
+    textLoweredCaseContainAnyOf(tweet.Text, List(), Keywords.gameWords)
   }
 
   private def doesNotMentionKafka(tweet: Tweet): Boolean = {
@@ -74,13 +73,11 @@ object ToExclude {
   }
 
   private def isAboutACertification(tweet: Tweet): Boolean = {
-    val certificationsWords = List("certificate", "certification")
-    textLoweredCaseContainAnyOf(tweet.Text, List(), certificationsWords)
+    textLoweredCaseContainAnyOf(tweet.Text, List(), Keywords.certification)
   }
 
   private def isAnAdvertisement(tweet: Tweet) = {
-    val adWords = List("sponsored")
-    textLoweredCaseContainAnyOf(tweet.Text, adWords)
+    textLoweredCaseContainAnyOf(tweet.Text, Keywords.adWords)
   }
 
   private def hasUnrelatedContent(tweet: Tweet) = {

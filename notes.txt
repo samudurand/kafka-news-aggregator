@@ -76,7 +76,6 @@ Advanced Features:
 - detect when a Kafka event is happening (conference or other).
     For instance with a stream app that will analyse the tweets rates (this should not use the same rules as article based tweets, since we are looking for kafka mentions)
     Prob need a window concept, like tweets in an hour/day
-- avoid duplicate links by by checking deep link path
 - avoid duplicate tweets by checking text content ? (might not be useful if duplicate links are prevented)
 
 - score tweet value:
