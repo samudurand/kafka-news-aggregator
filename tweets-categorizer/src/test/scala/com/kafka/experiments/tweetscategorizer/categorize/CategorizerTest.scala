@@ -1,6 +1,13 @@
 package com.kafka.experiments.tweetscategorizer.categorize
 
-import com.kafka.experiments.shared.{ArticleTweet, AudioTweet, ExcludedTweet, OtherTweet, VersionReleaseTweet, VideoTweet}
+import com.kafka.experiments.shared.{
+  ArticleTweet,
+  AudioTweet,
+  ExcludedTweet,
+  OtherTweet,
+  VersionReleaseTweet,
+  VideoTweet
+}
 import com.kafka.experiments.tweetscategorizer.config.RedisConfig
 import com.kafka.experiments.tweetscategorizer.{RedisService, Tweet, URLEntity, User}
 import org.scalamock.scalatest.MockFactory

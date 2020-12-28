@@ -9,7 +9,7 @@ import pureconfig.ConfigSource
 import pureconfig.generic.auto._
 
 class ToSkip(redisService: RedisService) extends StrictLogging {
-    private val config = ConfigSource.default.loadOrThrow[GlobalConfig]
+  private val config = ConfigSource.default.loadOrThrow[GlobalConfig]
 
   def shouldBeSkipped(tweet: Tweet): Boolean = {
     if (tweet.Retweet || isNotInEnglish(tweet)) {

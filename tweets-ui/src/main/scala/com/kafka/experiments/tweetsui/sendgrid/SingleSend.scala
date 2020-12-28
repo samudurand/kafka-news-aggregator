@@ -22,7 +22,7 @@ object EmailConfig {
 case class EmailConfig(html_content: String, sender_id: Int, subject: String, suppression_group_id: Int)
 
 object Encoders {
-    implicit val singleSendEncoder: EntityEncoder[IO, SingleSend] = jsonEncoderOf[IO, SingleSend]
-    implicit val sendToEncoder: EntityEncoder[IO, SendTo] = jsonEncoderOf[IO, SendTo]
-    implicit val emailConfigEncoder: EntityEncoder[IO, EmailConfig] = jsonEncoderOf[IO, EmailConfig]
+  implicit val singleSendEncoder: EntityEncoder[IO, SingleSend] = jsonEncoderOf[IO, SingleSend]
+  implicit val sendToEncoder: EntityEncoder[IO, SendTo] = jsonEncoderOf[IO, SendTo]
+  implicit val emailConfigEncoder: EntityEncoder[IO, EmailConfig] = jsonEncoderOf[IO, EmailConfig]
 }

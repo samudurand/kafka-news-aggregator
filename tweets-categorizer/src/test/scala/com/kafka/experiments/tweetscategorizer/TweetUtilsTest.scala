@@ -29,7 +29,8 @@ class TweetUtilsTest extends AnyFlatSpec with Matchers {
   }
 
   "Tweet with only a twitter link" should "be identified" in {
-    val tweet = goodTweet.copy(URLEntities = List(URLEntity("https://t.co/0lztrRpQTK", "https://twitter.com/some/tweet")))
+    val tweet =
+      goodTweet.copy(URLEntities = List(URLEntity("https://t.co/0lztrRpQTK", "https://twitter.com/some/tweet")))
     hasValidLink(tweet) shouldBe false
   }
 

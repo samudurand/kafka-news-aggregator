@@ -16,14 +16,6 @@ import java.util.Properties
 class IntegrationTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach with MockFactory {
   val stringSerializer = new StringSerializer()
   val stringDeserializer = new StringDeserializer()
-  var testDriver: TopologyTestDriver = _
-  var inputTopic: TestInputTopic[String, String] = _
-  var outputTopics: Map[String, TestOutputTopic[String, String]] = _
-
-  var categorizer: Categorizer = _
-  var redisService: RedisService = _
-  var toSkip: ToSkip = _
-
   private val tweet = Tweet(
     1604688491000L,
     1324785668502016000L,
@@ -36,6 +28,12 @@ class IntegrationTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach 
     List(),
     User(1234124134L, "someuser")
   )
+  var testDriver: TopologyTestDriver = _
+  var inputTopic: TestInputTopic[String, String] = _
+  var outputTopics: Map[String, TestOutputTopic[String, String]] = _
+  var categorizer: Categorizer = _
+  var redisService: RedisService = _
+  var toSkip: ToSkip = _
 
   override def beforeEach(): Unit = {
     val props = new Properties();
@@ -136,11 +134,6 @@ class IntegrationTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach 
     outputTopics(sinkExcludedTopic).getQueueSize shouldBe 1
   }
 
-  private def configureRedisMock() = {
-    (redisService.exists _).expects(*).returning(false)
-    (redisService.putWithExpire _).expects(*).returning(false)
-  }
-
   private def createInputTopic() = {
     testDriver.createInputTopic("kafka_tweets", stringSerializer, stringSerializer)
   }
@@ -158,5 +151,10 @@ class IntegrationTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach 
 
   override def afterEach(): Unit = {
     testDriver.close()
+  }
+
+  private def configureRedisMock() = {
+    (redisService.exists _).expects(*).returning(false)
+    (redisService.putWithExpire _).expects(*).returning(false)
   }
 }

@@ -15,12 +15,12 @@ object KnownSources {
     hasKnownSource(tweet, sourcesToBeExcluded)
   }
 
-  def hasSourceToBeAutoAccepted(tweet: Tweet): Boolean = {
-    hasKnownSource(tweet, sourcesToBeAutoAccepted)
-  }
-
   private def hasKnownSource(tweet: Tweet, known: List[String]): Boolean = {
     known.exists(source => tweet.User.ScreenName.toLowerCase.equals(source.toLowerCase))
+  }
+
+  def hasSourceToBeAutoAccepted(tweet: Tweet): Boolean = {
+    hasKnownSource(tweet, sourcesToBeAutoAccepted)
   }
 
 }

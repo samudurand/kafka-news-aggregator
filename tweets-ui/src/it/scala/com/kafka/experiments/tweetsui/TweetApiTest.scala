@@ -1,27 +1,27 @@
 package com.kafka.experiments.tweetsui
 
-import cats.effect.{ContextShift, IO}
-import com.dimafeng.testcontainers.{
-  FixedHostPortGenericContainer,
-  ForEachTestContainer,
-  GenericContainer,
-  MongoDBContainer
-}
+import cats.effect.IO
+import com.dimafeng.testcontainers.ForEachTestContainer
 import com.kafka.experiments.shared.{ArticleTweet, AudioTweet, VersionReleaseTweet, VideoTweet}
-import com.kafka.experiments.tweetsui.config.{MongodbConfig, SendGridConfig}
+import com.kafka.experiments.tweetsui.Decoders._
+import com.kafka.experiments.tweetsui.config.SendGridConfig
 import com.kafka.experiments.tweetsui.sendgrid.SendGridClient
+import org.http4s._
+import org.http4s.client.Client
 import org.http4s.client.blaze.BlazeClientBuilder
 import org.http4s.implicits.{http4sLiteralsSyntax, _}
-import org.http4s._
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import com.kafka.experiments.tweetsui.Decoders._
-import org.http4s.client.Client
 
 import scala.concurrent.ExecutionContext.global
 
-class TweetApiTest extends AnyFlatSpec with ForEachTestContainer with BeforeAndAfterEach with Matchers with MongoDatabase {
+class TweetApiTest
+    extends AnyFlatSpec
+    with ForEachTestContainer
+    with BeforeAndAfterEach
+    with Matchers
+    with MongoDatabase {
   private val sendGridConfig = SendGridConfig("", "key", 11, List("id"), 22)
   private var httpClient: Client[IO] = _
   private var sendGridClient: SendGridClient = _

@@ -45,8 +45,22 @@ case class MoveTweetsToNewsletter(tweetIds: Map[String, List[String]])
 object Main extends IOApp with StrictLogging {
   import cats.implicits._
 
+  val app: Resource[IO, Server[IO]] =
+    for {
+      blocker <- Blocker[IO]
+      httpClient <- BlazeClientBuilder[IO](global).resource
+      sendGridClient = SendGridClient(config.sendgrid, httpClient)
+      server <- BlazeServerBuilder[IO](global)
+        .bindHttp(config.server.port, config.server.host)
+        .withHttpApp(
+          Router(
+            "api" -> api(sendGridClient),
+            "" -> resourceService[IO](ResourceService.Config("/assets", blocker))
+          ).orNotFound
+        )
+        .resource
+    } yield server
   private val config = ConfigSource.default.loadOrThrow[GlobalConfig]
-
   private val mongoService = MongoService(config.mongodb)
   private val fmGenerator = new FreeMarkerGenerator(config.freemarker)
   private val newsletterBuilder = new NewsletterBuilder(mongoService, fmGenerator)
@@ -153,20 +167,4 @@ object Main extends IOApp with StrictLogging {
 
   def run(args: List[String]): IO[ExitCode] =
     app.use(_ => IO.never).as(ExitCode.Success)
-
-  val app: Resource[IO, Server[IO]] =
-    for {
-      blocker <- Blocker[IO]
-      httpClient <- BlazeClientBuilder[IO](global).resource
-      sendGridClient = SendGridClient(config.sendgrid, httpClient)
-      server <- BlazeServerBuilder[IO](global)
-        .bindHttp(config.server.port, config.server.host)
-        .withHttpApp(
-          Router(
-            "api" -> api(sendGridClient),
-            "" -> resourceService[IO](ResourceService.Config("/assets", blocker))
-          ).orNotFound
-        )
-        .resource
-    } yield server
 }

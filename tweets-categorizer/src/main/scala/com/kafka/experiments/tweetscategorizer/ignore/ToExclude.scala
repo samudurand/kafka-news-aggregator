@@ -1,7 +1,10 @@
 package com.kafka.experiments.tweetscategorizer.ignore
 
 import com.kafka.experiments.tweetscategorizer.KnownSources.hasSourceToBeExcluded
-import com.kafka.experiments.tweetscategorizer.utils.TextUtils.{textContainAtLeastOneNumber, textLoweredCaseContainAnyOf}
+import com.kafka.experiments.tweetscategorizer.utils.TextUtils.{
+  textContainAtLeastOneNumber,
+  textLoweredCaseContainAnyOf
+}
 import com.kafka.experiments.tweetscategorizer.{Keywords, Tweet}
 import com.kafka.experiments.tweetscategorizer.ignore.FranzKafkaWriter.isAboutFranzKafka
 
@@ -19,23 +22,22 @@ object ToExclude {
   val reasonHasSourceToBeExcluded = "HAS_SOURCE_TO_BE_EXCLUDED"
   val reasonHasUnrelatedWords = "HAS_UNRELATED_WORDS"
 
-  /**
-   * @return the reason why it should be excluded
-   */
+  /** @return the reason why it should be excluded
+    */
   def shouldBeExcluded(tweet: Tweet): Option[String] = {
     tweet match {
-      case t if doesNotMentionKafka(t) => Some(reasonDoesNotMentionKafka)
+      case t if doesNotMentionKafka(t)   => Some(reasonDoesNotMentionKafka)
       case t if hasSourceToBeExcluded(t) => Some(reasonHasSourceToBeExcluded)
-      case t if hasUnrelatedContent(t) => Some(reasonHasUnrelatedWords)
+      case t if hasUnrelatedContent(t)   => Some(reasonHasUnrelatedWords)
       case t if isAboutACertification(t) => Some(reasonIsAboutACertification)
-      case t if isAboutAGame(t) => Some(reasonIsAboutAGame)
-      case t if isAboutFranzKafka(t) => Some(reasonIsAboutFranzKafka)
-      case t if isAnAdvertisement(t) => Some(reasonIsAnAd)
-      case t if isAJobOffer(t) => Some(reasonIsAJobOffer)
-      case t if isDiscountRelated(t) => Some(reasonIsDiscountRelated)
-      case t if isMoneyRelated(t) => Some(reasonIsMoneyRelated)
-      case t if isTooShort(t) => Some(reasonIsTooShort)
-      case _ => None
+      case t if isAboutAGame(t)          => Some(reasonIsAboutAGame)
+      case t if isAboutFranzKafka(t)     => Some(reasonIsAboutFranzKafka)
+      case t if isAnAdvertisement(t)     => Some(reasonIsAnAd)
+      case t if isAJobOffer(t)           => Some(reasonIsAJobOffer)
+      case t if isDiscountRelated(t)     => Some(reasonIsDiscountRelated)
+      case t if isMoneyRelated(t)        => Some(reasonIsMoneyRelated)
+      case t if isTooShort(t)            => Some(reasonIsTooShort)
+      case _                             => None
     }
   }
 
@@ -82,6 +84,6 @@ object ToExclude {
 
   private def hasUnrelatedContent(tweet: Tweet) = {
     textLoweredCaseContainAnyOf(tweet.Text, Keywords.unrelatedWords) ||
-      Keywords.unrelatedDomains.exists(domain => tweet.URLEntities.exists(_.ExpandedURL.contains(domain)))
+    Keywords.unrelatedDomains.exists(domain => tweet.URLEntities.exists(_.ExpandedURL.contains(domain)))
   }
 }

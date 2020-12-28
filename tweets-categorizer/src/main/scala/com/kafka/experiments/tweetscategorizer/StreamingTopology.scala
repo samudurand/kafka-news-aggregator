@@ -55,7 +55,7 @@ object StreamingTopology extends StrictLogging {
     builder
   }
 
-    // Using Manifest is not good for performance (Reflection)
+  // Using Manifest is not good for performance (Reflection)
   private def toTopicByType[T <: CategorisedTweet: Manifest](
       tweetsStream: KStream[String, CategorisedTweet],
       sinkTopic: String

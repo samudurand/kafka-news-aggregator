@@ -1,7 +1,10 @@
 package com.kafka.experiments.tweetscategorizer.categorize
 
 import com.kafka.experiments.shared._
-import com.kafka.experiments.tweetscategorizer.utils.TextUtils.{textContainAtLeastOneNumber, textLoweredCaseContainAnyOf}
+import com.kafka.experiments.tweetscategorizer.utils.TextUtils.{
+  textContainAtLeastOneNumber,
+  textLoweredCaseContainAnyOf
+}
 import com.kafka.experiments.tweetscategorizer.{Keywords, RedisService, Tweet}
 import com.kafka.experiments.tweetscategorizer.utils.TweetUtils.{firstValidLink, hasValidLink}
 
@@ -52,17 +55,17 @@ class DefaultCategorizer(redisService: RedisService) extends Categorizer {
 
   private def isAboutAVideoPost(tweet: Tweet): Boolean = {
     textLoweredCaseContainAnyOf(tweet.Text, Keywords.videoWords) ||
-      Keywords.videoDomains.exists(domain => tweet.URLEntities.exists(_.ExpandedURL.contains(domain)))
+    Keywords.videoDomains.exists(domain => tweet.URLEntities.exists(_.ExpandedURL.contains(domain)))
   }
 
   private def isAboutANewVersion(tweet: Tweet): Boolean = {
     textLoweredCaseContainAnyOf(tweet.Text, Keywords.versionReleaseWords) &&
-      textContainAtLeastOneNumber(tweet.Text)
+    textContainAtLeastOneNumber(tweet.Text)
   }
 
   private def isAboutAnArticle(tweet: Tweet): Boolean = {
     textLoweredCaseContainAnyOf(tweet.Text, Keywords.articleWords) ||
-      Keywords.articleDomains.exists(domain => tweet.URLEntities.exists(_.ExpandedURL.contains(domain)))
+    Keywords.articleDomains.exists(domain => tweet.URLEntities.exists(_.ExpandedURL.contains(domain)))
   }
 
 }

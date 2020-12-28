@@ -2,7 +2,16 @@ package com.kafka.experiments.tweetsui
 
 import cats.effect.{ContextShift, IO}
 import com.kafka.experiments.shared._
-import com.kafka.experiments.tweetsui.MongoService.{collArticleName, collAudioName, collExcludedName, collNewsletterName, collOtherName, collVersionName, collVideoName, tweetsDb}
+import com.kafka.experiments.tweetsui.MongoService.{
+  collArticleName,
+  collAudioName,
+  collExcludedName,
+  collNewsletterName,
+  collOtherName,
+  collVersionName,
+  collVideoName,
+  tweetsDb
+}
 import com.kafka.experiments.tweetsui.config.MongodbConfig
 import com.kafka.experiments.tweetsui.newsletter.{CompleteNewsletterTweet, NewsletterTweet}
 import com.typesafe.scalalogging.StrictLogging
@@ -57,7 +66,7 @@ object MongoService {
 }
 
 class DefaultMongoService(mongoClient: MongoClient)(implicit c: ContextShift[IO])
-  extends MongoService
+    extends MongoService
     with StrictLogging {
 
   private val customCodecs = fromProviders(
@@ -123,6 +132,17 @@ class DefaultMongoService(mongoClient: MongoClient)(implicit c: ContextShift[IO]
     ).map(_ => ())
   }
 
+  private def collectionFromCategory(category: TweetCategory): MongoCollection[Document] = {
+    category match {
+      case Article        => collArticleTweets
+      case Audio          => collAudioTweets
+      case Excluded       => collExcludedTweets
+      case Other          => collOtherTweets
+      case VersionRelease => collVersionTweets
+      case Video          => collVideoTweets
+    }
+  }
+
   override def deleteInNewsletter(tweetId: String): IO[Unit] = {
     IO.fromFuture(
       IO(collNewsletter.deleteOne(Document("id" -> BsonString(tweetId))).toFuture())
@@ -169,16 +189,5 @@ class DefaultMongoService(mongoClient: MongoClient)(implicit c: ContextShift[IO]
         logger.info(s"Moved $count tweets from category $category to the newsletter")
         count
       }) // No special handling of failures for now
-  }
-
-  private def collectionFromCategory(category: TweetCategory): MongoCollection[Document] = {
-    category match {
-      case Article        => collArticleTweets
-      case Audio          => collAudioTweets
-      case Excluded       => collExcludedTweets
-      case Other          => collOtherTweets
-      case VersionRelease => collVersionTweets
-      case Video          => collVideoTweets
-    }
   }
 }

@@ -5,11 +5,11 @@ object TweetCategory {
   def allInterestingCategories(): Seq[TweetCategory] =
     List(Article, Audio, Other, VersionRelease, Video)
 
-  def allCategories(): Seq[TweetCategory] =
-    List(Article, Audio, Other, VersionRelease, Video, Excluded)
-
   def fromName(name: String): Option[TweetCategory] =
     allCategories().find(_.name == name)
+
+  def allCategories(): Seq[TweetCategory] =
+    List(Article, Audio, Other, VersionRelease, Video, Excluded)
 }
 
 sealed abstract class TweetCategory(val name: String) {}

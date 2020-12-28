@@ -2,16 +2,7 @@ package com.kafka.experiments.tweetsui
 
 import cats.effect.IO
 import com.dimafeng.testcontainers.ForEachTestContainer
-import com.github.tomakehurst.wiremock.client.WireMock.{
-  aResponse,
-  equalTo,
-  get,
-  post,
-  postRequestedFor,
-  urlEqualTo,
-  urlPathEqualTo,
-  verify
-}
+import com.github.tomakehurst.wiremock.client.WireMock._
 import com.kafka.experiments.shared.{ArticleTweet, AudioTweet}
 import com.kafka.experiments.tweetsui.Decoders._
 import com.kafka.experiments.tweetsui.Encoders._
@@ -154,8 +145,12 @@ class NewsletterApiTest
     val response2 = api.run(Request(method = Method.DELETE, uri = uri"/newsletter/tweet/124142314"))
     check[String](response2, Status.Ok, None)
     val response3 = api.run(Request(method = Method.GET, uri = uri"/newsletter/included"))
-    check[Seq[CompleteNewsletterTweet]](response3, Status.Ok, Some(List[CompleteNewsletterTweet](
-      CompleteNewsletterTweet(
+    check[Seq[CompleteNewsletterTweet]](
+      response3,
+      Status.Ok,
+      Some(
+        List[CompleteNewsletterTweet](
+          CompleteNewsletterTweet(
             "124142334",
             "justin",
             "Even move Kafka stuff",
@@ -163,7 +158,9 @@ class NewsletterApiTest
             "1605020620",
             "audio"
           )
-    )))
+        )
+      )
+    )
   }
 
   def check[A](actual: IO[Response[IO]], expectedStatus: Status, expectedBody: Option[A])(implicit
