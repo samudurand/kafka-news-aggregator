@@ -31,7 +31,7 @@ class NewsletterBuilder(mongoService: MongoService, fmGenerator: FreeMarkerGener
       .map(data => fmGenerator.generateHtml(data))
   }
 
-  private def removeUrls(data: Map[String, Seq[CompleteNewsletterTweet]]) = {
+  private def removeUrls(data: Map[String, Seq[NewsletterTweet]]) = {
     data.view
       .mapValues(_.map { tweet =>
         val urls = new UrlDetector(tweet.text, UrlDetectorOptions.Default).detect()

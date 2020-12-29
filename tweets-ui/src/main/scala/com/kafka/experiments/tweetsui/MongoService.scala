@@ -13,7 +13,7 @@ import com.kafka.experiments.tweetsui.MongoService.{
   tweetsDb
 }
 import com.kafka.experiments.tweetsui.config.MongodbConfig
-import com.kafka.experiments.tweetsui.newsletter.{CompleteNewsletterTweet, NewsletterTweet}
+import com.kafka.experiments.tweetsui.newsletter.{NewsletterTweet, NewsletterTweetDraft}
 import com.typesafe.scalalogging.StrictLogging
 import jdk.jshell.spi.ExecutionControl.NotImplementedException
 import org.bson.codecs.configuration.CodecRegistries.{fromProviders, fromRegistries}
@@ -48,7 +48,7 @@ trait MongoService {
 
   def deleteInNewsletter(tweetId: String): IO[Unit]
 
-  def tweetsForNewsletter(): IO[Seq[CompleteNewsletterTweet]]
+  def tweetsForNewsletter(): IO[Seq[NewsletterTweet]]
 }
 
 object MongoService {
@@ -76,7 +76,7 @@ class DefaultMongoService(mongoClient: MongoClient)(implicit c: ContextShift[IO]
     classOf[ExcludedTweet],
     classOf[OtherTweet],
     classOf[VersionReleaseTweet],
-    classOf[CompleteNewsletterTweet]
+    classOf[NewsletterTweet]
   )
 
   private val codecRegistry = fromRegistries(customCodecs, DEFAULT_CODEC_REGISTRY)
@@ -155,9 +155,9 @@ class DefaultMongoService(mongoClient: MongoClient)(implicit c: ContextShift[IO]
     ).map(_ => ())
   }
 
-  override def tweetsForNewsletter(): IO[Seq[CompleteNewsletterTweet]] = {
+  override def tweetsForNewsletter(): IO[Seq[NewsletterTweet]] = {
     val tweets = collNewsletter
-      .find[CompleteNewsletterTweet]()
+      .find[NewsletterTweet]()
       .sort(orderBy(descending(createdAtField)))
       .toFuture()
     IO.fromFuture(IO(tweets))
@@ -169,9 +169,9 @@ class DefaultMongoService(mongoClient: MongoClient)(implicit c: ContextShift[IO]
         collectionFromCategory(category)
           .findOneAndDelete(Document("id" -> BsonString(tweetId)))
           .flatMap(tweetDocument => {
-            decode[NewsletterTweet](tweetDocument.toJson()) match {
+            decode[NewsletterTweetDraft](tweetDocument.toJson()) match {
               case Right(tweet) => {
-                val categorisedTweet = CompleteNewsletterTweet(category.name, tweet)
+                val categorisedTweet = NewsletterTweet(category.name, tweet)
                 val document = Document.apply(categorisedTweet.asJson.toString())
                 collNewsletter.insertOne(document)
               }

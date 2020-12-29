@@ -8,7 +8,7 @@ import scala.jdk.CollectionConverters._
 class FreeMarkerGeneratorTest extends AnyFlatSpec with Matchers {
 
   private val fmGenerator = new FreeMarkerGenerator(FreeMarkerConfig(None))
-  private val tweet = CompleteNewsletterTweet("12345", "someguy", "hello there", "http://link", "1314325356", "Video")
+  private val tweet = NewsletterTweet("12345", "someguy", "hello there", "http://link", "1314325356", "Video")
 
   "Generator" should "generate newsletter with all categories" in {
     val data = Map(

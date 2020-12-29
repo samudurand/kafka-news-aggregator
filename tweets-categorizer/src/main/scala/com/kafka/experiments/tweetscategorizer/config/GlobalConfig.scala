@@ -29,4 +29,4 @@ case class KeywordsConfig(
     videodomains: Seq[String]
 )
 
-case class RedisConfig(host: String, port: Int)
+case class RedisConfig(host: String, port: Int, ttlInHours: Int)

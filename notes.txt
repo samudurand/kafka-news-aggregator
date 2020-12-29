@@ -58,13 +58,8 @@ monitor
 python
 scala
 spark
-tool
 
 Notes:
-- need to decide which words need to be searched as:
-    - full word
-    - hashtag
-    - part of words (ie. data)
 
 Other sources than Twitter:
 - Version updates:
@@ -86,3 +81,4 @@ Advanced Features:
         - link domain ? (medium, ...)
         - text length ? (prob not a good meter)
     - medium: check the number of claps ? https://github.com/Medium/medium-api-docs
+

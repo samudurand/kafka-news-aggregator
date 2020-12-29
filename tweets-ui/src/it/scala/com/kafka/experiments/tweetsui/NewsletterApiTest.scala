@@ -7,7 +7,7 @@ import com.kafka.experiments.shared.{ArticleTweet, AudioTweet}
 import com.kafka.experiments.tweetsui.Decoders._
 import com.kafka.experiments.tweetsui.Encoders._
 import com.kafka.experiments.tweetsui.config.SendGridConfig
-import com.kafka.experiments.tweetsui.newsletter.CompleteNewsletterTweet
+import com.kafka.experiments.tweetsui.newsletter.NewsletterTweet
 import com.kafka.experiments.tweetsui.sendgrid.SendGridClient
 import org.http4s._
 import org.http4s.client.Client
@@ -58,12 +58,12 @@ class NewsletterApiTest
 
     // Check the newsletter content
     val response2 = api.run(Request(method = Method.GET, uri = uri"/newsletter/included"))
-    check[Seq[CompleteNewsletterTweet]](
+    check[Seq[NewsletterTweet]](
       response2,
       Status.Ok,
       Some(
         List(
-          CompleteNewsletterTweet(
+          NewsletterTweet(
             "124142314",
             "mlmenace",
             "Some good Kafka stuff",
@@ -71,7 +71,7 @@ class NewsletterApiTest
             "1609020620",
             "article"
           ),
-          CompleteNewsletterTweet(
+          NewsletterTweet(
             "124142334",
             "justin",
             "Even move Kafka stuff",
@@ -123,7 +123,7 @@ class NewsletterApiTest
     val response2 = api.run(Request(method = Method.DELETE, uri = uri"/newsletter/reset"))
     check[String](response2, Status.Ok, None)
     val response3 = api.run(Request(method = Method.GET, uri = uri"/newsletter/included"))
-    check[Seq[CompleteNewsletterTweet]](response3, Status.Ok, Some(List[CompleteNewsletterTweet]()))
+    check[Seq[NewsletterTweet]](response3, Status.Ok, Some(List[NewsletterTweet]()))
 
     verifyZeroInteractionsWithSendGridServer()
   }
@@ -145,12 +145,12 @@ class NewsletterApiTest
     val response2 = api.run(Request(method = Method.DELETE, uri = uri"/newsletter/tweet/124142314"))
     check[String](response2, Status.Ok, None)
     val response3 = api.run(Request(method = Method.GET, uri = uri"/newsletter/included"))
-    check[Seq[CompleteNewsletterTweet]](
+    check[Seq[NewsletterTweet]](
       response3,
       Status.Ok,
       Some(
-        List[CompleteNewsletterTweet](
-          CompleteNewsletterTweet(
+        List[NewsletterTweet](
+          NewsletterTweet(
             "124142334",
             "justin",
             "Even move Kafka stuff",

@@ -13,15 +13,15 @@ object RedisService {
 
   def apply(config: RedisConfig): RedisService = {
     val client = new RedisClient(config.host, config.port)
-    new DefaultRedisService(client)
+    new DefaultRedisService(config, client)
   }
 }
 
-class DefaultRedisService(redisClient: RedisClient) extends RedisService {
+class DefaultRedisService(config: RedisConfig, redisClient: RedisClient) extends RedisService {
   val cachedValue = "cached"
 
   override def putWithExpire(key: String): Boolean = {
-    redisClient.set(key, cachedValue, expire = 1.days)
+    redisClient.set(key, cachedValue, expire = config.ttlInHours.hours)
   }
 
   override def exists(key: String): Boolean = {

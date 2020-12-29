@@ -26,7 +26,7 @@ class NewsletterBuilderTest extends AnyFlatSpec with Matchers with MockFactory w
       .returning(
         IO.pure(
           List(
-            CompleteNewsletterTweet(
+            NewsletterTweet(
               "1604688491000",
               "user",
               "Some tweet about #Kafka, http://urltoremove.com",
@@ -34,7 +34,7 @@ class NewsletterBuilderTest extends AnyFlatSpec with Matchers with MockFactory w
               "12314513543",
               "article"
             ),
-            CompleteNewsletterTweet(
+            NewsletterTweet(
               "1604444491000",
               "user2",
               "Some other tweet http://urltoremove.com about #Kafka",
@@ -49,7 +49,7 @@ class NewsletterBuilderTest extends AnyFlatSpec with Matchers with MockFactory w
     (fmGenerator.generateHtml _).expects(
       Map(
         "listArticles" -> List(
-          CompleteNewsletterTweet(
+          NewsletterTweet(
             "1604688491000",
             "user",
             "Some tweet about #Kafka, ",
@@ -59,7 +59,7 @@ class NewsletterBuilderTest extends AnyFlatSpec with Matchers with MockFactory w
           )
         ).asJava,
         "listAudios" -> List(
-          CompleteNewsletterTweet(
+          NewsletterTweet(
               "1604444491000",
               "user2",
               "Some other tweet  about #Kafka",
