@@ -15,6 +15,7 @@ object Versions {
   val Scalamock = "5.1.0"
   val Scalatest = "3.2.2"
   val TestContainers = "0.38.8"
+  val Twitter4S = "7.0"
   val UrlDetector = "0.1.23"
   val Wiremock = "2.27.2"
 }
@@ -34,6 +35,7 @@ object Dependencies {
   val PureConfig = "com.github.pureconfig" %% "pureconfig" % Versions.PureConfig
   val Redis ="net.debasishg" %% "redisclient" % Versions.Redis
   val ScalaLogging = "com.typesafe.scala-logging" %% "scala-logging" % Versions.ScalaLogging
+  val Twitter4S = "com.danielasfregola" %% "twitter4s" % Versions.Twitter4S
   val UrlDetector = "io.github.url-detector" % "url-detector" % Versions.UrlDetector
 
   val KafkaStreamTest = "org.apache.kafka" % "kafka-streams-test-utils" % Versions.KafkaStreams % "test"
@@ -73,6 +75,7 @@ object Dependencies {
     Scalatest,
     TestContainers,
     TestContainersMongo,
+    Twitter4S,
     UrlDetector,
     Wiremock
   )

@@ -1,14 +1,8 @@
 package com.kafka.experiments.tweetsui
 
 import cats.effect.{Blocker, ExitCode, IO, IOApp, Resource}
-import com.kafka.experiments.shared.{
-  ArticleTweet,
-  AudioTweet,
-  ExcludedTweet,
-  OtherTweet,
-  VersionReleaseTweet,
-  VideoTweet
-}
+import com.danielasfregola.twitter4s.TwitterRestClient
+import com.kafka.experiments.shared.{ArticleTweet, AudioTweet, ExcludedTweet, OtherTweet, VersionReleaseTweet, VideoTweet}
 import com.kafka.experiments.tweetsui.Decoders._
 import com.kafka.experiments.tweetsui.Encoders._
 import com.kafka.experiments.tweetsui.config.GlobalConfig
@@ -21,7 +15,7 @@ import org.http4s.client.blaze.BlazeClientBuilder
 import org.http4s.dsl.io._
 import org.http4s.implicits._
 import org.http4s.server.blaze.BlazeServerBuilder
-import org.http4s.server.staticcontent.{resourceService, ResourceService}
+import org.http4s.server.staticcontent.{ResourceService, resourceService}
 import org.http4s.server.{Router, Server}
 import org.http4s.{Header, HttpRoutes, Request, Response}
 import pureconfig.ConfigSource
@@ -45,6 +39,14 @@ case class MoveTweetsToNewsletter(tweetIds: Map[String, List[String]])
 object Main extends IOApp with StrictLogging {
   import cats.implicits._
 
+  private val config = ConfigSource.default.loadOrThrow[GlobalConfig]
+
+  private val mongoService = MongoService(config.mongodb)
+  private val fmGenerator = new FreeMarkerGenerator(config.freemarker)
+  private val newsletterBuilder = new NewsletterBuilder(mongoService, fmGenerator)
+  private val twitterRestClient = TwitterRestClient()
+  private val scoringService = ScoringService(config.score, twitterRestClient)
+
   val app: Resource[IO, Server[IO]] =
     for {
       blocker <- Blocker[IO]
@@ -60,10 +62,6 @@ object Main extends IOApp with StrictLogging {
         )
         .resource
     } yield server
-  private val config = ConfigSource.default.loadOrThrow[GlobalConfig]
-  private val mongoService = MongoService(config.mongodb)
-  private val fmGenerator = new FreeMarkerGenerator(config.freemarker)
-  private val newsletterBuilder = new NewsletterBuilder(mongoService, fmGenerator)
 
   def api(sendGridClient: SendGridClient): HttpRoutes[IO] = HttpRoutes
     .of[IO] {
@@ -73,6 +71,7 @@ object Main extends IOApp with StrictLogging {
       case POST -> Root / "newsletter" / "create"            => createNewsletterDraft(sendGridClient)
       case DELETE -> Root / "newsletter" / "reset"           => resetNewsletterData()
       case DELETE -> Root / "newsletter" / "tweet" / tweetId => deleteNewsletterTweet(tweetId)
+      case DELETE -> Root / "newsletter" / "score"           => scoreNewsletterTweets()
 
       case GET -> Root / "tweets" / category / "count"    => getTweetsCountByCategory(category)
       case GET -> Root / "tweets" / category              => getTweetsByCategory(category)
@@ -82,6 +81,12 @@ object Main extends IOApp with StrictLogging {
 //          SourceCategoryQueryParamMatcher(source) +& TargetCategoryQueryParamMatcher(target) =>
 //        mongoService.move(source, target, tweetId).flatMap(_ => Ok("Moved To Examinate collection"))
     }
+
+  private def scoreNewsletterTweets(): IO[Response[IO]] = {
+    mongoService.tweetsForNewsletter()
+      .flatMap(scoringService.calculateScores)
+      .flatMap(Ok(_))
+  }
 
   private def loadCurrentlyIncludedInNewsletter(): IO[Response[IO]] = {
     mongoService.tweetsForNewsletter().flatMap(Ok(_))

@@ -1,12 +1,94 @@
 package com.kafka.experiments.tweetsui
 
-import cats.effect.IO
+import cats.effect.{ContextShift, IO}
+import com.danielasfregola.twitter4s.TwitterRestClient
 import com.kafka.experiments.tweetsui.newsletter.NewsletterTweet
+import cats.implicits._
+import com.kafka.experiments.tweetsui.config.ScoringConfig
 
-class ScoringService {
+case class TweetsMetadata(
+    tweetId: String,
+    favoriteCount: Int,
+    retweetCount: Long,
+    userFollowersCount: Option[Int] = None
+)
 
-  def calculateScores(tweets: Seq[NewsletterTweet]): IO[Unit] = {
-    IO.pure(())
+trait ScoringService {
+  def calculateScores(tweets: Seq[NewsletterTweet]): IO[Seq[NewsletterTweet]]
+}
+
+object ScoringService {
+
+  def apply(config: ScoringConfig, twitterRestClient: TwitterRestClient)(implicit
+      context: ContextShift[IO]
+  ): ScoringService =
+    new DefaultScoringService(config, twitterRestClient)
+}
+
+class DefaultScoringService(config: ScoringConfig, twitterRestClient: TwitterRestClient)(implicit
+    context: ContextShift[IO]
+) extends ScoringService {
+
+  def calculateScores(tweets: Seq[NewsletterTweet]): IO[Seq[NewsletterTweet]] = {
+    val maxByQuery = 100
+
+    retrieveCurrentTweetsMetadata(tweets, maxByQuery)
+      .map(metadata => calculateScore(metadata, tweets))
+
+    IO.pure(List())
   }
 
+  def calculateScore(tweetsMetadata: List[TweetsMetadata], tweets: Seq[NewsletterTweet]): List[NewsletterTweet] = {
+    tweetsMetadata.map(metadata => {
+
+      val score= calculateTwitterScore(metadata)
+
+      tweets.find(_.id == metadata.tweetId) match {
+        case Some(tweet) => tweet.copy(score = Some(score))
+        case None => throw new RuntimeException("Tweet matching metadata not found! That should never happen.")
+      }
+    })
+  }
+
+  private def calculateTwitterScore(metadata: TweetsMetadata) = {
+    val favCountScore: Int = calculateCountScore(config.scaleFavourites, metadata.favoriteCount)
+    val follCountScore: Int =
+      metadata.userFollowersCount.map(calculateCountScore(config.scaleFollowers, _)).getOrElse(0)
+    val retweetCountScore: Int = calculateCountScore(config.scaleRetweets, metadata.retweetCount)
+    List(favCountScore, follCountScore, retweetCountScore).sum
+  }
+
+  private def calculateCountScore(scale: Map[Int, Int], count: Long) = {
+    val countRange = determineScaleRange(scale, count)
+    scale(countRange)
+  }
+
+  private def determineScaleRange(scale: Map[Int, Int], count: Long) = {
+    scale.keys.toList.sorted.reverse.find(_ <= count).getOrElse(0)
+  }
+
+  private def retrieveCurrentTweetsMetadata(tweets: Seq[NewsletterTweet], maxByQuery: Int): IO[List[TweetsMetadata]] = {
+    tweets
+      .map(_.id.toLong)
+      .grouped(maxByQuery)
+      .map(twitterRestClient.tweetLookup(_: _*))
+      .map(res => IO.fromFuture(IO(res)))
+      .toList
+      .sequence
+      .map(_.flatMap(_.data))
+      .map(
+        _.map(metadata =>
+          metadata.user match {
+            case Some(user) =>
+              TweetsMetadata(
+                metadata.id_str,
+                metadata.favorite_count,
+                metadata.retweet_count,
+                Some(user.followers_count)
+              )
+            case None => TweetsMetadata(metadata.id_str, metadata.favorite_count, metadata.retweet_count)
+          }
+        )
+      )
+  }
 }

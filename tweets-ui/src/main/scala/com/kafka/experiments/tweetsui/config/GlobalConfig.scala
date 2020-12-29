@@ -3,14 +3,21 @@ package com.kafka.experiments.tweetsui.config
 case class GlobalConfig(
     freemarker: FreeMarkerConfig,
     mongodb: MongodbConfig,
-    keywords: KeywordsConfig,
+    score: ScoringConfig,
     sendgrid: SendGridConfig,
     server: ServerConfig
 )
 
-case class KeywordsConfig(
-    related: Seq[String]
-)
+case class ScoringConfig(
+    related: Seq[String],
+    favourites: Map[String, Int],
+    followers: Map[String, Int],
+    retweets: Map[String, Int]
+) {
+  val scaleFavourites: Map[Int, Int] = favourites.map { case (key, value) => key.toInt -> value }
+  val scaleFollowers: Map[Int, Int] = followers.map { case (key, value) => key.toInt -> value }
+  val scaleRetweets: Map[Int, Int] = retweets.map { case (key, value) => key.toInt -> value }
+}
 
 case class MongodbConfig(
     host: String,

@@ -128,6 +128,16 @@ To start the Tweets UI service, run:
 sbt "project tweetsUI" run
 ```
 
+#### Configuration
+
+Twitter Keys are configured via environment variables:
+```
+export TWITTER_CONSUMER_KEY=xxxxxx
+export TWITTER_CONSUMER_SECRET=xxxxxx
+export TWITTER_ACCESS_TOKEN=xxxxxx
+export TWITTER_ACCESS_SECRET=xxxxxx
+```
+
 ## Production
 
 The TweetUI service needs the freemarker templates available in the file system (fatjar cannot access files in
