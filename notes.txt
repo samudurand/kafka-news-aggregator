@@ -82,4 +82,3 @@ Advanced Features:
         - text length ? (prob not a good meter)
     - medium: check the number of claps ? https://github.com/Medium/medium-api-docs
 
-1

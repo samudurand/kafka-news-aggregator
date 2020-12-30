@@ -28,9 +28,7 @@ class TweetApiTest
   private var api: HttpApp[IO] = _
 
   override def beforeEach(): Unit = {
-    httpClient = BlazeClientBuilder[IO](global).allocated.unsafeRunSync()._1
-    sendGridClient = SendGridClient(sendGridConfig, httpClient)
-    api = Main.api(sendGridClient).orNotFound
+    api = Main.api(null, null).orNotFound
   }
 
   "Tweet API" should "retrieve tweets in category Article" in {

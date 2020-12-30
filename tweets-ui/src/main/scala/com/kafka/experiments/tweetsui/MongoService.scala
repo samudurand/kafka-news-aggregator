@@ -23,9 +23,11 @@ import org.mongodb.scala.bson.codecs.Macros._
 import org.mongodb.scala.model.Sorts.{descending, orderBy}
 import org.mongodb.scala.{Document, MongoClient, MongoCollection}
 import cats.implicits._
+import com.mongodb.client.model.Filters
 import io.circe.Encoder
 import io.circe.parser.decode
 import io.circe.syntax._
+import org.mongodb.scala.model.Updates
 
 import scala.reflect.ClassTag
 
@@ -49,6 +51,8 @@ trait MongoService {
   def deleteInNewsletter(tweetId: String): IO[Unit]
 
   def tweetsForNewsletter(): IO[Seq[NewsletterTweet]]
+
+  def updateNewsletterTweet(tweet: NewsletterTweet): IO[Unit]
 }
 
 object MongoService {
@@ -97,6 +101,11 @@ class DefaultMongoService(mongoClient: MongoClient)(implicit c: ContextShift[IO]
 
   override def createTweet[T](tweet: T, category: TweetCategory)(implicit encoder: Encoder[T]): IO[Unit] = {
     val res = collectionFromCategory(category).insertOne(Document(tweet.asJson.noSpaces))
+    IO.fromFuture(IO(res.toFuture())).map(_ => ())
+  }
+
+  override def updateNewsletterTweet(tweet: NewsletterTweet): IO[Unit] = {
+    val res = collNewsletter.updateOne(Filters.eq("id", tweet.id), Updates.set("score", tweet.score.get))
     IO.fromFuture(IO(res.toFuture())).map(_ => ())
   }
 

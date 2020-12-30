@@ -2,7 +2,14 @@ package com.kafka.experiments.tweetsui
 
 import cats.effect.{Blocker, ExitCode, IO, IOApp, Resource}
 import com.danielasfregola.twitter4s.TwitterRestClient
-import com.kafka.experiments.shared.{ArticleTweet, AudioTweet, ExcludedTweet, OtherTweet, VersionReleaseTweet, VideoTweet}
+import com.kafka.experiments.shared.{
+  ArticleTweet,
+  AudioTweet,
+  ExcludedTweet,
+  OtherTweet,
+  VersionReleaseTweet,
+  VideoTweet
+}
 import com.kafka.experiments.tweetsui.Decoders._
 import com.kafka.experiments.tweetsui.Encoders._
 import com.kafka.experiments.tweetsui.config.GlobalConfig
@@ -10,12 +17,13 @@ import com.kafka.experiments.tweetsui.newsletter.{FreeMarkerGenerator, Newslette
 import com.kafka.experiments.tweetsui.sendgrid.SendGridClient
 import com.typesafe.scalalogging.StrictLogging
 import io.circe.Codec
+import cats.implicits._
 import io.circe.generic.semiauto.deriveCodec
 import org.http4s.client.blaze.BlazeClientBuilder
 import org.http4s.dsl.io._
 import org.http4s.implicits._
 import org.http4s.server.blaze.BlazeServerBuilder
-import org.http4s.server.staticcontent.{ResourceService, resourceService}
+import org.http4s.server.staticcontent.{resourceService, ResourceService}
 import org.http4s.server.{Router, Server}
 import org.http4s.{Header, HttpRoutes, Request, Response}
 import pureconfig.ConfigSource
@@ -45,25 +53,25 @@ object Main extends IOApp with StrictLogging {
   private val fmGenerator = new FreeMarkerGenerator(config.freemarker)
   private val newsletterBuilder = new NewsletterBuilder(mongoService, fmGenerator)
   private val twitterRestClient = TwitterRestClient()
-  private val scoringService = ScoringService(config.score, twitterRestClient)
 
   val app: Resource[IO, Server[IO]] =
     for {
       blocker <- Blocker[IO]
       httpClient <- BlazeClientBuilder[IO](global).resource
+      scoringService = ScoringService(config.score, twitterRestClient)
       sendGridClient = SendGridClient(config.sendgrid, httpClient)
       server <- BlazeServerBuilder[IO](global)
         .bindHttp(config.server.port, config.server.host)
         .withHttpApp(
           Router(
-            "api" -> api(sendGridClient),
+            "api" -> api(scoringService, sendGridClient),
             "" -> resourceService[IO](ResourceService.Config("/assets", blocker))
           ).orNotFound
         )
         .resource
     } yield server
 
-  def api(sendGridClient: SendGridClient): HttpRoutes[IO] = HttpRoutes
+  def api(scoringService: ScoringService, sendGridClient: SendGridClient): HttpRoutes[IO] = HttpRoutes
     .of[IO] {
       case req @ PUT -> Root / "newsletter" / "prepare"      => prepareNewsletterData(req)
       case GET -> Root / "newsletter" / "included"           => loadCurrentlyIncludedInNewsletter()
@@ -71,7 +79,7 @@ object Main extends IOApp with StrictLogging {
       case POST -> Root / "newsletter" / "create"            => createNewsletterDraft(sendGridClient)
       case DELETE -> Root / "newsletter" / "reset"           => resetNewsletterData()
       case DELETE -> Root / "newsletter" / "tweet" / tweetId => deleteNewsletterTweet(tweetId)
-      case DELETE -> Root / "newsletter" / "score"           => scoreNewsletterTweets()
+      case PUT -> Root / "newsletter" / "score"              => scoreNewsletterTweets(scoringService)
 
       case GET -> Root / "tweets" / category / "count"    => getTweetsCountByCategory(category)
       case GET -> Root / "tweets" / category              => getTweetsByCategory(category)
@@ -82,10 +90,12 @@ object Main extends IOApp with StrictLogging {
 //        mongoService.move(source, target, tweetId).flatMap(_ => Ok("Moved To Examinate collection"))
     }
 
-  private def scoreNewsletterTweets(): IO[Response[IO]] = {
-    mongoService.tweetsForNewsletter()
+  private def scoreNewsletterTweets(scoringService: ScoringService): IO[Response[IO]] = {
+    mongoService
+      .tweetsForNewsletter()
       .flatMap(scoringService.calculateScores)
-      .flatMap(Ok(_))
+      .flatMap(_.map(mongoService.updateNewsletterTweet).toList.sequence)
+      .flatMap(_ => Ok("Scored"))
   }
 
   private def loadCurrentlyIncludedInNewsletter(): IO[Response[IO]] = {

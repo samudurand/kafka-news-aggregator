@@ -34,37 +34,36 @@ class DefaultScoringService(config: ScoringConfig, twitterRestClient: TwitterRes
 
     retrieveCurrentTweetsMetadata(tweets, maxByQuery)
       .map(metadata => calculateScore(metadata, tweets))
-
-    IO.pure(List())
   }
 
   def calculateScore(tweetsMetadata: List[TweetsMetadata], tweets: Seq[NewsletterTweet]): List[NewsletterTweet] = {
     tweetsMetadata.map(metadata => {
-
-      val score= calculateTwitterScore(metadata)
+      val score = calculateTwitterScore(metadata)
 
       tweets.find(_.id == metadata.tweetId) match {
         case Some(tweet) => tweet.copy(score = Some(score))
-        case None => throw new RuntimeException("Tweet matching metadata not found! That should never happen.")
+        case None        => throw new RuntimeException("Tweet matching metadata not found! That should never happen.")
       }
     })
   }
 
   private def calculateTwitterScore(metadata: TweetsMetadata) = {
-    val favCountScore: Int = calculateCountScore(config.scaleFavourites, metadata.favoriteCount)
+    val favCountScore: Int = calculateCountScore(config.scaleFavourites, metadata.favoriteCount.toLong).getOrElse(0)
     val follCountScore: Int =
-      metadata.userFollowersCount.map(calculateCountScore(config.scaleFollowers, _)).getOrElse(0)
-    val retweetCountScore: Int = calculateCountScore(config.scaleRetweets, metadata.retweetCount)
+      metadata.userFollowersCount
+        .flatMap(count => calculateCountScore(config.scaleFollowers, count.toLong))
+        .getOrElse(0)
+    val retweetCountScore: Int = calculateCountScore(config.scaleRetweets, metadata.retweetCount).getOrElse(0)
     List(favCountScore, follCountScore, retweetCountScore).sum
   }
 
   private def calculateCountScore(scale: Map[Int, Int], count: Long) = {
     val countRange = determineScaleRange(scale, count)
-    scale(countRange)
+    countRange.map(scale)
   }
 
   private def determineScaleRange(scale: Map[Int, Int], count: Long) = {
-    scale.keys.toList.sorted.reverse.find(_ <= count).getOrElse(0)
+    scale.keys.toList.sorted.reverse.find(_ <= count)
   }
 
   private def retrieveCurrentTweetsMetadata(tweets: Seq[NewsletterTweet], maxByQuery: Int): IO[List[TweetsMetadata]] = {

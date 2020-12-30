@@ -6,7 +6,7 @@ import com.github.tomakehurst.wiremock.client.WireMock._
 import com.kafka.experiments.shared.{ArticleTweet, AudioTweet}
 import com.kafka.experiments.tweetsui.Decoders._
 import com.kafka.experiments.tweetsui.Encoders._
-import com.kafka.experiments.tweetsui.config.SendGridConfig
+import com.kafka.experiments.tweetsui.config.{ScoringConfig, SendGridConfig}
 import com.kafka.experiments.tweetsui.newsletter.NewsletterTweet
 import com.kafka.experiments.tweetsui.sendgrid.SendGridClient
 import org.http4s._
@@ -16,9 +16,14 @@ import org.http4s.implicits.{http4sLiteralsSyntax, _}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import NewsletterApiTest._
+import com.danielasfregola.twitter4s.TwitterRestClient
+import com.danielasfregola.twitter4s.entities.{RatedData, Tweet}
 
+import java.time.Instant.now
 import java.util.UUID
-import scala.concurrent.ExecutionContext.global
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 class NewsletterApiTest
     extends AnyFlatSpec
@@ -30,14 +35,18 @@ class NewsletterApiTest
 
   private val sendGridConfig = SendGridConfig(mockSendGridUrl, "key", 11, List("id"), 22)
   private var httpClient: Client[IO] = _
+  private var twitterRestClient: MockedTwitterRestClient = _
+  private var scoringService: ScoringService = _
   private var sendGridClient: SendGridClient = _
   private var api: HttpApp[IO] = _
 
   override def beforeEach: Unit = {
     super.beforeEach()
     httpClient = BlazeClientBuilder[IO](global).allocated.unsafeRunSync()._1
+    twitterRestClient = new MockedTwitterRestClient()
+    scoringService = ScoringService(config, twitterRestClient)
     sendGridClient = SendGridClient(sendGridConfig, httpClient)
-    api = Main.api(sendGridClient).orNotFound
+    api = Main.api(scoringService, sendGridClient).orNotFound
   }
 
   "Newsletter API" should "be used to prepare and create the email draft in SendGrid" in {
@@ -163,6 +172,36 @@ class NewsletterApiTest
     )
   }
 
+  "Newsletter API" should "calculate scores" in {
+    val tweet = ArticleTweet("124142314", "Some good Kafka stuff", "http://medium.com/123445", "mlmenace", "1609020620")
+    mongoService.createTweet(tweet, Article).unsafeRunSync()
+    val tweetsToInclude = MoveTweetsToNewsletter(Map("article" -> List("124142314")))
+    twitterRestClient.setMetadata(Seq(baseTweet))
+
+    val response1 = api.run(Request(method = Method.PUT, uri = uri"/newsletter/prepare").withEntity(tweetsToInclude))
+    check[String](response1, Status.Ok, None)
+    val response2 = api.run(Request(method = Method.PUT, uri = uri"/newsletter/score"))
+    check[String](response2, Status.Ok, Some("Scored"))
+    val response3 = api.run(Request(method = Method.GET, uri = uri"/newsletter/included"))
+    check[Seq[NewsletterTweet]](
+      response3,
+      Status.Ok,
+      Some(
+        List[NewsletterTweet](
+          NewsletterTweet(
+            "124142314",
+            "mlmenace",
+            "Some good Kafka stuff",
+            "http://medium.com/123445",
+            "1609020620",
+            "article",
+            Some(100)
+          )
+        )
+      )
+    )
+  }
+
   def check[A](actual: IO[Response[IO]], expectedStatus: Status, expectedBody: Option[A])(implicit
       ev: EntityDecoder[IO, A]
   ): Response[IO] = {
@@ -172,4 +211,38 @@ class NewsletterApiTest
     actualResp
   }
 
+}
+
+object NewsletterApiTest {
+
+  val config: ScoringConfig = ScoringConfig(
+    List("connect", "spark"),
+    favourites = Map("1" -> 100, "10" -> 1000),
+    followers = Map("20" -> 200, "200" -> 2000),
+    retweets = Map("300" -> 300, "3000" -> 3000)
+  )
+
+  val baseTweet: Tweet =
+    Tweet(
+      created_at = now(),
+      favorite_count = 2,
+      id = 124142314,
+      id_str = "124142314",
+      source = "",
+      text = "Some text",
+      user = None
+    )
+
+  class MockedTwitterRestClient() extends TwitterRestClient(consumerToken = null, accessToken = null) {
+
+    var metadata: Seq[Tweet] = _
+
+    def setMetadata(metadata: Seq[Tweet]): Unit = {
+      this.metadata = metadata
+    }
+
+    override def tweetLookup(ids: Long*): Future[RatedData[Seq[Tweet]]] = {
+      Future(RatedData(null, this.metadata))
+    }
+  }
 }

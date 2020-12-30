@@ -14,7 +14,8 @@ class TweetUI extends React.Component {
             excludedTweets: [],
             newsletterTweets: [],
             creationInProgress: false,
-            reloadInProgress: false
+            reloadInProgress: false,
+            scoreCalculationInProgress: false
         };
 
         this.deleteTweet = this.deleteTweet.bind(this);
@@ -27,6 +28,7 @@ class TweetUI extends React.Component {
         this.resetNewsletter = this.resetNewsletter.bind(this);
         this.retrieveTweetsIncludedInNewsletter = this.retrieveTweetsIncludedInNewsletter.bind(this);
         this.createNewsletterDraft = this.createNewsletterDraft.bind(this);
+        this.calculateScores = this.calculateScores.bind(this);
     }
 
     componentDidMount() {
@@ -122,7 +124,8 @@ class TweetUI extends React.Component {
 
             newsletterTweets,
             creationInProgress,
-            reloadInProgress
+            reloadInProgress,
+            scoreCalculationInProgress
         } = this.state;
 
         const newsletterDataPresent = newsletterTweets.length > 0
@@ -160,6 +163,15 @@ class TweetUI extends React.Component {
                     <ReactBootstrap.Button className="mb-2 ml-2" disabled={!newsletterDataPresent}
                                            variant="warning" onClick={this.resetNewsletter}>
                         Reset Newsletter
+                    </ReactBootstrap.Button>
+                    <ReactBootstrap.Button className="mb-2 ml-2" variant="info" onClick={this.calculateScores}>
+                        {
+                            scoreCalculationInProgress ?
+                                <ReactBootstrap.Spinner animation="border" role="status">
+                                    <span className="sr-only">Loading...</span>
+                                </ReactBootstrap.Spinner>
+                                : <span>Score</span>
+                        }
                     </ReactBootstrap.Button>
                 </ReactBootstrap.Row>
                 <ReactBootstrap.Row>
@@ -255,6 +267,7 @@ class TweetUI extends React.Component {
                 <th>Text</th>
                 <th>User</th>
                 <th>Delete</th>
+                <th>Score</th>
             </tr>
             </thead>
             <tbody>
@@ -272,6 +285,7 @@ class TweetUI extends React.Component {
                                 Del
                             </ReactBootstrap.Button>
                         </td>
+                        <td>{tweet.score}</td>
                     </tr>
                 )
             }
@@ -334,6 +348,20 @@ class TweetUI extends React.Component {
                     (res) => {
                         this.setState({
                             creationInProgress: false
+                        })
+                    }
+                )
+        )
+    }
+
+    calculateScores() {
+        this.setState({scoreCalculationInProgress: true},
+            () => fetch(`/api/newsletter/score`, {method: "PUT"})
+                .then(
+                    (res) => {
+                        this.retrieveTweetsIncludedInNewsletter()
+                        this.setState({
+                            scoreCalculationInProgress: false
                         })
                     }
                 )

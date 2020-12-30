@@ -13,11 +13,13 @@ trait MockSendGrid extends BeforeAndAfterEach with Matchers {
   protected val mockSendGridUrl = "http://localhost:4000"
 
   override def beforeEach: Unit = {
+    super.beforeEach()
     wireMockServer.resetAll()
     wireMockServer.start()
   }
 
   override def afterEach: Unit = {
+    super.afterEach()
     wireMockServer.stop()
   }
 
