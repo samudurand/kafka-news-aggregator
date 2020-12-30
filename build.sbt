@@ -18,7 +18,6 @@ lazy val tweetsCategorizer = project
     libraryDependencies ++= Dependencies.TweetsCategorizer,
     Defaults.itSettings,
     coverageMinimum := 80,
-
     // Sbt assembly plugin
     assemblyJarName in assembly := "categorizer.jar",
     mainClass in assembly := Some("com.kafka.experiments.tweetscategorizer.Main"),
@@ -39,12 +38,12 @@ lazy val tweetsUI = project
     libraryDependencies ++= Dependencies.TweetsUI,
     Defaults.itSettings,
     coverageMinimum := 70,
-
     // Sbt assembly plugin
     assemblyJarName in assembly := "tweetsui.jar",
     mainClass in assembly := Some("com.kafka.experiments.tweetsui.Main"),
     test in assembly := {},
     assemblyMergeStrategy in assembly := {
+      case PathList("reference.conf")  => MergeStrategy.concat
       case PathList("META-INF", _ @_*) => MergeStrategy.discard
       case _                           => MergeStrategy.first
     }
