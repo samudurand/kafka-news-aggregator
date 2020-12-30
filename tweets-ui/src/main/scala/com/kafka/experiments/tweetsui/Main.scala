@@ -99,7 +99,9 @@ object Main extends IOApp with StrictLogging {
   }
 
   private def loadCurrentlyIncludedInNewsletter(): IO[Response[IO]] = {
-    mongoService.tweetsForNewsletter().flatMap(Ok(_))
+    mongoService.tweetsForNewsletter()
+      .map(_.sortBy(_.score).reverse)
+      .flatMap(Ok(_))
   }
 
   private def loadCurrentHtmlNewsletter() = {
