@@ -7,7 +7,9 @@ The data retrieved is used to generate the Kafka "Weekly Topics" newsletter.
 
 ## Features
 
-Stream tweets out of Twitter based on #kafka and #apachekafka keywords, then do one of the following (more details in each sub-section):
+Stream tweets out of Twitter based on #kafka and #apachekafka keywords, then do one of the following (more details in
+each sub-section):
+
 - skip the tweet
 - mark it as "excluded"
 - categorise it (article, video, audio, version release, or miscellaneous)
@@ -17,6 +19,8 @@ Stream tweets out of Twitter based on #kafka and #apachekafka keywords, then do 
 | Name | Description | State |
 | ---- | ----------- | ----- |
 | Not English | Drop any tweet in an identified language that is not english | Implemented |
+| Retweets | Drop all retweets | Implemented |
+| Replies | Drop any reply to another tweet | Implemented |
 | No Link | Drop any tweet without at least one link (excluding twitter link), configurable | Implemented |
 | Franz Kafka | Identify and exclude based on keywords and Books names | Implemented | 
 | Known Good Sources | Systematically accept tweets from known good sources (ie. Confluent) | Implemented | 
@@ -44,13 +48,15 @@ Stream tweets out of Twitter based on #kafka and #apachekafka keywords, then do 
 
 ### Scoring Tweets
 
-Not yet implemented. The idea is to calculate scores for each tweet, in order to facilitate the selection of the tweets that should be included in the newsletter.
+Not yet implemented. The idea is to calculate scores for each tweet, in order to facilitate the selection of the tweets
+that should be included in the newsletter.
 
-A few possible ideas: 
+A few possible ideas:
+
 - twitter account popular (followers count, ...)
 - retweet and likes counts
 - link domain (ie. Medium is likely to contain a proper article)
-- article length (ie. articles with at least 1000 words are likely to contain more information)  
+- article length (ie. articles with at least 1000 words are likely to contain more information)
 - video length (ie. a video of at least 10 min is likely to not just be promotion, but real content)
 - ... ?
 
@@ -131,6 +137,7 @@ sbt "project tweetsUI" run
 #### Configuration
 
 Twitter Keys are configured via environment variables:
+
 ```
 export TWITTER_CONSUMER_KEY=xxxxxx
 export TWITTER_CONSUMER_SECRET=xxxxxx
