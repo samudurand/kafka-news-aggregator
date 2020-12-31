@@ -119,7 +119,6 @@ class DefaultScoringServiceTest extends AnyFlatSpec with BeforeAndAfterEach with
 object DefaultScoringServiceTest {
 
   val config: ScoringConfig = ScoringConfig(
-    List("connect", "spark"),
     favourites = Map("1" -> 100, "10" -> 1000),
     followers = Map("20" -> 200, "200" -> 2000),
     retweets = Map("300" -> 300, "3000" -> 3000)

@@ -9,7 +9,6 @@ case class GlobalConfig(
 )
 
 case class ScoringConfig(
-    related: Seq[String],
     favourites: Map[String, Int],
     followers: Map[String, Int],
     retweets: Map[String, Int]
