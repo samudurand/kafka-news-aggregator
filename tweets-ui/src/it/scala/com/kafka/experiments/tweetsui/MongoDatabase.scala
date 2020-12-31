@@ -2,6 +2,7 @@ package com.kafka.experiments.tweetsui
 
 import cats.effect.{ContextShift, IO}
 import com.dimafeng.testcontainers.{FixedHostPortGenericContainer, ForEachTestContainer}
+import com.kafka.experiments.tweetsui.client.MongoService
 import com.kafka.experiments.tweetsui.config.MongodbConfig
 import org.scalatest.flatspec.AnyFlatSpec
 

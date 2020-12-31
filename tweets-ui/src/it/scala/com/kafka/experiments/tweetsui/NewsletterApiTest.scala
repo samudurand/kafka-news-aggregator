@@ -8,7 +8,7 @@ import com.kafka.experiments.tweetsui.Decoders._
 import com.kafka.experiments.tweetsui.Encoders._
 import com.kafka.experiments.tweetsui.config.{ScoringConfig, SendGridConfig}
 import com.kafka.experiments.tweetsui.newsletter.NewsletterTweet
-import com.kafka.experiments.tweetsui.sendgrid.SendGridClient
+import com.kafka.experiments.tweetsui.client.sendgrid.SendGridClient
 import org.http4s._
 import org.http4s.client.Client
 import org.http4s.client.blaze.BlazeClientBuilder
@@ -46,7 +46,7 @@ class NewsletterApiTest
     twitterRestClient = new MockedTwitterRestClient()
     scoringService = ScoringService(config, twitterRestClient)
     sendGridClient = SendGridClient(sendGridConfig, httpClient)
-    api = Main.api(scoringService, sendGridClient).orNotFound
+    api = Main.api(scoringService, sendGridClient, null).orNotFound
   }
 
   "Newsletter API" should "be used to prepare and create the email draft in SendGrid" in {

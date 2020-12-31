@@ -2,6 +2,7 @@ package com.kafka.experiments.tweetsui.newsletter
 
 import cats.effect.IO
 import com.kafka.experiments.tweetsui._
+import com.kafka.experiments.tweetsui.client.MongoService
 import com.linkedin.urls.detection.{UrlDetector, UrlDetectorOptions}
 
 import scala.jdk.CollectionConverters._

@@ -1,33 +1,25 @@
-package com.kafka.experiments.tweetsui
+package com.kafka.experiments.tweetsui.client
 
 import cats.effect.{ContextShift, IO}
+import cats.implicits._
 import com.kafka.experiments.shared._
-import com.kafka.experiments.tweetsui.MongoService.{
-  collArticleName,
-  collAudioName,
-  collExcludedName,
-  collNewsletterName,
-  collOtherName,
-  collVersionName,
-  collVideoName,
-  tweetsDb
-}
+import com.kafka.experiments.tweetsui.client.MongoService._
 import com.kafka.experiments.tweetsui.config.MongodbConfig
 import com.kafka.experiments.tweetsui.newsletter.{NewsletterTweet, NewsletterTweetDraft}
+import com.kafka.experiments.tweetsui._
+import com.mongodb.client.model.Filters
 import com.typesafe.scalalogging.StrictLogging
+import io.circe.Encoder
+import io.circe.parser.decode
+import io.circe.syntax._
 import jdk.jshell.spi.ExecutionControl.NotImplementedException
 import org.bson.codecs.configuration.CodecRegistries.{fromProviders, fromRegistries}
 import org.mongodb.scala.MongoClient.DEFAULT_CODEC_REGISTRY
 import org.mongodb.scala.bson.BsonString
 import org.mongodb.scala.bson.codecs.Macros._
 import org.mongodb.scala.model.Sorts.{descending, orderBy}
-import org.mongodb.scala.{Document, MongoClient, MongoCollection}
-import cats.implicits._
-import com.mongodb.client.model.Filters
-import io.circe.Encoder
-import io.circe.parser.decode
-import io.circe.syntax._
 import org.mongodb.scala.model.Updates
+import org.mongodb.scala.{Document, MongoClient, MongoCollection}
 
 import scala.reflect.ClassTag
 

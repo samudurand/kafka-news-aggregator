@@ -12,12 +12,12 @@ import com.kafka.experiments.shared.{
 }
 import com.kafka.experiments.tweetsui.Decoders._
 import com.kafka.experiments.tweetsui.Encoders._
+import com.kafka.experiments.tweetsui.client.{MongoService, YoutubeClient}
 import com.kafka.experiments.tweetsui.config.GlobalConfig
 import com.kafka.experiments.tweetsui.newsletter.{FreeMarkerGenerator, NewsletterBuilder}
-import com.kafka.experiments.tweetsui.sendgrid.SendGridClient
+import com.kafka.experiments.tweetsui.client.sendgrid.SendGridClient
 import com.typesafe.scalalogging.StrictLogging
 import io.circe.Codec
-import cats.implicits._
 import io.circe.generic.semiauto.deriveCodec
 import org.http4s.client.blaze.BlazeClientBuilder
 import org.http4s.dsl.io._
@@ -58,20 +58,25 @@ object Main extends IOApp with StrictLogging {
     for {
       blocker <- Blocker[IO]
       httpClient <- BlazeClientBuilder[IO](global).resource
+      youtubeClient = YoutubeClient(config.youtube, httpClient)
       scoringService = ScoringService(config.score, twitterRestClient)
       sendGridClient = SendGridClient(config.sendgrid, httpClient)
       server <- BlazeServerBuilder[IO](global)
         .bindHttp(config.server.port, config.server.host)
         .withHttpApp(
           Router(
-            "api" -> api(scoringService, sendGridClient),
+            "api" -> api(scoringService, sendGridClient, youtubeClient),
             "" -> resourceService[IO](ResourceService.Config("/assets", blocker))
           ).orNotFound
         )
         .resource
     } yield server
 
-  def api(scoringService: ScoringService, sendGridClient: SendGridClient): HttpRoutes[IO] = HttpRoutes
+  def api(
+      scoringService: ScoringService,
+      sendGridClient: SendGridClient,
+      youtubeClient: YoutubeClient
+  ): HttpRoutes[IO] = HttpRoutes
     .of[IO] {
       case req @ PUT -> Root / "newsletter" / "prepare"      => prepareNewsletterData(req)
       case GET -> Root / "newsletter" / "included"           => loadCurrentlyIncludedInNewsletter()
@@ -79,7 +84,6 @@ object Main extends IOApp with StrictLogging {
       case POST -> Root / "newsletter" / "create"            => createNewsletterDraft(sendGridClient)
       case DELETE -> Root / "newsletter" / "reset"           => resetNewsletterData()
       case DELETE -> Root / "newsletter" / "tweet" / tweetId => deleteNewsletterTweet(tweetId)
-      case PUT -> Root / "newsletter" / "score"              => scoreNewsletterTweets(scoringService)
 
       case GET -> Root / "tweets" / category / "count"    => getTweetsCountByCategory(category)
       case GET -> Root / "tweets" / category              => getTweetsByCategory(category)
@@ -99,7 +103,8 @@ object Main extends IOApp with StrictLogging {
   }
 
   private def loadCurrentlyIncludedInNewsletter(): IO[Response[IO]] = {
-    mongoService.tweetsForNewsletter()
+    mongoService
+      .tweetsForNewsletter()
       .map(_.sortBy(_.score).reverse)
       .flatMap(Ok(_))
   }

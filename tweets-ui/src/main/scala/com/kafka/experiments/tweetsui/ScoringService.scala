@@ -25,15 +25,42 @@ object ScoringService {
     new DefaultScoringService(config, twitterRestClient)
 }
 
-class DefaultScoringService(config: ScoringConfig, twitterRestClient: TwitterRestClient)(implicit
-    context: ContextShift[IO]
+class DefaultScoringService(config: ScoringConfig, twitterRestClient: TwitterRestClient)(
+    implicit context: ContextShift[IO]
 ) extends ScoringService {
 
   def calculateScores(tweets: Seq[NewsletterTweet]): IO[Seq[NewsletterTweet]] = {
     val maxByQuery = 100
 
-    retrieveCurrentTweetsMetadata(tweets, maxByQuery)
-      .map(metadata => calculateScore(metadata, tweets))
+    for {
+      tweetMetadata <- retrieveTwitterMetadata(tweets, maxByQuery)
+      scoredTweets = calculateScore(tweetMetadata, tweets)
+    } yield (scoredTweets)
+  }
+
+  private def retrieveTwitterMetadata(tweets: Seq[NewsletterTweet], maxByQuery: Int): IO[List[TweetsMetadata]] = {
+    tweets
+      .map(_.id.toLong)
+      .grouped(maxByQuery)
+      .map(twitterRestClient.tweetLookup(_: _*))
+      .map(res => IO.fromFuture(IO(res)))
+      .toList
+      .sequence
+      .map(_.flatMap(_.data))
+      .map(
+        _.map(metadata =>
+          metadata.user match {
+            case Some(user) =>
+              TweetsMetadata(
+                metadata.id_str,
+                metadata.favorite_count,
+                metadata.retweet_count,
+                Some(user.followers_count)
+              )
+            case None => TweetsMetadata(metadata.id_str, metadata.favorite_count, metadata.retweet_count)
+          }
+        )
+      )
   }
 
   def calculateScore(tweetsMetadata: List[TweetsMetadata], tweets: Seq[NewsletterTweet]): List[NewsletterTweet] = {
@@ -64,30 +91,5 @@ class DefaultScoringService(config: ScoringConfig, twitterRestClient: TwitterRes
 
   private def determineScaleRange(scale: Map[Int, Int], count: Long) = {
     scale.keys.toList.sorted.reverse.find(_ <= count)
-  }
-
-  private def retrieveCurrentTweetsMetadata(tweets: Seq[NewsletterTweet], maxByQuery: Int): IO[List[TweetsMetadata]] = {
-    tweets
-      .map(_.id.toLong)
-      .grouped(maxByQuery)
-      .map(twitterRestClient.tweetLookup(_: _*))
-      .map(res => IO.fromFuture(IO(res)))
-      .toList
-      .sequence
-      .map(_.flatMap(_.data))
-      .map(
-        _.map(metadata =>
-          metadata.user match {
-            case Some(user) =>
-              TweetsMetadata(
-                metadata.id_str,
-                metadata.favorite_count,
-                metadata.retweet_count,
-                Some(user.followers_count)
-              )
-            case None => TweetsMetadata(metadata.id_str, metadata.favorite_count, metadata.retweet_count)
-          }
-        )
-      )
   }
 }

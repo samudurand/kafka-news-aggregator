@@ -1,4 +1,4 @@
-package com.kafka.experiments.tweetsui.sendgrid
+package com.kafka.experiments.tweetsui.client.sendgrid
 
 import cats.effect.IO
 import io.circe.Codec

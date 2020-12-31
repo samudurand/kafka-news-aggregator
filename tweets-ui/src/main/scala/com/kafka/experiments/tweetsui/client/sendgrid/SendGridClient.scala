@@ -1,16 +1,15 @@
-package com.kafka.experiments.tweetsui.sendgrid
+package com.kafka.experiments.tweetsui.client.sendgrid
 
-import cats.effect.{ConcurrentEffect, IO}
+import cats.effect.IO
 import com.kafka.experiments.tweetsui.config.SendGridConfig
 import com.typesafe.scalalogging.StrictLogging
 import io.circe.syntax.EncoderOps
-import org.http4s.{AuthScheme, Credentials, MediaType, Method, Request, Uri}
-import org.http4s.client.Client
-import org.http4s.client.dsl.io._
 import org.http4s.Method.{POST, PUT}
+import org.http4s.client.Client
 import org.http4s.client.dsl.Http4sClientDsl
 import org.http4s.headers.{Accept, Authorization}
 import org.http4s.implicits.http4sLiteralsSyntax
+import org.http4s.{AuthScheme, Credentials, MediaType, Uri}
 
 import java.util.UUID
 

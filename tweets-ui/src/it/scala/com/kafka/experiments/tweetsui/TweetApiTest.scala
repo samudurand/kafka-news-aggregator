@@ -5,7 +5,7 @@ import com.dimafeng.testcontainers.ForEachTestContainer
 import com.kafka.experiments.shared.{ArticleTweet, AudioTweet, VersionReleaseTweet, VideoTweet}
 import com.kafka.experiments.tweetsui.Decoders._
 import com.kafka.experiments.tweetsui.config.SendGridConfig
-import com.kafka.experiments.tweetsui.sendgrid.SendGridClient
+import com.kafka.experiments.tweetsui.client.sendgrid.SendGridClient
 import org.http4s._
 import org.http4s.client.Client
 import org.http4s.client.blaze.BlazeClientBuilder
@@ -28,7 +28,7 @@ class TweetApiTest
   private var api: HttpApp[IO] = _
 
   override def beforeEach(): Unit = {
-    api = Main.api(null, null).orNotFound
+    api = Main.api(null, null, null).orNotFound
   }
 
   "Tweet API" should "retrieve tweets in category Article" in {

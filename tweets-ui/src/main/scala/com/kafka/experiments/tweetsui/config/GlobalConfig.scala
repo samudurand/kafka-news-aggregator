@@ -5,7 +5,8 @@ case class GlobalConfig(
     mongodb: MongodbConfig,
     score: ScoringConfig,
     sendgrid: SendGridConfig,
-    server: ServerConfig
+    server: ServerConfig,
+    youtube: YoutubeConfig
 )
 
 case class ScoringConfig(
@@ -28,3 +29,5 @@ case class ServerConfig(host: String, port: Int)
 case class SendGridConfig(baseUrl: String, apiKey: String, senderId: Int, listIds: List[String], unsubscribeListId: Int)
 
 case class FreeMarkerConfig(templatesFolderSystemPath: Option[String])
+
+case class YoutubeConfig(baseUrl: String, apiKey: String)

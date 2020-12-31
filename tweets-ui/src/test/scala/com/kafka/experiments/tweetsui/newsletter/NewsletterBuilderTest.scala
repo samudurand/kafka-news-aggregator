@@ -1,11 +1,12 @@
 package com.kafka.experiments.tweetsui.newsletter
 
 import cats.effect.IO
-import com.kafka.experiments.tweetsui.MongoService
+import com.kafka.experiments.tweetsui.client.MongoService
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+
 import scala.jdk.CollectionConverters._
 
 class NewsletterBuilderTest extends AnyFlatSpec with Matchers with MockFactory with BeforeAndAfterEach {
