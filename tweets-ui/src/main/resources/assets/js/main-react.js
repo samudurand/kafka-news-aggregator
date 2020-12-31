@@ -227,7 +227,7 @@ class TweetUI extends React.Component {
                                href={`https://twitter.com/${tweet.user}/status/${tweet.id}`}>{moment.unix(tweet.createdAt / 1000).format("DD/MM hh:mm")}</a>
                         </td>
                         <td><Linkify>{tweet.text}</Linkify></td>
-                        <td>{tweet.user}</td>
+                        <td><span title={tweet.reason}>{tweet.user}</span></td>
                         <td>
                             <ReactBootstrap.Button variant="danger"
                                                    onClick={() => this.deleteTweet(category, tweet.id)}>
@@ -267,6 +267,7 @@ class TweetUI extends React.Component {
                 <th>Text</th>
                 <th>User</th>
                 <th>Delete</th>
+                <th>Category</th>
                 <th>Score</th>
             </tr>
             </thead>
@@ -285,6 +286,7 @@ class TweetUI extends React.Component {
                                 Del
                             </ReactBootstrap.Button>
                         </td>
+                        <td style={{textTransform: "capitalize"}}>{tweet.category}</td>
                         <td>{tweet.score}</td>
                     </tr>
                 )

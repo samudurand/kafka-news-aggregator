@@ -55,6 +55,11 @@ class ToSkipTest extends AnyFlatSpec with Matchers with MockFactory with BeforeA
     service.shouldBeSkipped(tweet) shouldBe true
   }
 
+  "A tweet replying to another" should "be skipped" in {
+    val tweet = goodTweet.copy(InReplyToStatusId = 11111)
+    service.shouldBeSkipped(tweet) shouldBe true
+  }
+
   "A tweet with a known URL" should "be skipped" in {
     (redisService.exists _).expects(*).returning(true)
 
