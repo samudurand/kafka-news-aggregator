@@ -4,17 +4,12 @@ import cats.effect.IO
 import com.dimafeng.testcontainers.ForEachTestContainer
 import com.kafka.experiments.shared.{ArticleTweet, AudioTweet, VersionReleaseTweet, VideoTweet}
 import com.kafka.experiments.tweetsui.Decoders._
-import com.kafka.experiments.tweetsui.config.SendGridConfig
-import com.kafka.experiments.tweetsui.client.sendgrid.SendGridClient
+import com.kafka.experiments.tweetsui.api.TweetApi
 import org.http4s._
-import org.http4s.client.Client
-import org.http4s.client.blaze.BlazeClientBuilder
 import org.http4s.implicits.{http4sLiteralsSyntax, _}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-
-import scala.concurrent.ExecutionContext.global
 
 class TweetApiTest
     extends AnyFlatSpec
@@ -22,13 +17,11 @@ class TweetApiTest
     with BeforeAndAfterEach
     with Matchers
     with MongoDatabase {
-  private val sendGridConfig = SendGridConfig("", "key", 11, List("id"), 22)
-  private var httpClient: Client[IO] = _
-  private var sendGridClient: SendGridClient = _
+
   private var api: HttpApp[IO] = _
 
   override def beforeEach(): Unit = {
-    api = Main.api(null, null, null).orNotFound
+    api = new TweetApi(mongoService).api().orNotFound
   }
 
   "Tweet API" should "retrieve tweets in category Article" in {

@@ -6,8 +6,8 @@ import com.github.tomakehurst.wiremock.client.WireMock._
 import com.kafka.experiments.shared.{ArticleTweet, AudioTweet}
 import com.kafka.experiments.tweetsui.Decoders._
 import com.kafka.experiments.tweetsui.Encoders._
-import com.kafka.experiments.tweetsui.config.{ScoringConfig, SendGridConfig}
-import com.kafka.experiments.tweetsui.newsletter.NewsletterTweet
+import com.kafka.experiments.tweetsui.config.{FreeMarkerConfig, GlobalConfig, MongodbConfig, ScoringConfig, SendGridConfig}
+import com.kafka.experiments.tweetsui.newsletter.{FreeMarkerGenerator, NewsletterBuilder, NewsletterTweet}
 import com.kafka.experiments.tweetsui.client.sendgrid.SendGridClient
 import org.http4s._
 import org.http4s.client.Client
@@ -19,11 +19,15 @@ import org.scalatest.matchers.should.Matchers
 import NewsletterApiTest._
 import com.danielasfregola.twitter4s.TwitterRestClient
 import com.danielasfregola.twitter4s.entities.{RatedData, Tweet}
+import com.kafka.experiments.tweetsui.api.NewsletterApi
+import com.kafka.experiments.tweetsui.client.{DefaultMongoService, MongoService}
+import pureconfig.ConfigSource
 
 import java.time.Instant.now
 import java.util.UUID
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import pureconfig.generic.auto._
 
 class NewsletterApiTest
     extends AnyFlatSpec
@@ -33,6 +37,9 @@ class NewsletterApiTest
     with MongoDatabase
     with MockSendGrid {
 
+  private val config = ConfigSource.default.loadOrThrow[GlobalConfig]
+
+  private val newsletterBuilder = new NewsletterBuilder(mongoService, new FreeMarkerGenerator(config.freemarker))
   private val sendGridConfig = SendGridConfig(mockSendGridUrl, "key", 11, List("id"), 22)
   private var httpClient: Client[IO] = _
   private var twitterRestClient: MockedTwitterRestClient = _
@@ -44,9 +51,9 @@ class NewsletterApiTest
     super.beforeEach()
     httpClient = BlazeClientBuilder[IO](global).allocated.unsafeRunSync()._1
     twitterRestClient = new MockedTwitterRestClient()
-    scoringService = ScoringService(config, twitterRestClient)
+    scoringService = ScoringService(config.score, twitterRestClient)
     sendGridClient = SendGridClient(sendGridConfig, httpClient)
-    api = Main.api(scoringService, sendGridClient, null).orNotFound
+    api = new NewsletterApi(newsletterBuilder, mongoService, scoringService, sendGridClient).api().orNotFound
   }
 
   "Newsletter API" should "be used to prepare and create the email draft in SendGrid" in {
