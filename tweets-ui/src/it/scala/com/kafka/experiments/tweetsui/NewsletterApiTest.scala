@@ -73,20 +73,20 @@ class NewsletterApiTest
       Some(
         List(
           NewsletterTweet(
-            "124142314",
-            "mlmenace",
-            "Some good Kafka stuff",
-            "http://medium.com/123445",
-            "1609020620",
-            "article"
-          ),
-          NewsletterTweet(
             "124142334",
             "justin",
             "Even move Kafka stuff",
             "http://medium.com/789445",
             "1605020620",
             "audio"
+          ),
+          NewsletterTweet(
+            "124142314",
+            "mlmenace",
+            "Some good Kafka stuff",
+            "http://medium.com/123445",
+            "1609020620",
+            "article"
           )
         )
       )
