@@ -97,7 +97,7 @@ class DefaultMongoService(mongoClient: MongoClient)(implicit c: ContextShift[IO]
   }
 
   override def updateNewsletterTweet(tweet: NewsletterTweet): IO[Unit] = {
-    val res = collNewsletter.updateOne(Filters.eq("id", tweet.id), Updates.set("score", tweet.score.get))
+    val res = collNewsletter.updateOne(Filters.eq("id", tweet.id), Updates.set("score", tweet.score))
     IO.fromFuture(IO(res.toFuture())).map(_ => ())
   }
 

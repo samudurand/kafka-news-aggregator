@@ -287,7 +287,7 @@ class TweetUI extends React.Component {
                             </ReactBootstrap.Button>
                         </td>
                         <td style={{textTransform: "capitalize"}}>{tweet.category}</td>
-                        <td>{tweet.score}</td>
+                        <td>{ tweet.score >= 0 ? tweet.score : ""}</td>
                     </tr>
                 )
             }

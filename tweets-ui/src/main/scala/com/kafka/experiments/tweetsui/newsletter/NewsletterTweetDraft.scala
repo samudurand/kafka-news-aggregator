@@ -29,5 +29,5 @@ case class NewsletterTweet(
     url: String,
     createdAt: String,
     category: String,
-    score: Option[Int] = None
+    score: Double = -1
 )

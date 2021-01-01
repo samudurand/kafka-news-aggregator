@@ -6,7 +6,7 @@ import com.github.tomakehurst.wiremock.client.WireMock._
 import com.kafka.experiments.shared.{ArticleTweet, AudioTweet}
 import com.kafka.experiments.tweetsui.Decoders._
 import com.kafka.experiments.tweetsui.Encoders._
-import com.kafka.experiments.tweetsui.config.{FreeMarkerConfig, GlobalConfig, MongodbConfig, ScoringConfig, SendGridConfig}
+import com.kafka.experiments.tweetsui.config.{FreeMarkerConfig, GlobalConfig, MongodbConfig, ScaledScoreConfig, ScoringConfig, SendGridConfig, TwitterConfig}
 import com.kafka.experiments.tweetsui.newsletter.{FreeMarkerGenerator, NewsletterBuilder, NewsletterTweet}
 import com.kafka.experiments.tweetsui.client.sendgrid.SendGridClient
 import org.http4s._
@@ -19,7 +19,7 @@ import org.scalatest.matchers.should.Matchers
 import NewsletterApiTest._
 import com.danielasfregola.twitter4s.TwitterRestClient
 import com.danielasfregola.twitter4s.entities.{RatedData, Tweet}
-import com.kafka.experiments.tweetsui.api.NewsletterApi
+import com.kafka.experiments.tweetsui.api.{MoveTweetsToNewsletter, NewsletterApi}
 import com.kafka.experiments.tweetsui.client.{DefaultMongoService, MongoService}
 import com.kafka.experiments.tweetsui.score.ScoringService
 import pureconfig.ConfigSource
@@ -182,7 +182,7 @@ class NewsletterApiTest
 
   "Newsletter API" should "calculate scores" in {
     val tweet = ArticleTweet("124142314", "Some good Kafka stuff", "http://medium.com/123445", "mlmenace", "1609020620")
-    mongoService.createTweet(tweet, Article).unsafeRunSync()
+    mongoService.createTweet[ArticleTweet](tweet, Article).unsafeRunSync()
     val tweetsToInclude = MoveTweetsToNewsletter(Map("article" -> List("124142314")))
     twitterRestClient.setMetadata(Seq(baseTweet))
 
@@ -191,23 +191,14 @@ class NewsletterApiTest
     val response2 = api.run(Request(method = Method.PUT, uri = uri"/newsletter/score"))
     check[String](response2, Status.Ok, Some("Scored"))
     val response3 = api.run(Request(method = Method.GET, uri = uri"/newsletter/included"))
-    check[Seq[NewsletterTweet]](
+
+    val finalResponse = check[Seq[NewsletterTweet]](
       response3,
       Status.Ok,
-      Some(
-        List[NewsletterTweet](
-          NewsletterTweet(
-            "124142314",
-            "mlmenace",
-            "Some good Kafka stuff",
-            "http://medium.com/123445",
-            "1609020620",
-            "article",
-            Some(100)
-          )
-        )
-      )
+      None
     )
+    val tweetWithScore: NewsletterTweet = finalResponse.as[Seq[NewsletterTweet]].unsafeRunSync().head
+    tweetWithScore.score.toInt shouldBe 33
   }
 
   def check[A](actual: IO[Response[IO]], expectedStatus: Status, expectedBody: Option[A])(implicit
@@ -223,10 +214,10 @@ class NewsletterApiTest
 
 object NewsletterApiTest {
 
-  val config: ScoringConfig = ScoringConfig(
-    favourites = Map("1" -> 100, "10" -> 1000),
-    followers = Map("20" -> 200, "200" -> 2000),
-    retweets = Map("300" -> 300, "3000" -> 3000)
+  val config: ScoringConfig = ScoringConfig(TwitterConfig(
+    favourites = ScaledScoreConfig(1, Map("1" -> 100, "10" -> 1000)),
+    followers = ScaledScoreConfig(1, Map("20" -> 200, "200" -> 2000)),
+    retweets = ScaledScoreConfig(1, Map("300" -> 300, "3000" -> 3000)))
   )
 
   val baseTweet: Tweet =

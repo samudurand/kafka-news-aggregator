@@ -1,66 +1,78 @@
-package com.kafka.experiments.tweetsui
+package com.kafka.experiments.tweetsui.score
 
+import com.kafka.experiments.tweetsui.config.{ScaledScoreConfig, ScoringConfig, TwitterConfig}
+import org.scalatest.flatspec.AnyFlatSpec
+import DefaultTwitterScoreCalculatorTest._
 import cats.effect.{ContextShift, IO}
 import com.danielasfregola.twitter4s.entities.{Tweet, User}
-import com.kafka.experiments.tweetsui.DefaultScoringServiceTest._
-import com.kafka.experiments.tweetsui.config.{ScaledScoreConfig, ScoringConfig, TwitterConfig}
+import com.kafka.experiments.tweetsui.MockedTwitterRestClient
 import com.kafka.experiments.tweetsui.newsletter.NewsletterTweet
-import com.kafka.experiments.tweetsui.score.{DefaultScoringService, ScoringService}
 import org.scalatest.BeforeAndAfterEach
-import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
 import java.time.Instant.now
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class DefaultScoringServiceTest extends AnyFlatSpec with BeforeAndAfterEach with Matchers {
+class DefaultTwitterScoreCalculatorTest extends AnyFlatSpec with BeforeAndAfterEach with Matchers {
 
   implicit val contextShift: ContextShift[IO] = IO.contextShift(global)
 
-  var scoringService: ScoringService = _
+  var scoreCalculator: TwitterScoreCalculator = _
 
-  "Score" should "be calculated based on all data" in {
+  "Score" should "be calculated based on tweet favourites" in {
     val metadata = Seq(
       baseTweet.copy(
         id_str = "1",
         favorite_count = 0,
-        retweet_count = 0,
-        user = baseTweet.user.map(_.copy(followers_count = 0))
+        user = baseTweet.user.map(_.copy(followers_count = 0)),
+        retweet_count = 0
       ),
       baseTweet.copy(
         id_str = "2",
         favorite_count = 2,
-        retweet_count = 302,
-        user = baseTweet.user.map(_.copy(followers_count = 22))
+        user = baseTweet.user.map(_.copy(followers_count = 22)),
+        retweet_count = 302
       ),
       baseTweet.copy(
         id_str = "3",
         favorite_count = 12,
-        retweet_count = 3002,
-        user = baseTweet.user.map(_.copy(followers_count = 202))
+        user = baseTweet.user.map(_.copy(followers_count = 202)),
+        retweet_count = 3002
       )
     )
-    scoringService = new DefaultScoringService(config, new MockedTwitterRestClient(metadata))
+    scoreCalculator = new DefaultTwitterScoreCalculator(config, new MockedTwitterRestClient(metadata))
 
     val tweets = List(
       baseNewsTweet.copy(id = "1"),
       baseNewsTweet.copy(id = "2"),
       baseNewsTweet.copy(id = "3")
     )
-    val scoredTweets = scoringService.calculateScores(tweets).unsafeRunSync()
+    val scores = scoreCalculator.calculate(tweets).unsafeRunSync()
 
-    scoredTweets(0).score.toInt shouldBe 0
-    scoredTweets(1).score.toInt shouldBe 200
-    scoredTweets(2).score.toInt shouldBe 2000
+    scores("1") shouldBe List(
+      Score("Twitter Favourites", 0, 1),
+      Score("Twitter Followers", 0, 1),
+      Score("Twitter Retweets", 0, 1)
+    )
+    scores("2") shouldBe List(
+      Score("Twitter Favourites", 100, 1),
+      Score("Twitter Followers", 200, 1),
+      Score("Twitter Retweets", 300, 1)
+    )
+    scores("3") shouldBe List(
+      Score("Twitter Favourites", 1000, 1),
+      Score("Twitter Followers", 2000, 1),
+      Score("Twitter Retweets", 3000, 1)
+    )
   }
 }
 
-object DefaultScoringServiceTest {
+object DefaultTwitterScoreCalculatorTest {
 
-  val config: ScoringConfig = ScoringConfig(TwitterConfig(
+  val config: TwitterConfig = TwitterConfig(
     favourites = ScaledScoreConfig(1, Map("0" -> 0, "1" -> 100, "10" -> 1000)),
     followers = ScaledScoreConfig(1, Map("0" -> 0, "20" -> 200, "200" -> 2000)),
-    retweets = ScaledScoreConfig(1, Map("0" -> 0, "300" -> 300, "3000" -> 3000)))
+    retweets = ScaledScoreConfig(1, Map("0" -> 0, "300" -> 300, "3000" -> 3000))
   )
 
   val user: User = User(

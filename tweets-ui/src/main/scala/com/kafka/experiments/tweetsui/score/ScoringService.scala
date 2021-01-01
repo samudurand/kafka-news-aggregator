@@ -5,9 +5,10 @@ import cats.implicits._
 import com.danielasfregola.twitter4s.TwitterRestClient
 import com.kafka.experiments.tweetsui.config.ScoringConfig
 import com.kafka.experiments.tweetsui.newsletter.NewsletterTweet
+import com.typesafe.scalalogging.StrictLogging
 
 trait ScoringService {
-  def calculateScores(tweets: List[NewsletterTweet]): IO[Seq[NewsletterTweet]]
+  def calculateScores(tweets: Seq[NewsletterTweet]): IO[Seq[NewsletterTweet]]
 }
 
 object ScoringService {
@@ -20,24 +21,28 @@ object ScoringService {
 
 class DefaultScoringService(config: ScoringConfig, twitterRestClient: TwitterRestClient)(implicit
     context: ContextShift[IO]
-) extends ScoringService {
+) extends ScoringService with StrictLogging {
 
   private val twitterScoreCalculator = TwitterScoreCalculator(config.twitter, twitterRestClient)
   private val scoreCalculators = List(twitterScoreCalculator)
 
-  def calculateScores(tweets: List[NewsletterTweet]): IO[Seq[NewsletterTweet]] = {
+  def calculateScores(tweets: Seq[NewsletterTweet]): IO[Seq[NewsletterTweet]] = {
     scoreCalculators
       .map(_.calculate(tweets))
       .sequence
       .map(mergeScoresByTweet)
+      .map(_.map{ case (tweetId, scores) =>
+        logger.info(s"Scores for tweet [$tweetId]: $scores")
+        tweetId -> scores
+      })
       .map(calculateAverageScores)
       .map(applyScoresToTweets(_, tweets))
   }
 
-  private def applyScoresToTweets(scores: Map[String, Option[Int]], tweets: List[NewsletterTweet]) = {
+  private def applyScoresToTweets(scores: Map[String, Option[Double]], tweets: Seq[NewsletterTweet]) = {
     scores.map { case (tweetId, score) =>
       tweets.find(_.id == tweetId) match {
-        case Some(tweet) => tweet.copy(score = score)
+        case Some(tweet) => tweet.copy(score = score.getOrElse(-1))
         case None        => throw new RuntimeException("Tweet matching metadata not found! That should never happen.")
       }
     }.toSeq
@@ -53,13 +58,13 @@ class DefaultScoringService(config: ScoringConfig, twitterRestClient: TwitterRes
     )
   }
 
-  def calculateAverageScores(scores: Map[String, Seq[Score]]): Map[String, Option[Int]] = {
+  def calculateAverageScores(scores: Map[String, Seq[Score]]): Map[String, Option[Double]] = {
     scores.view.mapValues {
       case Nil => None
-      case byTweets =>
-        val scoreSum = byTweets.map(score => score.value * score.factor).sum
-        val factorSum = byTweets.map(_.factor).sum
-        Some(scoreSum / factorSum)
+      case scoresByTweets =>
+        val scoreSum = scoresByTweets.map(score => score.value * score.factor).sum
+        val factorSum = scoresByTweets.map(_.factor).sum
+        Some(scoreSum.toDouble / factorSum.toDouble)
     }.toMap
   }
 }

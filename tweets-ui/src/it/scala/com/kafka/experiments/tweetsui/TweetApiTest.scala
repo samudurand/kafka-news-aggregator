@@ -4,7 +4,7 @@ import cats.effect.IO
 import com.dimafeng.testcontainers.ForEachTestContainer
 import com.kafka.experiments.shared.{ArticleTweet, AudioTweet, VersionReleaseTweet, VideoTweet}
 import com.kafka.experiments.tweetsui.Decoders._
-import com.kafka.experiments.tweetsui.api.TweetApi
+import com.kafka.experiments.tweetsui.api.{CountResult, TweetApi}
 import org.http4s._
 import org.http4s.implicits.{http4sLiteralsSyntax, _}
 import org.scalatest.BeforeAndAfterEach

@@ -18,7 +18,7 @@ case class Tweet(
     URLEntities: List[URLEntity],
     UserMentionEntities: List[User],
     User: User,
-    InReplyToStatusId: Int = -1
+    InReplyToStatusId: Long = -1
 )
 
 object URLEntity {

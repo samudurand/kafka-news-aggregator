@@ -21,7 +21,7 @@ class DefaultTwitterScoreCalculator(config: TwitterConfig, twitterRestClient: Tw
 ) extends TwitterScoreCalculator {
   private val maxTweetsByQuery = 100
 
-  override def calculate(tweets: List[NewsletterTweet]): IO[Map[String, List[Score]]] = {
+  override def calculate(tweets: Seq[NewsletterTweet]): IO[Map[String, Seq[Score]]] = {
     for {
       metadata <- retrieveTwitterMetadata(tweets, maxTweetsByQuery)
       favScore = calculateFavoriteScores(metadata)
@@ -29,22 +29,12 @@ class DefaultTwitterScoreCalculator(config: TwitterConfig, twitterRestClient: Tw
       retweetScore = calculateRetweetScores(metadata)
       scores = combineScores(favScore, follScore, retweetScore)
     } yield (scores)
-
-    //    retrieveTwitterMetadata(tweets, maxTweetsByQuery)
-    //      .map(_.map(metadata => {
-    //        val score = calculateTwitterScore(metadata)
-    //
-    //        tweets.find(_.id == metadata.tweetId) match {
-    //          case Some(tweet) => tweet.copy(score = Some(score))
-    //          case None        => throw new RuntimeException("Tweet matching metadata not found! That should never happen.")
-    //        }
-    //      }))
   }
 
   private def calculateFavoriteScores(metadata: List[TweetsMetadata]): Map[String, Option[Score]] = {
     metadata.map(tweetMetadata => {
       val score = calculateCountScore(config.favourites.getScale, tweetMetadata.favoriteCount.toLong)
-      tweetMetadata.tweetId -> score.map(Score(_, config.favourites.factor))
+      tweetMetadata.tweetId -> score.map(Score("Twitter Favourites", _, config.favourites.factor))
     }).toMap
   }
 
@@ -52,22 +42,22 @@ class DefaultTwitterScoreCalculator(config: TwitterConfig, twitterRestClient: Tw
     metadata.map(tweetMetadata => {
       val score = tweetMetadata.userFollowersCount
         .flatMap(count => calculateCountScore(config.followers.getScale, count.toLong))
-      tweetMetadata.tweetId -> score.map(Score(_, config.followers.factor))
+      tweetMetadata.tweetId -> score.map(Score("Twitter Followers", _, config.followers.factor))
     }).toMap
   }
 
   private def calculateRetweetScores(metadata: List[TweetsMetadata]): Map[String, Option[Score]] = {
     metadata.map(tweetMetadata => {
       val score = calculateCountScore(config.retweets.getScale, tweetMetadata.retweetCount)
-      tweetMetadata.tweetId -> score.map(Score(_, config.retweets.factor))
+      tweetMetadata.tweetId -> score.map(Score("Twitter Retweets", _, config.retweets.factor))
     }).toMap
   }
 
   private def combineScores(favScore: Map[String, Option[Score]], follScore: Map[String, Option[Score]], retweetScore: Map[String, Option[Score]]) = {
-    favScore.map { case (tweetId, score) => {
+    favScore.map { case (tweetId, score) =>
       val scores = List(score, follScore(tweetId), retweetScore(tweetId))
       tweetId -> scores.flatten
-    }}
+    }
   }
 
   private def retrieveTwitterMetadata(tweets: Seq[NewsletterTweet], maxByQuery: Int): IO[List[TweetsMetadata]] = {
