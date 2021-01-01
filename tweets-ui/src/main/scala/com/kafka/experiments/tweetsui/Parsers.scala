@@ -2,8 +2,9 @@ package com.kafka.experiments.tweetsui
 
 import cats.effect.IO
 import com.kafka.experiments.shared._
+import com.kafka.experiments.tweetsui.api.{CountResult, MoveTweetsToNewsletter}
 import com.kafka.experiments.tweetsui.newsletter.NewsletterTweet
-import org.http4s.{circe, EntityDecoder, EntityEncoder}
+import org.http4s.{EntityDecoder, EntityEncoder, circe}
 import org.http4s.circe.jsonEncoderOf
 
 object Decoders {

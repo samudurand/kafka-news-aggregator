@@ -7,7 +7,8 @@ import com.kafka.experiments.tweetsui.Encoders._
 import com.kafka.experiments.tweetsui.client.MongoService
 import com.kafka.experiments.tweetsui.client.sendgrid.SendGridClient
 import com.kafka.experiments.tweetsui.newsletter.NewsletterBuilder
-import com.kafka.experiments.tweetsui.{MoveTweetsToNewsletter, ScoringService, TweetCategory}
+import com.kafka.experiments.tweetsui.TweetCategory
+import com.kafka.experiments.tweetsui.score.ScoringService
 import com.typesafe.scalalogging.StrictLogging
 import org.http4s.dsl.io._
 import org.http4s.{Header, HttpRoutes, Request, Response}

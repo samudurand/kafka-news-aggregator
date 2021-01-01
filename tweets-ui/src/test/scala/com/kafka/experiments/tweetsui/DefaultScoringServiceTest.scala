@@ -6,6 +6,7 @@ import com.danielasfregola.twitter4s.entities.{RatedData, Tweet, User}
 import com.kafka.experiments.tweetsui.DefaultScoringServiceTest._
 import com.kafka.experiments.tweetsui.config.ScoringConfig
 import com.kafka.experiments.tweetsui.newsletter.NewsletterTweet
+import com.kafka.experiments.tweetsui.score.{DefaultScoringService, ScoringService}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

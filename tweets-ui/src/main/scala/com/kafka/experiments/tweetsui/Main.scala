@@ -7,12 +7,10 @@ import com.kafka.experiments.tweetsui.client.{MongoService, YoutubeClient}
 import com.kafka.experiments.tweetsui.config.GlobalConfig
 import com.kafka.experiments.tweetsui.newsletter.{FreeMarkerGenerator, NewsletterBuilder}
 import com.kafka.experiments.tweetsui.client.sendgrid.SendGridClient
+import com.kafka.experiments.tweetsui.score.ScoringService
 import com.typesafe.scalalogging.StrictLogging
-import io.circe.Codec
-import io.circe.generic.semiauto.deriveCodec
 import org.http4s.client.blaze.BlazeClientBuilder
 import org.http4s.implicits._
-
 import org.http4s.server.blaze.BlazeServerBuilder
 import org.http4s.server.staticcontent.{ResourceService, resourceService}
 import org.http4s.server.{Router, Server}
@@ -20,19 +18,6 @@ import pureconfig.ConfigSource
 import pureconfig.generic.auto._
 
 import scala.concurrent.ExecutionContext.global
-
-object CountResult {
-  implicit val codec: Codec[CountResult] = deriveCodec
-}
-case class CountResult(count: Long)
-
-object MoveTweetsToNewsletter {
-  implicit val codec: Codec[MoveTweetsToNewsletter] = deriveCodec
-}
-case class MoveTweetsToNewsletter(tweetIds: Map[String, List[String]])
-
-//object SourceCategoryQueryParamMatcher extends QueryParamDecoderMatcher[String]("source")
-//object TargetCategoryQueryParamMatcher extends QueryParamDecoderMatcher[String]("target")
 
 object Main extends IOApp with StrictLogging {
   import cats.implicits._
@@ -57,7 +42,7 @@ object Main extends IOApp with StrictLogging {
         .bindHttp(config.server.port, config.server.host)
         .withHttpApp(
           Router(
-            "api" -> { newsletterApi <+> tweetApi },
+            "api" -> (newsletterApi <+> tweetApi),
             "" -> resourceService[IO](ResourceService.Config("/assets", blocker))
           ).orNotFound
         )

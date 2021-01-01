@@ -21,6 +21,7 @@ import com.danielasfregola.twitter4s.TwitterRestClient
 import com.danielasfregola.twitter4s.entities.{RatedData, Tweet}
 import com.kafka.experiments.tweetsui.api.NewsletterApi
 import com.kafka.experiments.tweetsui.client.{DefaultMongoService, MongoService}
+import com.kafka.experiments.tweetsui.score.ScoringService
 import pureconfig.ConfigSource
 
 import java.time.Instant.now

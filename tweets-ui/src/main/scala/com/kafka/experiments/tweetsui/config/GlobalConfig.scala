@@ -9,14 +9,12 @@ case class GlobalConfig(
     youtube: YoutubeConfig
 )
 
-case class ScoringConfig(
-    favourites: Map[String, Int],
-    followers: Map[String, Int],
-    retweets: Map[String, Int]
-) {
-  val scaleFavourites: Map[Int, Int] = favourites.map { case (key, value) => key.toInt -> value }
-  val scaleFollowers: Map[Int, Int] = followers.map { case (key, value) => key.toInt -> value }
-  val scaleRetweets: Map[Int, Int] = retweets.map { case (key, value) => key.toInt -> value }
+case class ScoringConfig(twitter: TwitterConfig)
+
+case class TwitterConfig(favourites: ScaledScoreConfig, followers: ScaledScoreConfig, retweets: ScaledScoreConfig)
+
+case class ScaledScoreConfig(factor: Int, scale: Map[String, Int]) {
+  val getScale: Map[Int, Int] = scale.map { case (key, value) => key.toInt -> value }
 }
 
 case class MongodbConfig(
