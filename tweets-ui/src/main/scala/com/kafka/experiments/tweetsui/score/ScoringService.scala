@@ -66,7 +66,7 @@ class DefaultScoringService(config: ScoringConfig, twitterRestClient: TwitterRes
       case Nil => None
       case scoresByTweets =>
         val scoreSum = scoresByTweets.map(score => score.value * score.factor).sum
-        val factorSum = scoresByTweets.map(_.factor).sum
+        val factorSum = scoresByTweets.map(score => Math.abs(score.factor)).sum
         Some(scoreSum.toDouble / factorSum.toDouble)
     }.toMap
   }

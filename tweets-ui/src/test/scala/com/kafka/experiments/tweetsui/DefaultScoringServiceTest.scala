@@ -3,9 +3,11 @@ package com.kafka.experiments.tweetsui
 import cats.effect.{ContextShift, IO}
 import com.danielasfregola.twitter4s.entities.{Tweet, User}
 import com.kafka.experiments.tweetsui.DefaultScoringServiceTest._
-import com.kafka.experiments.tweetsui.config.{ScaledScoreConfig, ScoringConfig, TwitterScoringConfig}
+import com.kafka.experiments.tweetsui.client.{VideoMetadata, YoutubeClient}
+import com.kafka.experiments.tweetsui.config.{ScaledScoreConfig, ScoringConfig, TwitterScoringConfig, YoutubeScoringConfig}
 import com.kafka.experiments.tweetsui.newsletter.NewsletterTweet
 import com.kafka.experiments.tweetsui.score.{DefaultScoringService, ScoringService}
+import org.scalamock.scalatest.MockFactory
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -13,11 +15,17 @@ import org.scalatest.matchers.should.Matchers
 import java.time.Instant.now
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class DefaultScoringServiceTest extends AnyFlatSpec with BeforeAndAfterEach with Matchers {
+class DefaultScoringServiceTest extends AnyFlatSpec with BeforeAndAfterEach with Matchers with MockFactory {
 
   implicit val contextShift: ContextShift[IO] = IO.contextShift(global)
 
+  var youtubeClient: YoutubeClient = _
   var scoringService: ScoringService = _
+
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+    youtubeClient = mock[YoutubeClient]
+  }
 
   "Score" should "be calculated based on all data" in {
     val metadata = Seq(
@@ -38,29 +46,49 @@ class DefaultScoringServiceTest extends AnyFlatSpec with BeforeAndAfterEach with
         favorite_count = 12,
         retweet_count = 3002,
         user = baseTweet.user.map(_.copy(followers_count = 202))
+      ),
+      baseTweet.copy(
+        id_str = "4",
+        favorite_count = 12,
+        retweet_count = 3002,
+        user = baseTweet.user.map(_.copy(followers_count = 202))
       )
     )
-    scoringService = new DefaultScoringService(config, new MockedTwitterRestClient(metadata), null)
+    scoringService = new DefaultScoringService(config, new MockedTwitterRestClient(metadata), youtubeClient)
+    (youtubeClient.videoData _)
+      .expects("cvu53CnZmGI")
+      .returning(IO.pure(Some(VideoMetadata(2, 21, 301, "cvu53CnZmGI", 401, 501))))
 
     val tweets = List(
       baseNewsTweet.copy(id = "1"),
       baseNewsTweet.copy(id = "2"),
-      baseNewsTweet.copy(id = "3")
+      baseNewsTweet.copy(id = "3"),
+      baseNewsTweet.copy(id = "4", url = "https://www.youtube.com/watch?v=cvu53CnZmGI&list=PLIivdWyY5sqKwse&index=1")
     )
     val scoredTweets = scoringService.calculateScores(tweets).unsafeRunSync()
 
     scoredTweets(0).score.toInt shouldBe 0
-    scoredTweets(1).score.toInt shouldBe 200
-    scoredTweets(2).score.toInt shouldBe 2000
+    scoredTweets(1).score.toInt shouldBe 233
+    scoredTweets(2).score.toInt shouldBe 2333
+    scoredTweets(3).score.toInt shouldBe 1041
   }
 }
 
 object DefaultScoringServiceTest {
 
-  val config: ScoringConfig = ScoringConfig(TwitterScoringConfig(
-    favourites = ScaledScoreConfig(1, Map("0" -> 0, "1" -> 100, "10" -> 1000)),
-    followers = ScaledScoreConfig(1, Map("0" -> 0, "20" -> 200, "200" -> 2000)),
-    retweets = ScaledScoreConfig(1, Map("0" -> 0, "300" -> 300, "3000" -> 3000))), null
+  val config: ScoringConfig = ScoringConfig(
+    TwitterScoringConfig(
+      favourites = ScaledScoreConfig(1, Map("0" -> 0, "1" -> 100, "10" -> 1000)),
+      followers = ScaledScoreConfig(2, Map("0" -> 0, "20" -> 200, "200" -> 2000)),
+      retweets = ScaledScoreConfig(3, Map("0" -> 0, "300" -> 300, "3000" -> 3000))
+    ),
+    YoutubeScoringConfig(
+      dislikes = ScaledScoreConfig(1, Map("0" -> 0, "1" -> 100, "10" -> 1000)),
+      duration = ScaledScoreConfig(-1, Map("0" -> 0, "20" -> 200, "200" -> 2000)),
+      favourites = ScaledScoreConfig(2, Map("0" -> 0, "300" -> 300, "3000" -> 3000)),
+      likes = ScaledScoreConfig(3, Map("0" -> 0, "400" -> 400, "4000" -> 4000)),
+      views = ScaledScoreConfig(4, Map("0" -> 0, "500" -> 500, "5000" -> 5000))
+    )
   )
 
   val user: User = User(
