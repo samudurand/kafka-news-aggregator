@@ -10,9 +10,12 @@ import org.http4s.client.Client
 import org.http4s.client.dsl.Http4sClientDsl
 import org.http4s.implicits.http4sLiteralsSyntax
 
+import java.time.Duration
+import java.time.temporal.ChronoUnit
+
 case class VideoMetadata(
     dislikeCount: Long,
-    duration: String,
+    duration: Long,
     favouriteCount: Long,
     id: String,
     likeCount: Long,
@@ -70,7 +73,14 @@ class DefaultYoutubeClient(config: YoutubeConfig, httpClient: Client[IO])
         favoriteCount <- statistics.downField("favoriteCount").as[Long]
         likeCount <- statistics.downField("likeCount").as[Long]
         viewCount <- statistics.downField("viewCount").as[Long]
-      } yield VideoMetadata(dislikeCount, videoDuration, favoriteCount, id, likeCount, viewCount)) match {
+      } yield VideoMetadata(
+        dislikeCount,
+        iso8601DurationToMinutes(videoDuration),
+        favoriteCount,
+        id,
+        likeCount,
+        viewCount
+      )) match {
         case Right(data) => Some(data)
         case Left(error) =>
           logger.error(s"Error while trying to parse Youtube API response", error)
@@ -84,5 +94,9 @@ class DefaultYoutubeClient(config: YoutubeConfig, httpClient: Client[IO])
       .withQueryParam("id", videoId)
       .withQueryParam("part", List("statistics", "contentDetails"))
       .withQueryParam("key", config.apiKey)
+  }
+
+  private def iso8601DurationToMinutes(duration: String): Long = {
+    Duration.parse(duration).get(ChronoUnit.MINUTES)
   }
 }

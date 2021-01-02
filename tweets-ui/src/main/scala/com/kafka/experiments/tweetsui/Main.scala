@@ -34,7 +34,7 @@ object Main extends IOApp with StrictLogging {
       blocker <- Blocker[IO]
       httpClient <- BlazeClientBuilder[IO](global).resource
       youtubeClient = YoutubeClient(config.youtube, httpClient)
-      scoringService = ScoringService(config.score, twitterRestClient)
+      scoringService = ScoringService(config.score, twitterRestClient, youtubeClient)
       sendGridClient = SendGridClient(config.sendgrid, httpClient)
       newsletterApi = new NewsletterApi(newsletterBuilder, mongoService, scoringService, sendGridClient).api()
       tweetApi = new TweetApi(mongoService).api()

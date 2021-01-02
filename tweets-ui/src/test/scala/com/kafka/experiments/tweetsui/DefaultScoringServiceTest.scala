@@ -3,7 +3,7 @@ package com.kafka.experiments.tweetsui
 import cats.effect.{ContextShift, IO}
 import com.danielasfregola.twitter4s.entities.{Tweet, User}
 import com.kafka.experiments.tweetsui.DefaultScoringServiceTest._
-import com.kafka.experiments.tweetsui.config.{ScaledScoreConfig, ScoringConfig, TwitterConfig}
+import com.kafka.experiments.tweetsui.config.{ScaledScoreConfig, ScoringConfig, TwitterScoringConfig}
 import com.kafka.experiments.tweetsui.newsletter.NewsletterTweet
 import com.kafka.experiments.tweetsui.score.{DefaultScoringService, ScoringService}
 import org.scalatest.BeforeAndAfterEach
@@ -40,7 +40,7 @@ class DefaultScoringServiceTest extends AnyFlatSpec with BeforeAndAfterEach with
         user = baseTweet.user.map(_.copy(followers_count = 202))
       )
     )
-    scoringService = new DefaultScoringService(config, new MockedTwitterRestClient(metadata))
+    scoringService = new DefaultScoringService(config, new MockedTwitterRestClient(metadata), null)
 
     val tweets = List(
       baseNewsTweet.copy(id = "1"),
@@ -57,10 +57,10 @@ class DefaultScoringServiceTest extends AnyFlatSpec with BeforeAndAfterEach with
 
 object DefaultScoringServiceTest {
 
-  val config: ScoringConfig = ScoringConfig(TwitterConfig(
+  val config: ScoringConfig = ScoringConfig(TwitterScoringConfig(
     favourites = ScaledScoreConfig(1, Map("0" -> 0, "1" -> 100, "10" -> 1000)),
     followers = ScaledScoreConfig(1, Map("0" -> 0, "20" -> 200, "200" -> 2000)),
-    retweets = ScaledScoreConfig(1, Map("0" -> 0, "300" -> 300, "3000" -> 3000)))
+    retweets = ScaledScoreConfig(1, Map("0" -> 0, "300" -> 300, "3000" -> 3000))), null
   )
 
   val user: User = User(

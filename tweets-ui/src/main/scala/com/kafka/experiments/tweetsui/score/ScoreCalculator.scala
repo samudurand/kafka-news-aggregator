@@ -12,4 +12,15 @@ case class Score(name: String, value: Int, factor: Int)
 
 trait ScoreCalculator {
   def calculate(tweets: Seq[NewsletterTweet]): IO[Map[String, Seq[Score]]]
+
+  protected def calculateCountScore(scale: Map[Int, Int], count: Long): Int = {
+    scale(determineScaleRange(scale, count))
+  }
+
+  protected def determineScaleRange(scale: Map[Int, Int], value: Long): Int = {
+    scale.keys.toList.sorted.reverse.find(_ <= value) match {
+      case Some(rank) => rank
+      case None => throw new RuntimeException(s"Unable to find a rank on scale for value $value")
+    }
+  }
 }

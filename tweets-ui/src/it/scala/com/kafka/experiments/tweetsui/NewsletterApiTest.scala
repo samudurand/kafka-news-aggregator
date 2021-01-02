@@ -6,7 +6,7 @@ import com.github.tomakehurst.wiremock.client.WireMock._
 import com.kafka.experiments.shared.{ArticleTweet, AudioTweet}
 import com.kafka.experiments.tweetsui.Decoders._
 import com.kafka.experiments.tweetsui.Encoders._
-import com.kafka.experiments.tweetsui.config.{FreeMarkerConfig, GlobalConfig, MongodbConfig, ScaledScoreConfig, ScoringConfig, SendGridConfig, TwitterConfig}
+import com.kafka.experiments.tweetsui.config.{FreeMarkerConfig, GlobalConfig, MongodbConfig, ScaledScoreConfig, ScoringConfig, SendGridConfig, TwitterScoringConfig, YoutubeConfig}
 import com.kafka.experiments.tweetsui.newsletter.{FreeMarkerGenerator, NewsletterBuilder, NewsletterTweet}
 import com.kafka.experiments.tweetsui.client.sendgrid.SendGridClient
 import org.http4s._
@@ -20,8 +20,9 @@ import NewsletterApiTest._
 import com.danielasfregola.twitter4s.TwitterRestClient
 import com.danielasfregola.twitter4s.entities.{RatedData, Tweet}
 import com.kafka.experiments.tweetsui.api.{MoveTweetsToNewsletter, NewsletterApi}
-import com.kafka.experiments.tweetsui.client.{DefaultMongoService, MongoService}
+import com.kafka.experiments.tweetsui.client.{DefaultMongoService, MongoService, YoutubeClient}
 import com.kafka.experiments.tweetsui.score.ScoringService
+import org.scalamock.scalatest.MockFactory
 import pureconfig.ConfigSource
 
 import java.time.Instant.now
@@ -36,23 +37,28 @@ class NewsletterApiTest
     with BeforeAndAfterEach
     with Matchers
     with MongoDatabase
-    with MockSendGrid {
+    with MockSendGrid
+    with MockYoutubeApi {
 
   private val config = ConfigSource.default.loadOrThrow[GlobalConfig]
 
-  private val newsletterBuilder = new NewsletterBuilder(mongoService, new FreeMarkerGenerator(config.freemarker))
   private val sendGridConfig = SendGridConfig(mockSendGridUrl, "key", 11, List("id"), 22)
+  private val youtubeConfig = YoutubeConfig(mockYoutubeUrl, "key")
+
+  private val newsletterBuilder = new NewsletterBuilder(mongoService, new FreeMarkerGenerator(config.freemarker))
   private var httpClient: Client[IO] = _
   private var twitterRestClient: MockedTwitterRestClient = _
   private var scoringService: ScoringService = _
   private var sendGridClient: SendGridClient = _
+  private var youtubeClient: YoutubeClient = _
   private var api: HttpApp[IO] = _
 
   override def beforeEach: Unit = {
     super.beforeEach()
     httpClient = BlazeClientBuilder[IO](global).allocated.unsafeRunSync()._1
     twitterRestClient = new MockedTwitterRestClient()
-    scoringService = ScoringService(config.score, twitterRestClient)
+    youtubeClient = YoutubeClient(youtubeConfig, httpClient)
+    scoringService = ScoringService(config.score, twitterRestClient, youtubeClient)
     sendGridClient = SendGridClient(sendGridConfig, httpClient)
     api = new NewsletterApi(newsletterBuilder, mongoService, scoringService, sendGridClient).api().orNotFound
   }
@@ -107,7 +113,7 @@ class NewsletterApiTest
     htmlContent should include("Even move Kafka stuff")
 
     // Create Email draft
-    wireMockServer.stubFor(
+    sendgridApi.stubFor(
       post(urlPathEqualTo("/v3/marketing/singlesends"))
         .willReturn(
           aResponse()
@@ -118,7 +124,7 @@ class NewsletterApiTest
     )
     val response4 = api.run(Request(method = Method.POST, uri = uri"/newsletter/create"))
     check[String](response4, Status.Ok, None)
-    wireMockServer.verify(
+    sendgridApi.verify(
       postRequestedFor(urlEqualTo("/v3/marketing/singlesends")).withHeader("Content-Type", equalTo("application/json"))
     )
   }
@@ -214,10 +220,10 @@ class NewsletterApiTest
 
 object NewsletterApiTest {
 
-  val config: ScoringConfig = ScoringConfig(TwitterConfig(
+  val config: ScoringConfig = ScoringConfig(TwitterScoringConfig(
     favourites = ScaledScoreConfig(1, Map("1" -> 100, "10" -> 1000)),
     followers = ScaledScoreConfig(1, Map("20" -> 200, "200" -> 2000)),
-    retweets = ScaledScoreConfig(1, Map("300" -> 300, "3000" -> 3000)))
+    retweets = ScaledScoreConfig(1, Map("300" -> 300, "3000" -> 3000))), null
   )
 
   val baseTweet: Tweet =

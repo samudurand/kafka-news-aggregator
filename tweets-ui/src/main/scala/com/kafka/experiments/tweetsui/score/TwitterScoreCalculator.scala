@@ -2,7 +2,7 @@ package com.kafka.experiments.tweetsui.score
 
 import cats.effect.{ContextShift, IO}
 import com.danielasfregola.twitter4s.TwitterRestClient
-import com.kafka.experiments.tweetsui.config.TwitterConfig
+import com.kafka.experiments.tweetsui.config.TwitterScoringConfig
 import com.kafka.experiments.tweetsui.newsletter.NewsletterTweet
 import cats.implicits._
 
@@ -10,13 +10,13 @@ trait TwitterScoreCalculator extends ScoreCalculator
 
 object TwitterScoreCalculator {
 
-  def apply(config: TwitterConfig, twitterRestClient: TwitterRestClient)(implicit
+  def apply(config: TwitterScoringConfig, twitterRestClient: TwitterRestClient)(implicit
       context: ContextShift[IO]
   ): TwitterScoreCalculator =
     new DefaultTwitterScoreCalculator(config, twitterRestClient)
 }
 
-class DefaultTwitterScoreCalculator(config: TwitterConfig, twitterRestClient: TwitterRestClient)(implicit
+class DefaultTwitterScoreCalculator(config: TwitterScoringConfig, twitterRestClient: TwitterRestClient)(implicit
     context: ContextShift[IO]
 ) extends TwitterScoreCalculator {
   private val maxTweetsByQuery = 100
@@ -28,34 +28,44 @@ class DefaultTwitterScoreCalculator(config: TwitterConfig, twitterRestClient: Tw
       follScore = calculateFollowerScores(metadata)
       retweetScore = calculateRetweetScores(metadata)
       scores = combineScores(favScore, follScore, retweetScore)
-    } yield (scores)
+    } yield scores
   }
 
-  private def calculateFavoriteScores(metadata: List[TweetsMetadata]): Map[String, Option[Score]] = {
-    metadata.map(tweetMetadata => {
-      val score = calculateCountScore(config.favourites.getScale, tweetMetadata.favoriteCount.toLong)
-      tweetMetadata.tweetId -> score.map(Score("Twitter Favourites", _, config.favourites.factor))
-    }).toMap
+  private def calculateFavoriteScores(metadata: List[TweetsMetadata]): Map[String, Score] = {
+    metadata
+      .map(tweetMetadata => {
+        val score = calculateCountScore(config.favourites.getScale, tweetMetadata.favoriteCount.toLong)
+        tweetMetadata.tweetId -> Score("Twitter Favourites", score, config.favourites.factor)
+      })
+      .toMap
   }
 
   private def calculateFollowerScores(metadata: List[TweetsMetadata]): Map[String, Option[Score]] = {
-    metadata.map(tweetMetadata => {
-      val score = tweetMetadata.userFollowersCount
-        .flatMap(count => calculateCountScore(config.followers.getScale, count.toLong))
-      tweetMetadata.tweetId -> score.map(Score("Twitter Followers", _, config.followers.factor))
-    }).toMap
+    metadata
+      .map(tweetMetadata => {
+        val score = tweetMetadata.userFollowersCount
+          .map(count => calculateCountScore(config.followers.getScale, count.toLong))
+        tweetMetadata.tweetId -> score.map(Score("Twitter Followers", _, config.followers.factor))
+      })
+      .toMap
   }
 
-  private def calculateRetweetScores(metadata: List[TweetsMetadata]): Map[String, Option[Score]] = {
-    metadata.map(tweetMetadata => {
-      val score = calculateCountScore(config.retweets.getScale, tweetMetadata.retweetCount)
-      tweetMetadata.tweetId -> score.map(Score("Twitter Retweets", _, config.retweets.factor))
-    }).toMap
+  private def calculateRetweetScores(metadata: List[TweetsMetadata]): Map[String, Score] = {
+    metadata
+      .map(tweetMetadata => {
+        val score = calculateCountScore(config.retweets.getScale, tweetMetadata.retweetCount)
+        tweetMetadata.tweetId -> Score("Twitter Retweets", score, config.retweets.factor)
+      })
+      .toMap
   }
 
-  private def combineScores(favScore: Map[String, Option[Score]], follScore: Map[String, Option[Score]], retweetScore: Map[String, Option[Score]]) = {
+  private def combineScores(
+      favScore: Map[String, Score],
+      follScore: Map[String, Option[Score]],
+      retweetScore: Map[String, Score]
+  ): Map[String, List[Score]] = {
     favScore.map { case (tweetId, score) =>
-      val scores = List(score, follScore(tweetId), retweetScore(tweetId))
+      val scores = List(Some(score), follScore.get(tweetId).flatten, retweetScore.get(tweetId))
       tweetId -> scores.flatten
     }
   }
@@ -83,15 +93,6 @@ class DefaultTwitterScoreCalculator(config: TwitterConfig, twitterRestClient: Tw
           }
         )
       )
-  }
-
-  private def calculateCountScore(scale: Map[Int, Int], count: Long) = {
-    val countRange = determineScaleRange(scale, count)
-    countRange.map(scale)
-  }
-
-  private def determineScaleRange(scale: Map[Int, Int], count: Long) = {
-    scale.keys.toList.sorted.reverse.find(_ <= count)
   }
 }
 

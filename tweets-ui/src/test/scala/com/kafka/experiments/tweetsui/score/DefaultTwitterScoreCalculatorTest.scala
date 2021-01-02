@@ -1,6 +1,6 @@
 package com.kafka.experiments.tweetsui.score
 
-import com.kafka.experiments.tweetsui.config.{ScaledScoreConfig, ScoringConfig, TwitterConfig}
+import com.kafka.experiments.tweetsui.config.{ScaledScoreConfig, ScoringConfig, TwitterScoringConfig}
 import org.scalatest.flatspec.AnyFlatSpec
 import DefaultTwitterScoreCalculatorTest._
 import cats.effect.{ContextShift, IO}
@@ -69,7 +69,7 @@ class DefaultTwitterScoreCalculatorTest extends AnyFlatSpec with BeforeAndAfterE
 
 object DefaultTwitterScoreCalculatorTest {
 
-  val config: TwitterConfig = TwitterConfig(
+  val config: TwitterScoringConfig = TwitterScoringConfig(
     favourites = ScaledScoreConfig(1, Map("0" -> 0, "1" -> 100, "10" -> 1000)),
     followers = ScaledScoreConfig(1, Map("0" -> 0, "20" -> 200, "200" -> 2000)),
     retweets = ScaledScoreConfig(1, Map("0" -> 0, "300" -> 300, "3000" -> 3000))

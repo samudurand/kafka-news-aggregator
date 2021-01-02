@@ -9,9 +9,13 @@ case class GlobalConfig(
     youtube: YoutubeConfig
 )
 
-case class ScoringConfig(twitter: TwitterConfig)
+case class ScoringConfig(twitter: TwitterScoringConfig, youtube: YoutubeScoringConfig)
 
-case class TwitterConfig(favourites: ScaledScoreConfig, followers: ScaledScoreConfig, retweets: ScaledScoreConfig)
+case class TwitterScoringConfig(
+    favourites: ScaledScoreConfig,
+    followers: ScaledScoreConfig,
+    retweets: ScaledScoreConfig
+)
 
 case class ScaledScoreConfig(factor: Int, scale: Map[String, Int]) {
   val getScale: Map[Int, Int] = scale.map { case (key, value) => key.toInt -> value }
@@ -29,3 +33,11 @@ case class SendGridConfig(baseUrl: String, apiKey: String, senderId: Int, listId
 case class FreeMarkerConfig(templatesFolderSystemPath: Option[String])
 
 case class YoutubeConfig(baseUrl: String, apiKey: String)
+
+case class YoutubeScoringConfig(
+    dislikes: ScaledScoreConfig,
+    duration: ScaledScoreConfig,
+    favourites: ScaledScoreConfig,
+    likes: ScaledScoreConfig,
+    views: ScaledScoreConfig
+)

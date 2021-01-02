@@ -3,6 +3,7 @@ package com.kafka.experiments.tweetsui.score
 import cats.effect.{ContextShift, IO}
 import cats.implicits._
 import com.danielasfregola.twitter4s.TwitterRestClient
+import com.kafka.experiments.tweetsui.client.YoutubeClient
 import com.kafka.experiments.tweetsui.config.ScoringConfig
 import com.kafka.experiments.tweetsui.newsletter.NewsletterTweet
 import com.typesafe.scalalogging.StrictLogging
@@ -13,25 +14,27 @@ trait ScoringService {
 
 object ScoringService {
 
-  def apply(config: ScoringConfig, twitterRestClient: TwitterRestClient)(implicit
+  def apply(config: ScoringConfig, twitterRestClient: TwitterRestClient, youtubeClient: YoutubeClient)(implicit
       context: ContextShift[IO]
   ): ScoringService =
-    new DefaultScoringService(config, twitterRestClient)
+    new DefaultScoringService(config, twitterRestClient, youtubeClient)
 }
 
-class DefaultScoringService(config: ScoringConfig, twitterRestClient: TwitterRestClient)(implicit
-    context: ContextShift[IO]
-) extends ScoringService with StrictLogging {
+class DefaultScoringService(config: ScoringConfig, twitterRestClient: TwitterRestClient, youtubeClient: YoutubeClient)(
+    implicit context: ContextShift[IO]
+) extends ScoringService
+    with StrictLogging {
 
   private val twitterScoreCalculator = TwitterScoreCalculator(config.twitter, twitterRestClient)
-  private val scoreCalculators = List(twitterScoreCalculator)
+  private val youtubeScoreCalculator = YoutubeScoreCalculator(config.youtube, youtubeClient)
+  private val scoreCalculators = List(twitterScoreCalculator, youtubeScoreCalculator)
 
   def calculateScores(tweets: Seq[NewsletterTweet]): IO[Seq[NewsletterTweet]] = {
     scoreCalculators
       .map(_.calculate(tweets))
       .sequence
       .map(mergeScoresByTweet)
-      .map(_.map{ case (tweetId, scores) =>
+      .map(_.map { case (tweetId, scores) =>
         logger.info(s"Scores for tweet [$tweetId]: $scores")
         tweetId -> scores
       })
