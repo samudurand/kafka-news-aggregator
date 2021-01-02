@@ -12,12 +12,13 @@ lazy val shared = project
 lazy val tweetsCategorizer = project
   .in(file("tweets-categorizer"))
   .configs(IntegrationTest)
+  .enablePlugins(JacocoItPlugin)
   .settings(
     name := "tweets-categorizer",
     CommonSettings,
     libraryDependencies ++= Dependencies.TweetsCategorizer,
     Defaults.itSettings,
-    coverageMinimum := 80,
+
     // Sbt assembly plugin
     assemblyJarName in assembly := "categorizer.jar",
     mainClass in assembly := Some("com.kafka.experiments.tweetscategorizer.Main"),
@@ -32,12 +33,25 @@ lazy val tweetsCategorizer = project
 lazy val tweetsUI = project
   .in(file("tweets-ui"))
   .configs(IntegrationTest)
+  .enablePlugins(JacocoItPlugin)
   .settings(
     name := "tweets-ui",
     CommonSettings,
     libraryDependencies ++= Dependencies.TweetsUI,
+
     Defaults.itSettings,
-    coverageMinimum := 70,
+    jacocoMergedReportSettings := JacocoReportSettings()
+      .withThresholds(
+        JacocoThresholds(
+          instruction = 80,
+          method = 100,
+          branch = 100,
+          complexity = 100,
+          line = 90,
+          clazz = 100)
+      ),
+    jacocoAutoMerge := true,
+
     // Sbt assembly plugin
     assemblyJarName in assembly := "tweetsui.jar",
     mainClass in assembly := Some("com.kafka.experiments.tweetsui.Main"),
@@ -53,8 +67,7 @@ lazy val tweetsUI = project
 val CommonSettings: Seq[Def.Setting[_]] = Seq(
   Test / fork := true,
   IntegrationTest / fork := true,
-  coverageEnabled := true,
-  coverageFailOnMinimum := true,
+
   scalaVersion := "2.13.1",
   scalacOptions ++= Seq(
     "-deprecation",

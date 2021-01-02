@@ -46,7 +46,7 @@ class DefaultYoutubeScoreCalculator(config: YoutubeScoringConfig, youtubeClient:
             for {
               metadata <- metadataOpt
               dislikesScore = calculateScaledScore("Youtube Dislikes", config.dislikes, metadata.dislikeCount)
-              durationScore = calculateScaledScore("Youtube Duration", config.duration, metadata.duration)
+              durationScore = calculateScaledScore("Youtube Duration", config.duration, metadata.duration.toMinutes)
               favouritesScore = calculateScaledScore("Youtube Favourites", config.favourites, metadata.favouriteCount)
               likesScore = calculateScaledScore("Youtube Likes", config.likes, metadata.likeCount)
               viewsScore = calculateScaledScore("Youtube Views", config.views, metadata.viewCount)

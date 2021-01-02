@@ -14,6 +14,7 @@ import org.scalatest.matchers.should.Matchers
 
 import java.time.Instant.now
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration.{Duration, MINUTES}
 
 class DefaultScoringServiceTest extends AnyFlatSpec with BeforeAndAfterEach with Matchers with MockFactory {
 
@@ -57,7 +58,7 @@ class DefaultScoringServiceTest extends AnyFlatSpec with BeforeAndAfterEach with
     scoringService = new DefaultScoringService(config, new MockedTwitterRestClient(metadata), youtubeClient)
     (youtubeClient.videoData _)
       .expects("cvu53CnZmGI")
-      .returning(IO.pure(Some(VideoMetadata(2, 21, 301, "cvu53CnZmGI", 401, 501))))
+      .returning(IO.pure(Some(VideoMetadata(2, Duration(21, MINUTES), 301, "cvu53CnZmGI", 401, 501))))
 
     val tweets = List(
       baseNewsTweet.copy(id = "1"),
@@ -70,7 +71,7 @@ class DefaultScoringServiceTest extends AnyFlatSpec with BeforeAndAfterEach with
     scoredTweets(0).score.toInt shouldBe 0
     scoredTweets(1).score.toInt shouldBe 233
     scoredTweets(2).score.toInt shouldBe 2333
-    scoredTweets(3).score.toInt shouldBe 1041
+    scoredTweets(3).score.toInt shouldBe 1052
   }
 }
 
@@ -83,8 +84,8 @@ object DefaultScoringServiceTest {
       retweets = ScaledScoreConfig(3, Map("0" -> 0, "300" -> 300, "3000" -> 3000))
     ),
     YoutubeScoringConfig(
-      dislikes = ScaledScoreConfig(1, Map("0" -> 0, "1" -> 100, "10" -> 1000)),
-      duration = ScaledScoreConfig(-1, Map("0" -> 0, "20" -> 200, "200" -> 2000)),
+      dislikes = ScaledScoreConfig(-1, Map("0" -> 0, "1" -> 100, "10" -> 1000)),
+      duration = ScaledScoreConfig(1, Map("0" -> 0, "20" -> 200, "200" -> 2000)),
       favourites = ScaledScoreConfig(2, Map("0" -> 0, "300" -> 300, "3000" -> 3000)),
       likes = ScaledScoreConfig(3, Map("0" -> 0, "400" -> 400, "4000" -> 4000)),
       views = ScaledScoreConfig(4, Map("0" -> 0, "500" -> 500, "5000" -> 5000))

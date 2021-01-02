@@ -1,14 +1,20 @@
 package com.kafka.experiments.tweetsui
 
 import cats.effect.IO
+import com.danielasfregola.twitter4s.TwitterRestClient
+import com.danielasfregola.twitter4s.entities.{RatedData, Tweet}
 import com.dimafeng.testcontainers.ForEachTestContainer
 import com.github.tomakehurst.wiremock.client.WireMock._
 import com.kafka.experiments.shared.{ArticleTweet, AudioTweet}
 import com.kafka.experiments.tweetsui.Decoders._
 import com.kafka.experiments.tweetsui.Encoders._
-import com.kafka.experiments.tweetsui.config.{FreeMarkerConfig, GlobalConfig, MongodbConfig, ScaledScoreConfig, ScoringConfig, SendGridConfig, TwitterScoringConfig, YoutubeConfig}
-import com.kafka.experiments.tweetsui.newsletter.{FreeMarkerGenerator, NewsletterBuilder, NewsletterTweet}
+import com.kafka.experiments.tweetsui.NewsletterApiTest._
+import com.kafka.experiments.tweetsui.api.{MoveTweetsToNewsletter, NewsletterApi}
+import com.kafka.experiments.tweetsui.client.YoutubeClient
 import com.kafka.experiments.tweetsui.client.sendgrid.SendGridClient
+import com.kafka.experiments.tweetsui.config._
+import com.kafka.experiments.tweetsui.newsletter.{FreeMarkerGenerator, NewsletterBuilder, NewsletterTweet}
+import com.kafka.experiments.tweetsui.score.ScoringService
 import org.http4s._
 import org.http4s.client.Client
 import org.http4s.client.blaze.BlazeClientBuilder
@@ -16,13 +22,6 @@ import org.http4s.implicits.{http4sLiteralsSyntax, _}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import NewsletterApiTest._
-import com.danielasfregola.twitter4s.TwitterRestClient
-import com.danielasfregola.twitter4s.entities.{RatedData, Tweet}
-import com.kafka.experiments.tweetsui.api.{MoveTweetsToNewsletter, NewsletterApi}
-import com.kafka.experiments.tweetsui.client.{DefaultMongoService, MongoService, YoutubeClient}
-import com.kafka.experiments.tweetsui.score.ScoringService
-import org.scalamock.scalatest.MockFactory
 import pureconfig.ConfigSource
 
 import java.time.Instant.now
@@ -187,10 +186,59 @@ class NewsletterApiTest
   }
 
   "Newsletter API" should "calculate scores" in {
-    val tweet = ArticleTweet("124142314", "Some good Kafka stuff", "http://medium.com/123445", "mlmenace", "1609020620")
+    val tweet = ArticleTweet(
+      "124142314",
+      "Some good Kafka stuff",
+      "https://www.youtube.com/watch?v=cvu53CnZmGI",
+      "mlmenace",
+      "1609020620"
+    )
     mongoService.createTweet[ArticleTweet](tweet, Article).unsafeRunSync()
     val tweetsToInclude = MoveTweetsToNewsletter(Map("article" -> List("124142314")))
     twitterRestClient.setMetadata(Seq(baseTweet))
+
+    youtubeApi.stubFor(
+      get(urlPathEqualTo("/videos"))
+        .withQueryParam("id", equalTo("cvu53CnZmGI"))
+        .withQueryParam("part", equalTo("statistics"))
+        .withQueryParam("part", equalTo("contentDetails"))
+        .withQueryParam("key", equalTo("key"))
+        .willReturn(
+          aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withStatus(200)
+            .withBody(s"""{
+                         |    "kind": "youtube#videoListResponse",
+                         |    "etag": "qFqOIDNWKzz7AgfleDHqmpV6fEs",
+                         |    "items": [
+                         |        {
+                         |            "kind": "youtube#video",
+                         |            "etag": "6M8RAA-jCufKBeEplft6r-e7048",
+                         |            "id": "tTx8q4oPx7E",
+                         |            "contentDetails": {
+                         |                "duration": "PT22M",
+                         |                "dimension": "2d",
+                         |                "definition": "hd",
+                         |                "caption": "false",
+                         |                "licensedContent": false,
+                         |                "contentRating": {},
+                         |                "projection": "rectangular"
+                         |            },
+                         |            "statistics": {
+                         |                "viewCount": "0",
+                         |                "likeCount": "0",
+                         |                "dislikeCount": "0",
+                         |                "favoriteCount": "0"
+                         |            }
+                         |        }
+                         |    ],
+                         |    "pageInfo": {
+                         |        "totalResults": 1,
+                         |        "resultsPerPage": 1
+                         |    }
+                         |}""".stripMargin)
+        )
+    )
 
     val response1 = api.run(Request(method = Method.PUT, uri = uri"/newsletter/prepare").withEntity(tweetsToInclude))
     check[String](response1, Status.Ok, None)
@@ -204,7 +252,7 @@ class NewsletterApiTest
       None
     )
     val tweetWithScore: NewsletterTweet = finalResponse.as[Seq[NewsletterTweet]].unsafeRunSync().head
-    tweetWithScore.score.toInt shouldBe 33
+    tweetWithScore.score.toInt shouldBe 100
   }
 
   def check[A](actual: IO[Response[IO]], expectedStatus: Status, expectedBody: Option[A])(implicit
@@ -220,10 +268,19 @@ class NewsletterApiTest
 
 object NewsletterApiTest {
 
-  val config: ScoringConfig = ScoringConfig(TwitterScoringConfig(
-    favourites = ScaledScoreConfig(1, Map("1" -> 100, "10" -> 1000)),
-    followers = ScaledScoreConfig(1, Map("20" -> 200, "200" -> 2000)),
-    retweets = ScaledScoreConfig(1, Map("300" -> 300, "3000" -> 3000))), null
+  val config: ScoringConfig = ScoringConfig(
+    TwitterScoringConfig(
+      favourites = ScaledScoreConfig(1, Map("1" -> 100, "10" -> 1000)),
+      followers = ScaledScoreConfig(1, Map("20" -> 200, "200" -> 2000)),
+      retweets = ScaledScoreConfig(1, Map("300" -> 300, "3000" -> 3000))
+    ),
+    YoutubeScoringConfig(
+      dislikes = ScaledScoreConfig(-1, Map("0" -> 0, "1" -> 100, "10" -> 1000)),
+      duration = ScaledScoreConfig(1, Map("0" -> 0, "20" -> 200, "200" -> 2000)),
+      favourites = ScaledScoreConfig(2, Map("0" -> 0, "300" -> 300, "3000" -> 3000)),
+      likes = ScaledScoreConfig(3, Map("0" -> 0, "400" -> 400, "4000" -> 4000)),
+      views = ScaledScoreConfig(4, Map("0" -> 0, "500" -> 500, "5000" -> 5000))
+    )
   )
 
   val baseTweet: Tweet =
