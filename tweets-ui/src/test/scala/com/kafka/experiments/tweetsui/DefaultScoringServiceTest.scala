@@ -71,7 +71,7 @@ class DefaultScoringServiceTest extends AnyFlatSpec with BeforeAndAfterEach with
     scoredTweets(0).score.toInt shouldBe 0
     scoredTweets(1).score.toInt shouldBe 233
     scoredTweets(2).score.toInt shouldBe 2333
-    scoredTweets(3).score.toInt shouldBe 1052
+    scoredTweets(3).score.toInt shouldBe 1053
   }
 }
 

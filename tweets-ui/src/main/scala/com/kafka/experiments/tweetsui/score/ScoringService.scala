@@ -46,7 +46,7 @@ class DefaultScoringService(config: ScoringConfig, twitterRestClient: TwitterRes
   private def applyScoresToTweets(scores: Map[String, Option[Double]], tweets: Seq[NewsletterTweet]) = {
     scores.map { case (tweetId, score) =>
       tweets.find(_.id == tweetId) match {
-        case Some(tweet) => tweet.copy(score = score.getOrElse(-1))
+        case Some(tweet) => tweet.copy(score = Math.round(score.getOrElse(-1D)))
         case None        => throw new RuntimeException("Tweet matching metadata not found! That should never happen.")
       }
     }.toSeq
