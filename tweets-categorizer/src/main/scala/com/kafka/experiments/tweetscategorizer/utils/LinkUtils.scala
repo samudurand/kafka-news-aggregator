@@ -1,5 +1,7 @@
 package com.kafka.experiments.tweetscategorizer.utils
 
+import com.kafka.experiments.shared.UrlManipulator
+import com.kafka.experiments.shared.UrlManipulator.expandUrlOnce
 import com.kafka.experiments.tweetscategorizer.{Tweet, URLEntity}
 
 object LinkUtils {
@@ -19,6 +21,10 @@ object LinkUtils {
    */
   def extractBaseUrl(url: String): String = {
     url.replaceAll("\\?.*$", "")
+  }
+
+  def expandUrlAndExtractBase(url: String): String = {
+    extractBaseUrl(expandUrlOnce(url))
   }
 
 }

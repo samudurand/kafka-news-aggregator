@@ -1,8 +1,8 @@
 package com.kafka.experiments.tweetsui.newsletter
 
 import cats.effect.IO
-import com.kafka.experiments.shared.UrlRemover
-import com.kafka.experiments.shared.UrlRemover.removeUrls
+import com.kafka.experiments.shared.UrlManipulator
+import com.kafka.experiments.shared.UrlManipulator.removeUrls
 import com.kafka.experiments.tweetsui._
 import com.kafka.experiments.tweetsui.client.MongoService
 import com.linkedin.urls.detection.{UrlDetector, UrlDetectorOptions}

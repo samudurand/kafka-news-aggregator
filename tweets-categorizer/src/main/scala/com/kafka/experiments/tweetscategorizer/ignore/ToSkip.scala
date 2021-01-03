@@ -3,7 +3,7 @@ package com.kafka.experiments.tweetscategorizer.ignore
 import com.kafka.experiments.tweetscategorizer.config.GlobalConfig
 import com.kafka.experiments.tweetscategorizer.{RedisService, Tweet}
 import com.kafka.experiments.tweetscategorizer.utils.LinkUtils
-import com.kafka.experiments.tweetscategorizer.utils.LinkUtils.{extractBaseUrl, firstValidLink}
+import com.kafka.experiments.tweetscategorizer.utils.LinkUtils.{expandUrlAndExtractBase, firstValidLink}
 import com.typesafe.scalalogging.StrictLogging
 import pureconfig.ConfigSource
 import pureconfig.generic.auto._
@@ -29,7 +29,7 @@ class ToSkip(redisService: RedisService) extends StrictLogging {
   private def hasAlreadyKnownUrl(tweet: Tweet) = {
     firstValidLink(tweet) match {
       case Some(url) =>
-        val hasKnownUrl = redisService.exists(extractBaseUrl(url.ExpandedURL))
+        val hasKnownUrl = redisService.exists(expandUrlAndExtractBase(url.ExpandedURL))
         if (hasKnownUrl) logger.info(s"Tweet with already known URL should be skipped: $tweet")
         hasKnownUrl
       case _ => false

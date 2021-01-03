@@ -1,6 +1,7 @@
 import sbt._
 
 object Versions {
+  val ApacheHttp = "4.5.13"
   val Circe = "0.13.0"
   val FreeMarker = "2.3.30"
   val Http4s = "0.21.8"
@@ -21,6 +22,7 @@ object Versions {
 }
 
 object Dependencies {
+  val ApacheHttp = "org.apache.httpcomponents" % "httpclient" % Versions.ApacheHttp
   val CirceGeneric = "io.circe" %% "circe-generic" % Versions.Circe
   val CirceParser = "io.circe" %% "circe-parser" % Versions.Circe
   val FreeMarker = "org.freemarker" % "freemarker" % Versions.FreeMarker
@@ -46,10 +48,12 @@ object Dependencies {
   val Wiremock = "com.github.tomakehurst" % "wiremock-jre8" % Versions.Wiremock % "it"
 
   val Shared: Seq[ModuleID] = Seq(
+    ApacheHttp,
     CirceGeneric,
     CirceParser,
     Logback,
     LogstashLogbackEncoder,
+    ScalaLogging,
     UrlDetector
   )
 
@@ -58,7 +62,6 @@ object Dependencies {
     KafkaStreamTest,
     PureConfig,
     Redis,
-    ScalaLogging,
     Scalamock,
     Scalatest
   )
@@ -71,7 +74,6 @@ object Dependencies {
     Http4sServer,
     MongoDB,
     PureConfig,
-    ScalaLogging,
     Scalamock,
     Scalatest,
     TestContainers,
