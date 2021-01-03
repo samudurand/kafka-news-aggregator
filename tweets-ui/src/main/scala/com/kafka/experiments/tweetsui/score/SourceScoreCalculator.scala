@@ -13,7 +13,7 @@ object SourceScoreCalculator {
 class DefaultSourceScoreCalculator(config: SourceConfig) extends SourceScoreCalculator {
 
   private val poorSourceScore = 1000
-  private val poorSourceFactor = -1
+  private val poorSourceFactor = -2
 
   override def calculate(tweets: Seq[NewsletterTweet]): IO[Map[String, Seq[Score]]] = {
     IO {
