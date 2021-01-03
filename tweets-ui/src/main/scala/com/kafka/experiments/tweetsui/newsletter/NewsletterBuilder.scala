@@ -1,6 +1,8 @@
 package com.kafka.experiments.tweetsui.newsletter
 
 import cats.effect.IO
+import com.kafka.experiments.shared.UrlRemover
+import com.kafka.experiments.shared.UrlRemover.removeUrls
 import com.kafka.experiments.tweetsui._
 import com.kafka.experiments.tweetsui.client.MongoService
 import com.linkedin.urls.detection.{UrlDetector, UrlDetectorOptions}
@@ -27,19 +29,16 @@ class NewsletterBuilder(mongoService: MongoService, fmGenerator: FreeMarkerGener
             }
           }
       )
-      .map(removeUrls)
+      .map(removeUrlsInTweets)
       .map(_.view.mapValues(_.asJava).toMap)
       .map(data => fmGenerator.generateHtml(data))
   }
 
-  private def removeUrls(data: Map[String, Seq[NewsletterTweet]]) = {
+  private def removeUrlsInTweets(data: Map[String, Seq[NewsletterTweet]]) = {
     data.view
       .mapValues(_.map { tweet =>
-        val urls = new UrlDetector(tweet.text, UrlDetectorOptions.Default).detect()
-        val cleanedText = urls.asScala.foldLeft(tweet.text)((text, url) => text.replace(url.getOriginalUrl, ""))
-        tweet.copy(text = cleanedText)
+        tweet.copy(text = removeUrls(tweet.text))
       })
       .toMap
   }
-
 }

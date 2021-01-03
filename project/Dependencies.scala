@@ -49,7 +49,8 @@ object Dependencies {
     CirceGeneric,
     CirceParser,
     Logback,
-    LogstashLogbackEncoder
+    LogstashLogbackEncoder,
+    UrlDetector
   )
 
   val TweetsCategorizer: Seq[ModuleID] = Seq(
@@ -76,7 +77,6 @@ object Dependencies {
     TestContainers,
     TestContainersMongo,
     Twitter4S,
-    UrlDetector,
     Wiremock
   )
 }

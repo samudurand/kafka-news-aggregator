@@ -15,7 +15,7 @@ class DefaultSourceScoreCalculatorTest extends AnyFlatSpec with Matchers {
       NewsletterTweet("2", "goodsource", "some other tweet", "http://google.com", "123456789", "article")
     ))
 
-    scores.unsafeRunSync()("1") shouldBe List(Score("Poor Source [badsource]", 1000, -1))
+    scores.unsafeRunSync()("1") shouldBe List(Score("Poor Source [badsource]", 1000, -2))
     scores.unsafeRunSync()("2") shouldBe List()
   }
 

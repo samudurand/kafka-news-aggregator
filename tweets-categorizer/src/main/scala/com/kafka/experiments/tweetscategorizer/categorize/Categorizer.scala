@@ -57,7 +57,7 @@ class DefaultCategorizer(redisService: RedisService) extends Categorizer {
 
   private def isAboutANewVersion(tweet: Tweet): Boolean = {
     textLoweredCaseContainAnyOf(tweet.Text, Keywords.versionReleaseWords, List("version")) &&
-    textContainAtLeastOneNumber(tweet.Text)
+    textContainAtLeastOneNumber(UrlRemover.removeUrls(tweet.Text))
   }
 
   private def isAboutAnArticle(tweet: Tweet): Boolean = {
