@@ -39,18 +39,16 @@ lazy val tweetsUI = project
     CommonSettings,
     libraryDependencies ++= Dependencies.TweetsUI,
 
-    Defaults.itSettings,
-    jacocoMergedReportSettings := JacocoReportSettings()
+    IntegrationTest / jacocoMergedReportSettings := JacocoReportSettings()
       .withThresholds(
         JacocoThresholds(
           instruction = 80,
-          method = 100,
-          branch = 100,
-          complexity = 100,
-          line = 90,
-          clazz = 100)
+          method = 80,
+          branch = 80,
+          complexity = 80,
+          line = 80,
+          clazz = 80)
       ),
-    jacocoAutoMerge := true,
 
     // Sbt assembly plugin
     assemblyJarName in assembly := "tweetsui.jar",

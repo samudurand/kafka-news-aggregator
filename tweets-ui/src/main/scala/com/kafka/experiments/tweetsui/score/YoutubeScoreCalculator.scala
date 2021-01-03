@@ -21,11 +21,12 @@ class DefaultYoutubeScoreCalculator(config: YoutubeScoringConfig, youtubeClient:
     with StrictLogging {
 
   private val youtubeDomain = "youtube"
+  private val youtubePlaylist = "/playlist"
 
   override def calculate(tweets: Seq[NewsletterTweet]): IO[Map[String, Seq[Score]]] = {
     tweets
       .map {
-        case tweet if hasYoutubeUrl(tweet) =>
+        case tweet if hasYoutubeVideoUrl(tweet) =>
           calculateYoutubeScores(tweet).map {
             case Some(scores) => tweet.id -> scores
             case None         => tweet.id -> List()
@@ -62,8 +63,8 @@ class DefaultYoutubeScoreCalculator(config: YoutubeScoringConfig, youtubeClient:
     Score(name, score, config.factor)
   }
 
-  private def hasYoutubeUrl(tweet: NewsletterTweet) = {
-    tweet.url.contains(youtubeDomain)
+  private def hasYoutubeVideoUrl(tweet: NewsletterTweet) = {
+    tweet.url.contains(youtubeDomain) && !tweet.url.contains(youtubePlaylist)
   }
 
   private def extractVideoId(url: String) = {

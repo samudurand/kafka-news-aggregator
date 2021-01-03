@@ -25,9 +25,10 @@ class DefaultScoringService(config: ScoringConfig, twitterRestClient: TwitterRes
 ) extends ScoringService
     with StrictLogging {
 
+  private val sourceScoreCalculator = SourceScoreCalculator(config.sources)
   private val twitterScoreCalculator = TwitterScoreCalculator(config.twitter, twitterRestClient)
   private val youtubeScoreCalculator = YoutubeScoreCalculator(config.youtube, youtubeClient)
-  private val scoreCalculators = List(twitterScoreCalculator, youtubeScoreCalculator)
+  private val scoreCalculators = List(sourceScoreCalculator, twitterScoreCalculator, youtubeScoreCalculator)
 
   def calculateScores(tweets: Seq[NewsletterTweet]): IO[Seq[NewsletterTweet]] = {
     scoreCalculators

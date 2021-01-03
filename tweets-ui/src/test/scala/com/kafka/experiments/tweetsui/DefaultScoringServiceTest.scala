@@ -4,7 +4,7 @@ import cats.effect.{ContextShift, IO}
 import com.danielasfregola.twitter4s.entities.{Tweet, User}
 import com.kafka.experiments.tweetsui.DefaultScoringServiceTest._
 import com.kafka.experiments.tweetsui.client.{VideoMetadata, YoutubeClient}
-import com.kafka.experiments.tweetsui.config.{ScaledScoreConfig, ScoringConfig, TwitterScoringConfig, YoutubeScoringConfig}
+import com.kafka.experiments.tweetsui.config.{ScaledScoreConfig, ScoringConfig, SourceConfig, TwitterScoringConfig, YoutubeScoringConfig}
 import com.kafka.experiments.tweetsui.newsletter.NewsletterTweet
 import com.kafka.experiments.tweetsui.score.{DefaultScoringService, ScoringService}
 import org.scalamock.scalatest.MockFactory
@@ -78,6 +78,7 @@ class DefaultScoringServiceTest extends AnyFlatSpec with BeforeAndAfterEach with
 object DefaultScoringServiceTest {
 
   val config: ScoringConfig = ScoringConfig(
+    SourceConfig(List("badsource", "otherbadsource")),
     TwitterScoringConfig(
       favourites = ScaledScoreConfig(1, Map("0" -> 0, "1" -> 100, "10" -> 1000)),
       followers = ScaledScoreConfig(2, Map("0" -> 0, "20" -> 200, "200" -> 2000)),

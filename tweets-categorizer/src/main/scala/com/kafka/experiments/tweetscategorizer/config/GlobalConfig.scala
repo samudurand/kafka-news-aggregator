@@ -10,7 +10,7 @@ case class GlobalConfig(
 
 case class KafkaConfig(bootstrapServers: String)
 
-case class SourceConfig(accepted: List[String], excluded: List[String])
+case class SourceConfig(accepted: List[String], excluded: List[String], poor: List[String])
 
 case class KeywordsConfig(
     ad: Seq[String],

@@ -269,6 +269,7 @@ class NewsletterApiTest
 object NewsletterApiTest {
 
   val config: ScoringConfig = ScoringConfig(
+    SourceConfig(List("badsource", "otherbadsource")),
     TwitterScoringConfig(
       favourites = ScaledScoreConfig(1, Map("1" -> 100, "10" -> 1000)),
       followers = ScaledScoreConfig(1, Map("20" -> 200, "200" -> 2000)),

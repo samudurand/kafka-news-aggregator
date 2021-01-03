@@ -9,7 +9,9 @@ case class GlobalConfig(
     youtube: YoutubeConfig
 )
 
-case class ScoringConfig(twitter: TwitterScoringConfig, youtube: YoutubeScoringConfig)
+case class ScoringConfig(sources: SourceConfig, twitter: TwitterScoringConfig, youtube: YoutubeScoringConfig)
+
+case class SourceConfig(poor: List[String])
 
 case class TwitterScoringConfig(
     favourites: ScaledScoreConfig,
