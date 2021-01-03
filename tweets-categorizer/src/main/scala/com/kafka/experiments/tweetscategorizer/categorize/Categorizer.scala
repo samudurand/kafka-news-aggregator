@@ -1,12 +1,9 @@
 package com.kafka.experiments.tweetscategorizer.categorize
 
 import com.kafka.experiments.shared._
-import com.kafka.experiments.tweetscategorizer.utils.TextUtils.{
-  textContainAtLeastOneNumber,
-  textLoweredCaseContainAnyOf
-}
+import com.kafka.experiments.tweetscategorizer.utils.TextUtils.{textContainAtLeastOneNumber, textLoweredCaseContainAnyOf}
 import com.kafka.experiments.tweetscategorizer.{Keywords, RedisService, Tweet}
-import com.kafka.experiments.tweetscategorizer.utils.TweetUtils.{firstValidLink, hasValidLink}
+import com.kafka.experiments.tweetscategorizer.utils.LinkUtils.{extractBaseUrl, firstValidLink, hasValidLink}
 
 trait Categorizer {
   def categorize(tweet: Tweet): CategorisedTweet
@@ -26,7 +23,7 @@ class DefaultCategorizer(redisService: RedisService) extends Categorizer {
         ExcludedTweet(tweet.Id.toString, reasonHasNoLink, tweet.Text, tweet.User.ScreenName, tweet.CreatedAt.toString)
       case Some(urlEntity) =>
         val validLink = urlEntity.ExpandedURL
-        redisService.putWithExpire(validLink) // Cache the URL
+        redisService.putWithExpire(extractBaseUrl(validLink)) // Cache the URL
 
         tweet match {
           case t if isAboutANewVersion(t) =>

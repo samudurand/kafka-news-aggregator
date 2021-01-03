@@ -2,8 +2,8 @@ package com.kafka.experiments.tweetscategorizer.ignore
 
 import com.kafka.experiments.tweetscategorizer.config.GlobalConfig
 import com.kafka.experiments.tweetscategorizer.{RedisService, Tweet}
-import com.kafka.experiments.tweetscategorizer.utils.TweetUtils
-import com.kafka.experiments.tweetscategorizer.utils.TweetUtils.firstValidLink
+import com.kafka.experiments.tweetscategorizer.utils.LinkUtils
+import com.kafka.experiments.tweetscategorizer.utils.LinkUtils.{extractBaseUrl, firstValidLink}
 import com.typesafe.scalalogging.StrictLogging
 import pureconfig.ConfigSource
 import pureconfig.generic.auto._
@@ -15,23 +15,24 @@ class ToSkip(redisService: RedisService) extends StrictLogging {
     if (tweet.Retweet || isNotInEnglish(tweet)) {
       logger.debug(s"Tweet should be be skipped: $tweet")
       true
-    } else if (config.dropIfNoLink && !TweetUtils.hasValidLink(tweet)) {
-      logger.debug(s"Tweet without a valid URL should be be skipped: $tweet")
-      true
     } else if (tweet.InReplyToStatusId >= 0) {
       logger.debug(s"Tweet replying to another should be skipped: $tweet")
       true
-    } else if (config.dropIfNoLink && !TweetUtils.hasValidLink(tweet)) {
+    } else if (config.dropIfNoLink && !LinkUtils.hasValidLink(tweet)) {
       logger.debug(s"Tweet without a valid URL should be be skipped: $tweet")
       true
     } else {
-      firstValidLink(tweet) match {
-        case Some(url) =>
-          val hasKnownUrl = redisService.exists(url.ExpandedURL)
-          if (hasKnownUrl) logger.info(s"Tweet with already known URL should be skipped: $tweet")
-          hasKnownUrl
-        case _ => false
-      }
+      hasAlreadyKnownUrl(tweet)
+    }
+  }
+
+  private def hasAlreadyKnownUrl(tweet: Tweet) = {
+    firstValidLink(tweet) match {
+      case Some(url) =>
+        val hasKnownUrl = redisService.exists(extractBaseUrl(url.ExpandedURL))
+        if (hasKnownUrl) logger.info(s"Tweet with already known URL should be skipped: $tweet")
+        hasKnownUrl
+      case _ => false
     }
   }
 

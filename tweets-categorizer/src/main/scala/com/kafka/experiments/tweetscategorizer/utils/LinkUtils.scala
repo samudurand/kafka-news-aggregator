@@ -2,7 +2,7 @@ package com.kafka.experiments.tweetscategorizer.utils
 
 import com.kafka.experiments.tweetscategorizer.{Tweet, URLEntity}
 
-object TweetUtils {
+object LinkUtils {
 
   val twitterDomain = "https://twitter.com"
 
@@ -12,6 +12,13 @@ object TweetUtils {
 
   def firstValidLink(tweet: Tweet): Option[URLEntity] = {
     tweet.URLEntities.find(!_.ExpandedURL.startsWith(twitterDomain))
+  }
+
+  /**
+   * Extract the base URL (without parameters)
+   */
+  def extractBaseUrl(url: String): String = {
+    url.replaceAll("\\?.*$", "")
   }
 
 }

@@ -1,10 +1,10 @@
 package com.kafka.experiments.tweetscategorizer
 
-import com.kafka.experiments.tweetscategorizer.utils.TweetUtils.hasValidLink
+import com.kafka.experiments.tweetscategorizer.utils.LinkUtils.{extractBaseUrl, hasValidLink}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-class TweetUtilsTest extends AnyFlatSpec with Matchers {
+class LinkUtilsTest extends AnyFlatSpec with Matchers {
 
   private val goodTweet = Tweet(
     1604688491000L,
@@ -32,6 +32,16 @@ class TweetUtilsTest extends AnyFlatSpec with Matchers {
     val tweet =
       goodTweet.copy(URLEntities = List(URLEntity("https://t.co/0lztrRpQTK", "https://twitter.com/some/tweet")))
     hasValidLink(tweet) shouldBe false
+  }
+
+  "Url" should "be returned without parameters" in {
+    extractBaseUrl(
+      "https://www.infoq.com/articles"
+    ) shouldBe "https://www.infoq.com/articles"
+
+    extractBaseUrl(
+      "https://www.infoq.com/articles/?utm_campaign=infoq_content&utm_source=dlvr.it"
+    ) shouldBe "https://www.infoq.com/articles/"
   }
 
 }
