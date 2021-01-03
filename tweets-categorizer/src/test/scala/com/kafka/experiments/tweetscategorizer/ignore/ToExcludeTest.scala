@@ -24,6 +24,12 @@ class ToExcludeTest extends AnyFlatSpec with Matchers {
     shouldBeExcluded(goodTweet) shouldBe None
   }
 
+  "A Tweet that has kafka in the url" should "not be excluded" in {
+    val tweet =
+      goodTweet.copy(Text = "no mention of keyword", URLEntities = List(URLEntity("", "http://some/kafka/article")))
+    shouldBeExcluded(tweet) shouldBe None
+  }
+
   "A Tweet that doesn't have kafka in the text" should "be excluded" in {
     val tweet = goodTweet.copy(Text = "no mention of keyword")
     shouldBeExcluded(tweet) shouldBe Some(reasonDoesNotMentionKafka)
