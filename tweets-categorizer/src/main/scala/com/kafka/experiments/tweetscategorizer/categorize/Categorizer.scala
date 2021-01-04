@@ -2,7 +2,11 @@ package com.kafka.experiments.tweetscategorizer.categorize
 
 import com.kafka.experiments.shared.UrlManipulator.expandUrlOnce
 import com.kafka.experiments.shared._
-import com.kafka.experiments.tweetscategorizer.utils.TextUtils.{textContainAtLeastOneNumber, textLoweredCaseContainAnyOf}
+import com.kafka.experiments.tweetscategorizer.utils.TextUtils.{
+  textContainAnyOf,
+  textContainAtLeastOneNumber,
+  textLoweredCaseContainAnyOf
+}
 import com.kafka.experiments.tweetscategorizer.{Keywords, RedisService, Tweet}
 import com.kafka.experiments.tweetscategorizer.utils.LinkUtils.{expandUrlAndExtractBase, extractBaseUrl, firstValidLink}
 
@@ -57,8 +61,9 @@ class DefaultCategorizer(redisService: RedisService) extends Categorizer {
   }
 
   private def isAboutANewVersion(tweet: Tweet): Boolean = {
-    textLoweredCaseContainAnyOf(tweet.Text, Keywords.versionReleaseWords, List("version")) &&
-    textContainAtLeastOneNumber(UrlManipulator.removeUrls(tweet.Text))
+    (textLoweredCaseContainAnyOf(tweet.Text, Keywords.versionReleaseWords, List("version")) &&
+      textContainAtLeastOneNumber(UrlManipulator.removeUrls(tweet.Text))) ||
+    textLoweredCaseContainAnyOf(tweet.Text, Keywords.versionReleaseCombinedWords)
   }
 
   private def isAboutAnArticle(tweet: Tweet): Boolean = {

@@ -16,10 +16,11 @@ object Keywords {
   val franzKafkaRelatedWords: Seq[String] = config.fkafka
   val jobOfferWords: Seq[String] = config.job
   val gameWords: Seq[String] = config.game
-  val unrelatedDomains: Seq[String] = config.unrelateddomains
-  val unrelatedWords: Seq[String] = config.unrelated
   val versionReleaseWords: Seq[String] = config.version
+  val versionReleaseCombinedWords: Seq[String] = config.versioncombinations
   val videoWords: Seq[String] = config.video
   val videoDomains: Seq[String] = config.videodomains
+  val unrelatedDomains: Seq[String] = config.unrelateddomains
+  val unrelatedWords: Seq[String] = config.unrelated
 
 }

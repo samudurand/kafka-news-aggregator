@@ -22,11 +22,12 @@ case class KeywordsConfig(
     fkafka: Seq[String],
     job: Seq[String],
     game: Seq[String],
-    unrelated: Seq[String],
-    unrelateddomains: Seq[String],
     version: Seq[String],
+    versioncombinations: Seq[String],
     video: Seq[String],
-    videodomains: Seq[String]
+    videodomains: Seq[String],
+    unrelated: Seq[String],
+    unrelateddomains: Seq[String]
 )
 
 case class RedisConfig(host: String, port: Int, ttlInHours: Int)
