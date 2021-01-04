@@ -23,7 +23,7 @@ class DefaultCategorizer(redisService: RedisService) extends Categorizer {
   val reasonHasNoLink = "NO_CATEGORY_NOR_LINK"
 
   override def categorize(tweet: Tweet): CategorisedTweet = {
-    firstValidLink(tweet) match {
+    firstValidLink(tweet.URLEntities) match {
       case None =>
         ExcludedTweet(tweet.Id.toString, reasonHasNoLink, tweet.Text, tweet.User.ScreenName, tweet.CreatedAt.toString)
       case Some(urlEntity) =>

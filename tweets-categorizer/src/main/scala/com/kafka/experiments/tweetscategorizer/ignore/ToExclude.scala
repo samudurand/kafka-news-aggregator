@@ -7,7 +7,8 @@ import com.kafka.experiments.tweetscategorizer.utils.TextUtils.{
 }
 import com.kafka.experiments.tweetscategorizer.{Keywords, Tweet}
 import com.kafka.experiments.tweetscategorizer.ignore.FranzKafkaWriter.isAboutFranzKafka
-import com.kafka.experiments.tweetscategorizer.utils.LinkUtils
+import com.kafka.experiments.tweetscategorizer.utils.UserUtils.userNameContainsAnyOf
+import com.kafka.experiments.tweetscategorizer.utils.{LinkUtils, UserUtils}
 
 object ToExclude {
 
@@ -43,12 +44,13 @@ object ToExclude {
   }
 
   private def isAboutAGame(tweet: Tweet): Boolean = {
-    textLoweredCaseContainAnyOf(tweet.Text, List(), Keywords.gameWords)
+    textLoweredCaseContainAnyOf(tweet.Text, List(), Keywords.gameWords) ||
+    userNameContainsAnyOf(tweet.User, Keywords.gameWords)
   }
 
   private def doesNotMentionKafka(tweet: Tweet): Boolean = {
     !(textLoweredCaseContainAnyOf(tweet.Text, List("kafka")) ||
-      LinkUtils.firstValidLink(tweet).exists(_.ExpandedURL.contains("kafka")))
+      LinkUtils.firstValidLink(tweet.URLEntities).exists(_.ExpandedURL.contains("kafka")))
   }
 
   private def isTooShort(tweet: Tweet) = {
