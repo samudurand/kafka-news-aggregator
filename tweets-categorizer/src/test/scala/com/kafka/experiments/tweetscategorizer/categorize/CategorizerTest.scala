@@ -80,7 +80,7 @@ class CategorizerTest extends AnyFlatSpec with Matchers with MockFactory with Be
 
   "A Tweet mentioning with a link containing a number" should "not be identified as a new Version" in {
     (redisService.putWithExpire _).expects(*).returning(false)
-    val tweet = goodTweet.copy(Text = "new version https://stack.com/34/link")
+    val tweet = goodTweet.copy(Text = "version https://stack.com/34/link")
 
     categorizer.categorize(tweet) shouldBe a[OtherTweet]
   }
