@@ -23,12 +23,14 @@ object ToExclude {
   val reasonIsTooShort = "IS_TOO_SHORT"
   val reasonHasSourceToBeExcluded = "HAS_SOURCE_TO_BE_EXCLUDED"
   val reasonHasUnrelatedWords = "HAS_UNRELATED_WORDS"
+  val reasonHasExcludedTags = "HAS_EXCLUDED_TAGS"
 
   /** @return the reason why it should be excluded
     */
   def shouldBeExcluded(tweet: Tweet): Option[String] = {
     tweet match {
       case t if doesNotMentionKafka(t)   => Some(reasonDoesNotMentionKafka)
+      case t if hasSourceToBeExcluded(t) => Some(reasonHasSourceToBeExcluded)
       case t if hasSourceToBeExcluded(t) => Some(reasonHasSourceToBeExcluded)
       case t if hasUnrelatedContent(t)   => Some(reasonHasUnrelatedWords)
       case t if isAboutACertification(t) => Some(reasonIsAboutACertification)
@@ -39,6 +41,7 @@ object ToExclude {
       case t if isDiscountRelated(t)     => Some(reasonIsDiscountRelated)
       case t if isMoneyRelated(t)        => Some(reasonIsMoneyRelated)
       case t if isTooShort(t)            => Some(reasonIsTooShort)
+      case t if hasTagToExclude(t)       => Some(reasonHasExcludedTags)
       case _                             => None
     }
   }
@@ -86,8 +89,14 @@ object ToExclude {
     textLoweredCaseContainAnyOf(tweet.Text, Keywords.adWords)
   }
 
-  private def hasUnrelatedContent(tweet: Tweet) = {
+  private def hasUnrelatedContent(tweet: Tweet): Boolean = {
     textLoweredCaseContainAnyOf(tweet.Text, Keywords.unrelatedWords) ||
     Keywords.unrelatedDomains.exists(domain => tweet.URLEntities.exists(_.ExpandedURL.contains(domain)))
+  }
+
+  private def hasTagToExclude(tweet: Tweet): Boolean = {
+    Keywords.tagsToExclude
+      .map(_.toLowerCase)
+      .exists(tweet.UserMentionEntities.map(_.ScreenName.toLowerCase).contains(_))
   }
 }

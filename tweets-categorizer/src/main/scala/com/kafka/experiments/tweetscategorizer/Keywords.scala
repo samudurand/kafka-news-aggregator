@@ -16,6 +16,7 @@ object Keywords {
   val franzKafkaRelatedWords: Seq[String] = config.fkafka
   val jobOfferWords: Seq[String] = config.job
   val gameWords: Seq[String] = config.game
+  val tagsToExclude: Seq[String] = config.tagsexclude
   val versionReleaseWords: Seq[String] = config.version
   val versionReleaseCombinedWords: Seq[String] = config.versioncombinations
   val videoWords: Seq[String] = config.video

@@ -10,9 +10,15 @@ object KnownSources {
 
   private val sourcesToBeExcluded = config.sources.excluded
   private val sourcesToBeAutoAccepted = config.sources.accepted
+  private val sourcesKeywordsToBeExcluded = config.sources.excludedwords
 
   def hasSourceToBeExcluded(tweet: Tweet): Boolean = {
-    hasKnownSource(tweet, sourcesToBeExcluded)
+    hasKnownSource(tweet, sourcesToBeExcluded) ||
+    hasSourceContainingWordsToBeExcluded(tweet)
+  }
+
+  def hasSourceContainingWordsToBeExcluded(tweet: Tweet): Boolean = {
+    sourcesKeywordsToBeExcluded.exists(keyword => tweet.User.ScreenName.toLowerCase.contains(keyword.toLowerCase))
   }
 
   private def hasKnownSource(tweet: Tweet, known: List[String]): Boolean = {

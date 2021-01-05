@@ -71,7 +71,7 @@ class ToExcludeTest extends AnyFlatSpec with Matchers {
   }
 
   "A tweet about a certification" should "be excluded" in {
-    val tweet = goodTweet.copy(Text = "The best certification on Kafka is there!")
+    val tweet = goodTweet.copy(Text = "Have you added @apachekafka certification to your list of New Year's resolutions")
     shouldBeExcluded(tweet) shouldBe Some(reasonIsAboutACertification)
   }
 
@@ -83,5 +83,10 @@ class ToExcludeTest extends AnyFlatSpec with Matchers {
   "A tweet which has completely unrelated words" should "be excluded" in {
     val tweet = goodTweet.copy(Text = "It's about a Novel on Kafka")
     shouldBeExcluded(tweet) shouldBe Some(reasonHasUnrelatedWords)
+  }
+
+  "A tweet mentioning a tag that should be excluded" should "be excluded" in {
+    val tweet = goodTweet.copy(UserMentionEntities = List(User(111L, "Meetup")))
+    shouldBeExcluded(tweet) shouldBe Some(reasonHasExcludedTags)
   }
 }

@@ -29,4 +29,8 @@ class KnownSourcesTest extends AnyFlatSpec with Matchers {
     hasSourceToBeExcluded(tweet) shouldBe true
   }
 
+  "A Tweet from a source with a word that should be excluded" should "be identified" in {
+    val tweet = goodTweet.copy(User = User(123131413L, "greatjoboffers"))
+    hasSourceContainingWordsToBeExcluded(tweet) shouldBe true
+  }
 }
