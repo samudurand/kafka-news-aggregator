@@ -1,5 +1,6 @@
 package com.kafka.experiments.tweetscategorizer
 
+import com.kafka.experiments.shared.UrlManipulator.expandUrlOnce
 import com.kafka.experiments.shared._
 import com.kafka.experiments.tweetscategorizer.KnownSources.hasSourceToBeAutoAccepted
 import com.kafka.experiments.tweetscategorizer.categorize.Categorizer
@@ -32,6 +33,7 @@ object StreamingTopology extends StrictLogging {
 
     val classifiedTweets = tweets
       .filterNot((_, tweet) => toSkip.shouldBeSkipped(tweet))
+      .mapValues(tweet => withExpandedUrls(tweet))
       .mapValues(tweet => {
         if (hasSourceToBeAutoAccepted(tweet)) {
           categorizer.categorize(tweet)
@@ -53,6 +55,10 @@ object StreamingTopology extends StrictLogging {
     toTopicByType[OtherTweet](classifiedTweets, sinkOtherTopic)
 
     builder
+  }
+
+  private def withExpandedUrls(tweet: Tweet): Tweet = {
+    tweet.copy(URLEntities = tweet.URLEntities.map(url => url.copy(ExpandedURL = expandUrlOnce(url.ExpandedURL))))
   }
 
   // Using Manifest is not good for performance (Reflection)

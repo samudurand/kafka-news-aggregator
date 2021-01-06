@@ -27,26 +27,26 @@ class DefaultCategorizer(redisService: RedisService) extends Categorizer {
       case None =>
         ExcludedTweet(tweet.Id.toString, reasonHasNoLink, tweet.Text, tweet.User.ScreenName, tweet.CreatedAt.toString)
       case Some(urlEntity) =>
-        val validLink = expandUrlOnce(urlEntity.ExpandedURL)
-        redisService.putWithExpire(extractBaseUrl(validLink)) // Cache the URL
+        val link = urlEntity.ExpandedURL
+        redisService.putWithExpire(extractBaseUrl(link)) // Cache the URL
 
         tweet match {
           case t if isAboutANewVersion(t) =>
             VersionReleaseTweet(
               tweet.Id.toString,
               tweet.Text,
-              validLink,
+              link,
               tweet.User.ScreenName,
               tweet.CreatedAt.toString
             )
           case t if isAboutAnAudioPost(t) =>
-            AudioTweet(tweet.Id.toString, tweet.Text, validLink, tweet.User.ScreenName, tweet.CreatedAt.toString)
+            AudioTweet(tweet.Id.toString, tweet.Text, link, tweet.User.ScreenName, tweet.CreatedAt.toString)
           case t if isAboutAVideoPost(t) =>
-            VideoTweet(tweet.Id.toString, tweet.Text, validLink, tweet.User.ScreenName, tweet.CreatedAt.toString)
+            VideoTweet(tweet.Id.toString, tweet.Text, link, tweet.User.ScreenName, tweet.CreatedAt.toString)
           case t if isAboutAnArticle(t) =>
-            ArticleTweet(tweet.Id.toString, tweet.Text, validLink, tweet.User.ScreenName, tweet.CreatedAt.toString)
+            ArticleTweet(tweet.Id.toString, tweet.Text, link, tweet.User.ScreenName, tweet.CreatedAt.toString)
           case _ =>
-            OtherTweet(tweet.Id.toString, tweet.Text, validLink, tweet.User.ScreenName, tweet.CreatedAt.toString)
+            OtherTweet(tweet.Id.toString, tweet.Text, link, tweet.User.ScreenName, tweet.CreatedAt.toString)
         }
     }
   }
