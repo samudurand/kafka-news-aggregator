@@ -43,6 +43,8 @@ class DefaultCategorizer(redisService: RedisService) extends Categorizer {
             AudioTweet(tweet.Id.toString, tweet.Text, link, tweet.User.ScreenName, tweet.CreatedAt.toString)
           case t if isAboutAVideoPost(t) =>
             VideoTweet(tweet.Id.toString, tweet.Text, link, tweet.User.ScreenName, tweet.CreatedAt.toString)
+          case t if isAboutATool(t) =>
+            ToolTweet(tweet.Id.toString, tweet.Text, link, tweet.User.ScreenName, tweet.CreatedAt.toString)
           case t if isAboutAnArticle(t) =>
             ArticleTweet(tweet.Id.toString, tweet.Text, link, tweet.User.ScreenName, tweet.CreatedAt.toString)
           case _ =>
@@ -69,6 +71,11 @@ class DefaultCategorizer(redisService: RedisService) extends Categorizer {
   private def isAboutAnArticle(tweet: Tweet): Boolean = {
     textLoweredCaseContainAnyOf(tweet.Text, Keywords.articleWords) ||
     Keywords.articleDomains.exists(domain => tweet.URLEntities.exists(_.ExpandedURL.contains(domain)))
+  }
+
+  private def isAboutATool(tweet: Tweet): Boolean = {
+    textLoweredCaseContainAnyOf(tweet.Text, Keywords.toolWords) ||
+    Keywords.toolDomains.exists(domain => tweet.URLEntities.exists(_.ExpandedURL.contains(domain)))
   }
 
 }

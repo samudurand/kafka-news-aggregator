@@ -21,6 +21,7 @@ class NewsletterBuilder(mongoService: MongoService, fmGenerator: FreeMarkerGener
             category match {
               case Article.name        => "listArticles" -> tweetsByCategory
               case Audio.name          => "listAudios" -> tweetsByCategory
+              case Tool.name           => "listTools" -> tweetsByCategory
               case VersionRelease.name => "listVersions" -> tweetsByCategory
               case Video.name          => "listVideos" -> tweetsByCategory
               case Other.name          => "listOthers" -> tweetsByCategory

@@ -116,6 +116,15 @@ class IntegrationTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach 
     outputTopics(sinkArticleTopic).getQueueSize shouldBe 1
   }
 
+  it should "identify a tweet about a tool" in {
+    configureRedisMock()
+    val toolTweet = tweet.copy(Text = "Check out this tool for on Kafka!")
+    inputTopic.pipeInput(tweet.Id.toString, toolTweet.asJson.noSpaces)
+
+    outputTopics.view.filterKeys(_ != sinkToolTopic).values.foreach(topic => topic.isEmpty shouldBe true)
+    outputTopics(sinkToolTopic).getQueueSize shouldBe 1
+  }
+
   it should "identify a tweet about anything else interesting" in {
     configureRedisMock()
     val otherTweet = tweet.copy(Text = "Something about kafka that should be interesting")
@@ -142,6 +151,7 @@ class IntegrationTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach 
     List(
       sinkArticleTopic,
       sinkAudioTopic,
+      sinkToolTopic,
       sinkOtherTopic,
       sinkVideoTopic,
       sinkVersionTopic,

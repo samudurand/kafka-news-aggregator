@@ -84,3 +84,15 @@ case class OtherTweet(
     override val user: String,
     override val createdAt: String
 ) extends InterestingTweet(id, text, url, user, createdAt)
+
+object ToolTweet {
+  implicit val codec: Codec[ToolTweet] = deriveCodec
+}
+
+case class ToolTweet(
+    override val id: String,
+    override val text: String,
+    override val url: String,
+    override val user: String,
+    override val createdAt: String
+) extends InterestingTweet(id, text, url, user, createdAt)

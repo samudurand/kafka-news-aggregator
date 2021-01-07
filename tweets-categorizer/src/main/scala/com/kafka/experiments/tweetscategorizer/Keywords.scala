@@ -17,6 +17,8 @@ object Keywords {
   val jobOfferWords: Seq[String] = config.job
   val gameWords: Seq[String] = config.game
   val tagsToExclude: Seq[String] = config.tagsexclude
+  val toolWords: Seq[String] = config.tool
+  val toolDomains: Seq[String] = config.tooldomains
   val versionReleaseWords: Seq[String] = config.version
   val versionReleaseCombinedWords: Seq[String] = config.versioncombinations
   val videoWords: Seq[String] = config.video

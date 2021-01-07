@@ -40,11 +40,11 @@ each sub-section):
 | Name | Description | State |
 | ---- | ----------- | ----- |
 | Audio/Podcasts | Identify based on keywords | Implemented |
+| Tools | Identify based on keywords, link domains (ie. Github) or... | Implemented |
 | Video | Identify based on keywords or link domain (ie. Youtube) | Implemented |
 | Version Release | Identify based on keywords and presence of at least one number | Implemented |
 | Article | Identify based on keywords or link domain (ie. Medium) | Implemented |
 | Other | Any tweet not falling in any of the other categories | Implemented |
-| Tools | Identify based on keywords, link domains (ie. Github) or... | Todo |
 
 ### Scoring Tweets
 

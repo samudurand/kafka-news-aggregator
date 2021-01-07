@@ -54,6 +54,8 @@ class TweetApi(mongoService: MongoService) extends StrictLogging {
             mongoService.tweets[VideoTweet](category).flatMap(Ok(_))
           case Article =>
             mongoService.tweets[ArticleTweet](category).flatMap(Ok(_))
+          case Tool =>
+            mongoService.tweets[ToolTweet](category).flatMap(Ok(_))
           case VersionRelease =>
             mongoService.tweets[VersionReleaseTweet](category).flatMap(Ok(_))
           case Excluded =>

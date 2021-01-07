@@ -14,6 +14,7 @@ class FreeMarkerGeneratorTest extends AnyFlatSpec with Matchers {
     val data = Map(
       "listArticles" -> List(tweet).asJava,
       "listAudios" -> List(tweet).asJava,
+      "listTools" -> List(tweet).asJava,
       "listVersions" -> List(tweet).asJava,
       "listVideos" -> List(tweet).asJava,
       "listOthers" -> List(tweet).asJava
@@ -22,6 +23,7 @@ class FreeMarkerGeneratorTest extends AnyFlatSpec with Matchers {
     val html = fmGenerator.generateHtml(data)
 
     html should include ("Articles</h3>")
+    html should include ("Tools</h3>")
     html should include ("Podcasts</h3>")
     html should include ("Videos</h3>")
     html should include ("Releases</h3>")
@@ -38,6 +40,7 @@ class FreeMarkerGeneratorTest extends AnyFlatSpec with Matchers {
 
     html should include ("Articles</h3>")
     html should include ("Podcasts</h3>")
+    html should not include ("Tools</h3>")
     html should not include ("Videos</h3>")
     html should not include ("Releases</h3>")
     html should not include ("Others</h3>")
@@ -47,6 +50,7 @@ class FreeMarkerGeneratorTest extends AnyFlatSpec with Matchers {
     val data = Map(
       "listArticles" -> List().asJava,
       "listAudios" -> List().asJava,
+      "listTools" -> List().asJava,
       "listVersions" -> List().asJava,
       "listVideos" -> List().asJava,
       "listOthers" -> List().asJava
@@ -55,6 +59,7 @@ class FreeMarkerGeneratorTest extends AnyFlatSpec with Matchers {
     val html = fmGenerator.generateHtml(data)
 
     html should not include ("Articles</h3>")
+    html should not include ("Tools</h3>")
     html should not include ("Podcasts</h3>")
     html should not include ("Videos</h3>")
     html should not include ("Releases</h3>")
@@ -66,6 +71,7 @@ class FreeMarkerGeneratorTest extends AnyFlatSpec with Matchers {
     val html = fmGenerator.generateHtml(data)
 
     html should not include ("Articles</h3>")
+    html should not include ("Tools</h3>")
     html should not include ("Podcasts</h3>")
     html should not include ("Videos</h3>")
     html should not include ("Releases</h3>")

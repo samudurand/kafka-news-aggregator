@@ -5,6 +5,7 @@ import com.kafka.experiments.shared.{
   AudioTweet,
   ExcludedTweet,
   OtherTweet,
+  ToolTweet,
   VersionReleaseTweet,
   VideoTweet
 }
@@ -104,6 +105,20 @@ class CategorizerTest extends AnyFlatSpec with Matchers with MockFactory with Be
     val tweet = goodTweet.copy(URLEntities = List(URLEntity("http://tinylink.com", "https://dzone.com/some/article")))
 
     categorizer.categorize(tweet) shouldBe a[ArticleTweet]
+  }
+
+  "A Tweet mentioning a tool" should "be identified as tool related" in {
+    (redisService.putWithExpire _).expects(*).returning(false)
+    val tweet = goodTweet.copy(Text = "great tool available!")
+
+    categorizer.categorize(tweet) shouldBe a[ToolTweet]
+  }
+
+  "A Tweet containing a link to a known tool domain" should "be identified as tool related" in {
+    (redisService.putWithExpire _).expects(*).returning(false)
+    val tweet = goodTweet.copy(URLEntities = List(URLEntity("http://tinylink.com", "https://github.com/great/tool")))
+
+    categorizer.categorize(tweet) shouldBe a[ToolTweet]
   }
 
   "A tweet thas has no category nor even a link" should "not be considered interesting" in {

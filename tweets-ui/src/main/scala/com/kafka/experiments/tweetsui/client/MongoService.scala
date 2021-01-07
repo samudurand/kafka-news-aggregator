@@ -51,6 +51,7 @@ object MongoService {
   val tweetsDb = "tweets"
   val collArticleName = "article"
   val collAudioName = "audio"
+  val collToolName = "tool"
   val collVersionName = "version"
   val collVideoName = "video"
   val collOtherName = "other"
@@ -68,6 +69,7 @@ class DefaultMongoService(mongoClient: MongoClient)(implicit c: ContextShift[IO]
   private val customCodecs = fromProviders(
     classOf[ArticleTweet],
     classOf[AudioTweet],
+    classOf[ToolTweet],
     classOf[VideoTweet],
     classOf[ExcludedTweet],
     classOf[OtherTweet],
@@ -81,6 +83,7 @@ class DefaultMongoService(mongoClient: MongoClient)(implicit c: ContextShift[IO]
 
   private val collArticleTweets = database.getCollection(collArticleName)
   private val collAudioTweets = database.getCollection(collAudioName)
+  private val collToolTweets = database.getCollection(collToolName)
   private val collVersionTweets = database.getCollection(collVersionName)
   private val collVideoTweets = database.getCollection(collVideoName)
   private val collOtherTweets = database.getCollection(collOtherName)
@@ -137,6 +140,7 @@ class DefaultMongoService(mongoClient: MongoClient)(implicit c: ContextShift[IO]
     category match {
       case Article        => collArticleTweets
       case Audio          => collAudioTweets
+      case Tool           => collToolTweets
       case Excluded       => collExcludedTweets
       case Other          => collOtherTweets
       case VersionRelease => collVersionTweets

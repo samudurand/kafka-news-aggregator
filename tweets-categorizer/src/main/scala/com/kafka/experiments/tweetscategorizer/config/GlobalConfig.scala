@@ -23,6 +23,8 @@ case class KeywordsConfig(
     job: Seq[String],
     game: Seq[String],
     tagsexclude: Seq[String],
+    tool: Seq[String],
+    tooldomains: Seq[String],
     version: Seq[String],
     versioncombinations: Seq[String],
     video: Seq[String],
