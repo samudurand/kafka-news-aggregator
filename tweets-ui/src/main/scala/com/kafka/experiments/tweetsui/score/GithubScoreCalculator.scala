@@ -5,6 +5,7 @@ import cats.implicits._
 import com.kafka.experiments.tweetsui.client.GithubClient
 import com.kafka.experiments.tweetsui.config.GithubScoringConfig
 import com.kafka.experiments.tweetsui.newsletter.NewsletterTweet
+import com.typesafe.scalalogging.StrictLogging
 
 trait GithubScoreCalculator extends ScoreCalculator
 
@@ -14,7 +15,9 @@ object GithubScoreCalculator {
     new DefaultGithubScoreCalculator(config, client)
 }
 
-class DefaultGithubScoreCalculator(config: GithubScoringConfig, client: GithubClient) extends GithubScoreCalculator {
+class DefaultGithubScoreCalculator(config: GithubScoringConfig, client: GithubClient)
+    extends GithubScoreCalculator
+    with StrictLogging {
 
   val githubDomain = "https://github.com"
 
@@ -28,6 +31,7 @@ class DefaultGithubScoreCalculator(config: GithubScoringConfig, client: GithubCl
   }
 
   private def hasGithubLink(tweet: NewsletterTweet): Boolean = {
+    logger.info(s"${tweet.url}")
     tweet.url.startsWith(githubDomain)
   }
 
