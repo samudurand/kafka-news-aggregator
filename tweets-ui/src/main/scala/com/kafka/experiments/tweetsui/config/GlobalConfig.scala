@@ -10,7 +10,12 @@ case class GlobalConfig(
     youtube: YoutubeConfig
 )
 
-case class ScoringConfig(sources: SourceConfig, twitter: TwitterScoringConfig, youtube: YoutubeScoringConfig)
+case class ScoringConfig(
+    github: GithubScoringConfig,
+    sources: SourceConfig,
+    twitter: TwitterScoringConfig,
+    youtube: YoutubeScoringConfig
+)
 
 case class SourceConfig(poor: List[String])
 
@@ -36,6 +41,8 @@ case class SendGridConfig(baseUrl: String, apiKey: String, senderId: Int, listId
 case class FreeMarkerConfig(templatesFolderSystemPath: Option[String])
 
 case class GithubConfig(baseUrl: String)
+
+case class GithubScoringConfig(stars: ScaledScoreConfig, watchers: ScaledScoreConfig)
 
 case class YoutubeConfig(baseUrl: String, apiKey: String)
 

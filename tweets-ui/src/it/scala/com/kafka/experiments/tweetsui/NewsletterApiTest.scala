@@ -10,7 +10,7 @@ import com.kafka.experiments.tweetsui.Decoders._
 import com.kafka.experiments.tweetsui.Encoders._
 import com.kafka.experiments.tweetsui.NewsletterApiTest._
 import com.kafka.experiments.tweetsui.api.{MoveTweetsToNewsletter, NewsletterApi}
-import com.kafka.experiments.tweetsui.client.YoutubeClient
+import com.kafka.experiments.tweetsui.client.{GithubClient, YoutubeClient}
 import com.kafka.experiments.tweetsui.client.sendgrid.SendGridClient
 import com.kafka.experiments.tweetsui.config._
 import com.kafka.experiments.tweetsui.newsletter.{FreeMarkerGenerator, NewsletterBuilder, NewsletterTweet}
@@ -46,6 +46,7 @@ class NewsletterApiTest
 
   private val newsletterBuilder = new NewsletterBuilder(mongoService, new FreeMarkerGenerator(config.freemarker))
   private var httpClient: Client[IO] = _
+  private var githubClient: GithubClient = _
   private var twitterRestClient: MockedTwitterRestClient = _
   private var scoringService: ScoringService = _
   private var sendGridClient: SendGridClient = _
@@ -55,9 +56,10 @@ class NewsletterApiTest
   override def beforeEach: Unit = {
     super.beforeEach()
     httpClient = BlazeClientBuilder[IO](global).allocated.unsafeRunSync()._1
+    githubClient = GithubClient(config.github, httpClient)
     twitterRestClient = new MockedTwitterRestClient()
     youtubeClient = YoutubeClient(youtubeConfig, httpClient)
-    scoringService = ScoringService(config.score, twitterRestClient, youtubeClient)
+    scoringService = ScoringService(config.score, githubClient, twitterRestClient, youtubeClient)
     sendGridClient = SendGridClient(sendGridConfig, httpClient)
     api = new NewsletterApi(newsletterBuilder, mongoService, scoringService, sendGridClient).api().orNotFound
   }
@@ -269,6 +271,10 @@ class NewsletterApiTest
 object NewsletterApiTest {
 
   val config: ScoringConfig = ScoringConfig(
+    GithubScoringConfig(
+      stars = ScaledScoreConfig(1, Map("1" -> 100, "10" -> 200)),
+      watchers = ScaledScoreConfig(2, Map("1" -> 100, "10" -> 200))
+    ),
     SourceConfig(List("badsource", "otherbadsource")),
     TwitterScoringConfig(
       favourites = ScaledScoreConfig(1, Map("1" -> 100, "10" -> 1000)),

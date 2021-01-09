@@ -3,7 +3,7 @@ package com.kafka.experiments.tweetsui.score
 import cats.effect.{ContextShift, IO}
 import cats.implicits._
 import com.danielasfregola.twitter4s.TwitterRestClient
-import com.kafka.experiments.tweetsui.client.YoutubeClient
+import com.kafka.experiments.tweetsui.client.{GithubClient, YoutubeClient}
 import com.kafka.experiments.tweetsui.config.ScoringConfig
 import com.kafka.experiments.tweetsui.newsletter.NewsletterTweet
 import com.typesafe.scalalogging.StrictLogging
@@ -14,21 +14,34 @@ trait ScoringService {
 
 object ScoringService {
 
-  def apply(config: ScoringConfig, twitterRestClient: TwitterRestClient, youtubeClient: YoutubeClient)(implicit
+  def apply(
+      config: ScoringConfig,
+      githubClient: GithubClient,
+      twitterRestClient: TwitterRestClient,
+      youtubeClient: YoutubeClient
+  )(implicit
       context: ContextShift[IO]
   ): ScoringService =
-    new DefaultScoringService(config, twitterRestClient, youtubeClient)
+    new DefaultScoringService(config, githubClient, twitterRestClient, youtubeClient)
 }
 
-class DefaultScoringService(config: ScoringConfig, twitterRestClient: TwitterRestClient, youtubeClient: YoutubeClient)(
-    implicit context: ContextShift[IO]
+class DefaultScoringService(
+    config: ScoringConfig,
+    githubClient: GithubClient,
+    twitterRestClient: TwitterRestClient,
+    youtubeClient: YoutubeClient
+)(implicit
+    context: ContextShift[IO]
 ) extends ScoringService
     with StrictLogging {
 
+  private val githubScoreCalculator = GithubScoreCalculator(config.github, githubClient)
   private val sourceScoreCalculator = SourceScoreCalculator(config.sources)
   private val twitterScoreCalculator = TwitterScoreCalculator(config.twitter, twitterRestClient)
   private val youtubeScoreCalculator = YoutubeScoreCalculator(config.youtube, youtubeClient)
-  private val scoreCalculators = List(sourceScoreCalculator, twitterScoreCalculator, youtubeScoreCalculator)
+
+  private val scoreCalculators =
+    List(githubScoreCalculator, sourceScoreCalculator, twitterScoreCalculator, youtubeScoreCalculator)
 
   def calculateScores(tweets: Seq[NewsletterTweet]): IO[Seq[NewsletterTweet]] = {
     scoreCalculators
@@ -46,7 +59,7 @@ class DefaultScoringService(config: ScoringConfig, twitterRestClient: TwitterRes
   private def applyScoresToTweets(scores: Map[String, Option[Double]], tweets: Seq[NewsletterTweet]) = {
     scores.map { case (tweetId, score) =>
       tweets.find(_.id == tweetId) match {
-        case Some(tweet) => tweet.copy(score = Math.round(score.getOrElse(-1D)))
+        case Some(tweet) => tweet.copy(score = Math.round(score.getOrElse(-1d)))
         case None        => throw new RuntimeException("Tweet matching metadata not found! That should never happen.")
       }
     }.toSeq

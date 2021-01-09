@@ -3,8 +3,8 @@ package com.kafka.experiments.tweetsui
 import cats.effect.{ContextShift, IO}
 import com.danielasfregola.twitter4s.entities.{Tweet, User}
 import com.kafka.experiments.tweetsui.DefaultScoringServiceTest._
-import com.kafka.experiments.tweetsui.client.{VideoMetadata, YoutubeClient}
-import com.kafka.experiments.tweetsui.config.{ScaledScoreConfig, ScoringConfig, SourceConfig, TwitterScoringConfig, YoutubeScoringConfig}
+import com.kafka.experiments.tweetsui.client.{GithubClient, VideoMetadata, YoutubeClient}
+import com.kafka.experiments.tweetsui.config.{GithubScoringConfig, ScaledScoreConfig, ScoringConfig, SourceConfig, TwitterScoringConfig, YoutubeScoringConfig}
 import com.kafka.experiments.tweetsui.newsletter.NewsletterTweet
 import com.kafka.experiments.tweetsui.score.{DefaultScoringService, ScoringService}
 import org.scalamock.scalatest.MockFactory
@@ -20,6 +20,7 @@ class DefaultScoringServiceTest extends AnyFlatSpec with BeforeAndAfterEach with
 
   implicit val contextShift: ContextShift[IO] = IO.contextShift(global)
 
+  var githubClient: GithubClient = _
   var youtubeClient: YoutubeClient = _
   var scoringService: ScoringService = _
 
@@ -55,7 +56,7 @@ class DefaultScoringServiceTest extends AnyFlatSpec with BeforeAndAfterEach with
         user = baseTweet.user.map(_.copy(followers_count = 202))
       )
     )
-    scoringService = new DefaultScoringService(config, new MockedTwitterRestClient(metadata), youtubeClient)
+    scoringService = new DefaultScoringService(config, githubClient, new MockedTwitterRestClient(metadata), youtubeClient)
     (youtubeClient.videoData _)
       .expects("cvu53CnZmGI")
       .returning(IO.pure(Some(VideoMetadata(2, Duration(21, MINUTES), 301, "cvu53CnZmGI", 401, 501))))
@@ -78,6 +79,10 @@ class DefaultScoringServiceTest extends AnyFlatSpec with BeforeAndAfterEach with
 object DefaultScoringServiceTest {
 
   val config: ScoringConfig = ScoringConfig(
+    GithubScoringConfig(
+      stars = ScaledScoreConfig(1, Map("1" -> 100, "10" -> 200)),
+      watchers = ScaledScoreConfig(2, Map("1" -> 100, "10" -> 200))
+    ),
     SourceConfig(List("badsource", "otherbadsource")),
     TwitterScoringConfig(
       favourites = ScaledScoreConfig(1, Map("0" -> 0, "1" -> 100, "10" -> 1000)),

@@ -58,11 +58,6 @@ class DefaultYoutubeScoreCalculator(config: YoutubeScoringConfig, youtubeClient:
       .map(_.flatten)
   }
 
-  private def calculateScaledScore(name: String, config: ScaledScoreConfig, value: Long): Score = {
-    val score = calculateCountScore(config.getScale, value)
-    Score(name, score, config.factor)
-  }
-
   private def hasYoutubeVideoUrl(tweet: NewsletterTweet) = {
     tweet.url.contains(youtubeDomain) && !tweet.url.contains(youtubePlaylist)
   }

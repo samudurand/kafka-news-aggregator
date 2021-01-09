@@ -43,9 +43,9 @@ object Dependencies {
   val KafkaStreamTest = "org.apache.kafka" % "kafka-streams-test-utils" % Versions.KafkaStreams % "test"
   val Scalatest = "org.scalatest" %% "scalatest" % Versions.Scalatest % "it,test"
   val Scalamock = "org.scalamock" %% "scalamock" % Versions.Scalamock % "test"
-  val TestContainers = "com.dimafeng" %% "testcontainers-scala-scalatest" % Versions.TestContainers % "it"
-  val TestContainersMongo = "com.dimafeng" %% "testcontainers-scala-mongodb" % Versions.TestContainers % "it"
-  val Wiremock = "com.github.tomakehurst" % "wiremock-jre8" % Versions.Wiremock % "it"
+  val TestContainers = "com.dimafeng" %% "testcontainers-scala-scalatest" % Versions.TestContainers % "it,test"
+  val TestContainersMongo = "com.dimafeng" %% "testcontainers-scala-mongodb" % Versions.TestContainers % "it,test"
+  val Wiremock = "com.github.tomakehurst" % "wiremock-jre8" % Versions.Wiremock % "it,test"
 
   val Shared: Seq[ModuleID] = Seq(
     ApacheHttp,
