@@ -1,6 +1,7 @@
 package com.kafka.experiments.tweetscategorizer.ignore
 
-import com.kafka.experiments.tweetscategorizer.{RedisService, Tweet, URLEntity, User}
+import com.kafka.experiments.shared.{Tweet, URLEntity, User}
+import com.kafka.experiments.tweetscategorizer.RedisService
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec

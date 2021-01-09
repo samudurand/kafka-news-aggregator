@@ -1,5 +1,6 @@
 package com.kafka.experiments.tweetscategorizer
 
+import com.kafka.experiments.shared.Tweet
 import com.kafka.experiments.tweetscategorizer.config.GlobalConfig
 import pureconfig._
 import pureconfig.generic.auto._

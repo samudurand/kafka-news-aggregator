@@ -3,6 +3,7 @@ import sbt._
 
 lazy val shared = project
   .in(file("shared"))
+  .configs(IntegrationTest)
   .settings(
     name := "shared",
     CommonSettings,

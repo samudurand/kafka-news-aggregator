@@ -1,7 +1,6 @@
-package com.kafka.experiments.tweetscategorizer
+package com.kafka.experiments.shared
 
-import com.kafka.experiments.shared.UrlManipulator
-import com.kafka.experiments.tweetscategorizer.utils.LinkUtils.{containsValidLink, extractBaseUrl}
+import com.kafka.experiments.shared.LinkUtils.{containsValidLink, noParamsUrl}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -20,11 +19,11 @@ class LinkUtilsTest extends AnyFlatSpec with Matchers {
   }
 
   "Url" should "be returned without parameters" in {
-    extractBaseUrl(
+    noParamsUrl(
       "https://www.infoq.com/articles"
     ) shouldBe "https://www.infoq.com/articles"
 
-    extractBaseUrl(
+    noParamsUrl(
       "https://www.infoq.com/articles/?utm_campaign=infoq_content&utm_source=dlvr.it"
     ) shouldBe "https://www.infoq.com/articles/"
   }

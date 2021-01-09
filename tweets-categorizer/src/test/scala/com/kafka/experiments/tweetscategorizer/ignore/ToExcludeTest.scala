@@ -1,7 +1,7 @@
 package com.kafka.experiments.tweetscategorizer.ignore
 
+import com.kafka.experiments.shared.{Tweet, URLEntity, User}
 import com.kafka.experiments.tweetscategorizer.ignore.ToExclude._
-import com.kafka.experiments.tweetscategorizer.{Tweet, URLEntity, User}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 

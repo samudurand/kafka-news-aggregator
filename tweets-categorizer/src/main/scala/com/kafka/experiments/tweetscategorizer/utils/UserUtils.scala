@@ -1,6 +1,6 @@
 package com.kafka.experiments.tweetscategorizer.utils
 
-import com.kafka.experiments.tweetscategorizer.User
+import com.kafka.experiments.shared.User
 
 object UserUtils {
 

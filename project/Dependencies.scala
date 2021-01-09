@@ -54,6 +54,7 @@ object Dependencies {
     Logback,
     LogstashLogbackEncoder,
     ScalaLogging,
+    Scalatest,
     UrlDetector
   )
 

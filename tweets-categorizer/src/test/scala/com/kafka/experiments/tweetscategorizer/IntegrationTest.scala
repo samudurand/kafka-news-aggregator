@@ -1,5 +1,6 @@
 package com.kafka.experiments.tweetscategorizer
 
+import com.kafka.experiments.shared.{Tweet, URLEntity, User}
 import com.kafka.experiments.tweetscategorizer.StreamingTopology._
 import com.kafka.experiments.tweetscategorizer.categorize.Categorizer
 import com.kafka.experiments.tweetscategorizer.ignore.ToSkip

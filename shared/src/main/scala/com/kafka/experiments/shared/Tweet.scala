@@ -1,4 +1,4 @@
-package com.kafka.experiments.tweetscategorizer
+package com.kafka.experiments.shared
 
 import io.circe.Codec
 import io.circe.generic.semiauto.deriveCodec

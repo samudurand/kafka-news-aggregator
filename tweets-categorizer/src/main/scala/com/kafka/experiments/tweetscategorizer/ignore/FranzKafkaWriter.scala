@@ -1,6 +1,7 @@
 package com.kafka.experiments.tweetscategorizer.ignore
 
-import com.kafka.experiments.tweetscategorizer.{Keywords, Tweet}
+import com.kafka.experiments.shared.Tweet
+import com.kafka.experiments.tweetscategorizer.Keywords
 
 object FranzKafkaWriter {
 

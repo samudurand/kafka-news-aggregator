@@ -7,8 +7,8 @@ import com.kafka.experiments.tweetscategorizer.utils.TextUtils.{
   textContainAtLeastOneNumber,
   textLoweredCaseContainAnyOf
 }
-import com.kafka.experiments.tweetscategorizer.{Keywords, RedisService, Tweet}
-import com.kafka.experiments.tweetscategorizer.utils.LinkUtils.{expandUrlAndExtractBase, extractBaseUrl, firstValidLink}
+import com.kafka.experiments.tweetscategorizer.{Keywords, RedisService}
+import LinkUtils.{expandUrlAndExtractBase, noParamsUrl, firstValidLink}
 
 trait Categorizer {
   def categorize(tweet: Tweet): CategorisedTweet
@@ -28,7 +28,7 @@ class DefaultCategorizer(redisService: RedisService) extends Categorizer {
         ExcludedTweet(tweet.Id.toString, reasonHasNoLink, tweet.Text, tweet.User.ScreenName, tweet.CreatedAt.toString)
       case Some(urlEntity) =>
         val link = urlEntity.ExpandedURL
-        redisService.putWithExpire(extractBaseUrl(link)) // Cache the URL
+        redisService.putWithExpire(noParamsUrl(link)) // Cache the URL
 
         tweet match {
           case t if isAboutANewVersion(t) =>

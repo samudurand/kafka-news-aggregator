@@ -1,9 +1,9 @@
 package com.kafka.experiments.tweetscategorizer.ignore
 
+import com.kafka.experiments.shared.LinkUtils.{containsValidLink, expandUrlAndExtractBase, firstValidLink}
+import com.kafka.experiments.shared.{LinkUtils, Tweet}
 import com.kafka.experiments.tweetscategorizer.config.GlobalConfig
-import com.kafka.experiments.tweetscategorizer.{RedisService, Tweet}
-import com.kafka.experiments.tweetscategorizer.utils.LinkUtils
-import com.kafka.experiments.tweetscategorizer.utils.LinkUtils.{expandUrlAndExtractBase, firstValidLink, containsValidLink}
+import com.kafka.experiments.tweetscategorizer.RedisService
 import com.typesafe.scalalogging.StrictLogging
 import pureconfig.ConfigSource
 import pureconfig.generic.auto._
