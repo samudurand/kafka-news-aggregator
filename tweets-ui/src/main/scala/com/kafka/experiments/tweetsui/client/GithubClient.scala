@@ -31,14 +31,14 @@ class DefaultGithubClient(config: GithubConfig, httpClient: Client[IO])
     with Http4sClientDsl[IO]
     with StrictLogging {
 
-  private val baseRepoApiUri: Uri = Uri.fromString(s"${config.baseUrl}/repos/").getOrElse(uri"")
+  private val baseRepoApiUri: Uri = Uri.fromString(s"${config.baseUrl}").getOrElse(uri"")
   private val githubRootUrl = "https://github.com/"
   private val userAndRepoRegex = "[A-z0-9]+\\/[A-z0-9]+"
 
   override def retrieveRepoMetadata(githubUrl: String): IO[Option[RepoMetadata]] = {
     extractRepoPath(githubUrl) match {
       case Some(repoPath) =>
-        val repoUri = baseRepoApiUri.withPath(repoPath)
+        val repoUri = baseRepoApiUri.withPath(s"/repos/$repoPath")
         val request = GET(
           repoUri,
           Accept(MediaType.unsafeParse("application/vnd.github.v3+json"))
