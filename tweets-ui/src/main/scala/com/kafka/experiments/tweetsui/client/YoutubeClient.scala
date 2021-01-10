@@ -14,10 +14,10 @@ import java.time.temporal.ChronoUnit
 import scala.concurrent.duration.{Duration, SECONDS}
 
 case class VideoMetadata(
+    id: String,
     dislikeCount: Long,
     duration: Duration,
     favouriteCount: Long,
-    id: String,
     likeCount: Long,
     viewCount: Long
 )
@@ -74,10 +74,10 @@ class DefaultYoutubeClient(config: YoutubeConfig, httpClient: Client[IO])
         likeCount <- statistics.downField("likeCount").as[Long]
         viewCount <- statistics.downField("viewCount").as[Long]
       } yield VideoMetadata(
+        id,
         dislikeCount,
         iso8601DurationToMinutes(videoDuration),
         favoriteCount,
-        id,
         likeCount,
         viewCount
       )) match {

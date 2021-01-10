@@ -3,7 +3,7 @@ package com.kafka.experiments.tweetsui
 import cats.effect.{ContextShift, IO}
 import com.danielasfregola.twitter4s.entities.{Tweet, User}
 import com.kafka.experiments.tweetsui.DefaultScoringServiceTest._
-import com.kafka.experiments.tweetsui.client.{GithubClient, VideoMetadata, YoutubeClient}
+import com.kafka.experiments.tweetsui.client.{GithubClient, RepoMetadata, VideoMetadata, YoutubeClient}
 import com.kafka.experiments.tweetsui.config.{GithubScoringConfig, ScaledScoreConfig, ScoringConfig, SourceConfig, TwitterScoringConfig, YoutubeScoringConfig}
 import com.kafka.experiments.tweetsui.newsletter.NewsletterTweet
 import com.kafka.experiments.tweetsui.score.{DefaultScoringService, ScoringService}
@@ -26,6 +26,7 @@ class DefaultScoringServiceTest extends AnyFlatSpec with BeforeAndAfterEach with
 
   override def beforeEach(): Unit = {
     super.beforeEach()
+    githubClient = mock[GithubClient]
     youtubeClient = mock[YoutubeClient]
   }
 
@@ -54,25 +55,36 @@ class DefaultScoringServiceTest extends AnyFlatSpec with BeforeAndAfterEach with
         favorite_count = 12,
         retweet_count = 3002,
         user = baseTweet.user.map(_.copy(followers_count = 202))
+      ),
+      baseTweet.copy(
+        id_str = "5",
+        favorite_count = 0,
+        retweet_count = 0,
+        user = baseTweet.user.map(_.copy(followers_count = 0))
       )
     )
     scoringService = new DefaultScoringService(config, githubClient, new MockedTwitterRestClient(metadata), youtubeClient)
     (youtubeClient.videoData _)
       .expects("cvu53CnZmGI")
-      .returning(IO.pure(Some(VideoMetadata(2, Duration(21, MINUTES), 301, "cvu53CnZmGI", 401, 501))))
+      .returning(IO.pure(Some(VideoMetadata("cvu53CnZmGI", 2, Duration(21, MINUTES), 301, 401, 501))))
+    (githubClient.retrieveRepoMetadata _)
+      .expects("https://github.com/samudurand/kafka-news-aggregator")
+      .returning(IO.pure(Some(RepoMetadata(2, 80))))
 
     val tweets = List(
       baseNewsTweet.copy(id = "1"),
       baseNewsTweet.copy(id = "2"),
       baseNewsTweet.copy(id = "3"),
-      baseNewsTweet.copy(id = "4", url = "https://www.youtube.com/watch?v=cvu53CnZmGI&list=PLIivdWyY5sqKwse&index=1")
+      baseNewsTweet.copy(id = "4", url = "https://www.youtube.com/watch?v=cvu53CnZmGI&list=PLIivdWyY5sqKwse&index=1"),
+      baseNewsTweet.copy(id = "5", url = "https://github.com/samudurand/kafka-news-aggregator")
     )
-    val scoredTweets = scoringService.calculateScores(tweets).unsafeRunSync()
+    val scoredTweets = scoringService.calculateScores(tweets).unsafeRunSync().sortBy(_.id)
 
     scoredTweets(0).score.toInt shouldBe 0
     scoredTweets(1).score.toInt shouldBe 233
     scoredTweets(2).score.toInt shouldBe 2333
     scoredTweets(3).score.toInt shouldBe 1053
+    scoredTweets(4).score.toInt shouldBe 56
   }
 }
 

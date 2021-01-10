@@ -23,8 +23,10 @@ class DefaultGithubScoreCalculator(config: GithubScoringConfig, client: GithubCl
 
   override def calculate(tweets: Seq[NewsletterTweet]): IO[Map[String, Seq[Score]]] = {
     tweets
-      .filter(hasGithubLink)
-      .map(tweet => calculateScore(tweet).map(scores => tweet.id -> scores))
+      .map {
+        case tweet if hasGithubLink(tweet) => calculateScore(tweet).map(scores => tweet.id -> scores)
+        case tweet => IO.pure(tweet.id -> List())
+      }
       .toList
       .sequence
       .map(_.toMap)
