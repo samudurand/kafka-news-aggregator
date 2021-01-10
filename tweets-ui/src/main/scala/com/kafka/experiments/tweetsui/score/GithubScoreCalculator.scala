@@ -42,8 +42,8 @@ class DefaultGithubScoreCalculator(config: GithubScoringConfig, client: GithubCl
       .retrieveRepoMetadata(tweet.url)
       .map {
         case Some(metadata) =>
-          val starsScore = calculateScaledScore("Github Stars", config.stars, metadata.stars)
-          val watchersScore = calculateScaledScore("Github Watchers", config.watchers, metadata.watchers)
+          val starsScore = calculateScaledScore("Github Stars", config.stars, metadata.stargazers_count)
+          val watchersScore = calculateScaledScore("Github Watchers", config.watchers, metadata.watchers_count)
           List(starsScore, watchersScore)
         case None => List()
       }

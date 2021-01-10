@@ -13,7 +13,7 @@ import org.http4s.headers.Accept
 import org.http4s.implicits.http4sLiteralsSyntax
 import org.http4s.{MediaType, Uri}
 
-case class RepoMetadata(stars: Long, watchers: Long)
+case class RepoMetadata(stargazers_count: Long, watchers_count: Long)
 case object RepoMetadata {
     implicit val codec: Codec[RepoMetadata] = deriveCodec
 }
