@@ -56,10 +56,10 @@ class DefaultScoringService(
       .map(applyScoresToTweets(_, tweets))
   }
 
-  private def applyScoresToTweets(scores: Map[String, Option[Double]], tweets: Seq[NewsletterTweet]) = {
+  private def applyScoresToTweets(scores: Map[String, Double], tweets: Seq[NewsletterTweet]) = {
     scores.map { case (tweetId, score) =>
       tweets.find(_.id == tweetId) match {
-        case Some(tweet) => tweet.copy(score = Math.round(score.getOrElse(-1d)))
+        case Some(tweet) => tweet.copy(score = Math.round(score))
         case None        => throw new RuntimeException("Tweet matching metadata not found! That should never happen.")
       }
     }.toSeq
@@ -75,13 +75,13 @@ class DefaultScoringService(
     )
   }
 
-  def calculateAverageScores(scores: Map[String, Seq[Score]]): Map[String, Option[Double]] = {
+  def calculateAverageScores(scores: Map[String, Seq[Score]]): Map[String, Double] = {
     scores.view.mapValues {
-      case Nil => None
+      case Nil => -1
       case scoresByTweets =>
         val scoreSum = scoresByTweets.map(score => score.value * score.factor).sum
         val factorSum = scoresByTweets.map(score => Math.abs(score.factor)).sum
-        Some(scoreSum.toDouble / factorSum.toDouble)
+        scoreSum.toDouble / factorSum.toDouble
     }.toMap
   }
 }

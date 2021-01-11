@@ -15,6 +15,7 @@ object Versions {
   val ScalaLogging = "3.9.2"
   val Scalamock = "5.1.0"
   val Scalatest = "3.2.2"
+  val Slf4j = "1.7.30"
   val TestContainers = "0.38.8"
   val Twitter4S = "7.0"
   val UrlDetector = "0.1.23"
@@ -26,17 +27,24 @@ object Dependencies {
   val CirceGeneric = "io.circe" %% "circe-generic" % Versions.Circe
   val CirceParser = "io.circe" %% "circe-parser" % Versions.Circe
   val FreeMarker = "org.freemarker" % "freemarker" % Versions.FreeMarker
-  val Http4sCirce = "org.http4s" %% "http4s-circe" % Versions.Http4s
-  val Http4sDsl = "org.http4s" %% "http4s-dsl" % Versions.Http4s
+  val Http4sCirce = ("org.http4s" %% "http4s-circe" % Versions.Http4s)
+  val Http4sDsl = ("org.http4s" %% "http4s-dsl" % Versions.Http4s)
   val Http4sClient = "org.http4s" %% "http4s-blaze-client" % Versions.Http4s
   val Http4sServer = "org.http4s" %% "http4s-blaze-server" % Versions.Http4s
-  val KafkaStreams = "org.apache.kafka" %% "kafka-streams-scala" % Versions.KafkaStreams
-  val Logback = "ch.qos.logback" % "logback-classic" % Versions.Logback
+
+  val KafkaStreams = ("org.apache.kafka" %% "kafka-streams-scala" % Versions.KafkaStreams)
+    .exclude("com.fasterxml.jackson.core", "jackson-databind")
+    .exclude("com.fasterxml.jackson.core", "jackson-core")
+  val Logback = ("ch.qos.logback" % "logback-classic" % Versions.Logback)
+    .exclude("org.slf4j", "slf4j-api")
   val LogstashLogbackEncoder = "net.logstash.logback" % "logstash-logback-encoder" % Versions.LogstashEncoder
   val MongoDB = "org.mongodb.scala" %% "mongo-scala-driver" % Versions.MongoDB
+  val Slf4j = "org.slf4j" % "slf4j-api" % Versions.Slf4j
   val PureConfig = "com.github.pureconfig" %% "pureconfig" % Versions.PureConfig
-  val Redis ="net.debasishg" %% "redisclient" % Versions.Redis
-  val ScalaLogging = "com.typesafe.scala-logging" %% "scala-logging" % Versions.ScalaLogging
+  val Redis = ("net.debasishg" %% "redisclient" % Versions.Redis)
+    .exclude("org.slf4j", "slf4j-api")
+  val ScalaLogging = ("com.typesafe.scala-logging" %% "scala-logging" % Versions.ScalaLogging)
+    .exclude("org.slf4j", "slf4j-api")
   val Twitter4S = "com.danielasfregola" %% "twitter4s" % Versions.Twitter4S
   val UrlDetector = "io.github.url-detector" % "url-detector" % Versions.UrlDetector
 
@@ -55,6 +63,7 @@ object Dependencies {
     LogstashLogbackEncoder,
     ScalaLogging,
     Scalatest,
+    Slf4j,
     UrlDetector
   )
 
