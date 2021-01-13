@@ -33,7 +33,6 @@ class DefaultGithubScoreCalculator(config: GithubScoringConfig, client: GithubCl
   }
 
   private def hasGithubLink(tweet: NewsletterTweet): Boolean = {
-    logger.info(s"${tweet.url}")
     tweet.url.startsWith(githubDomain)
   }
 
