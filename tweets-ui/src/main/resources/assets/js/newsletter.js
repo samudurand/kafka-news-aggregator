@@ -190,7 +190,7 @@ class TweetUI extends React.Component {
                 <th>Text</th>
                 <th>User</th>
                 <th>Score</th>
-                <th>Delete</th>
+                <th colSpan={2}></th>
             </tr>
             </thead>
             <tbody>
@@ -208,6 +208,8 @@ class TweetUI extends React.Component {
                                                    onClick={() => this.showSwitchModal(tweet.id, tweet.category)}>
                                 Switch
                             </ReactBootstrap.Button>
+                        </td>
+                        <td>
                             <ReactBootstrap.Button variant="danger"
                                                    onClick={() => this.deleteTweet(tweet.id)}>
                                 Del
