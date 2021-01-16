@@ -38,6 +38,8 @@ trait MongoService {
 
   def moveToNewsletter(category: TweetCategory, tweetIds: Seq[String]): IO[Int]
 
+  def changeNewsletterCategory (tweetId: String, category: TweetCategory): IO[Unit]
+
   def deleteAllInNewsletter(): IO[Unit]
 
   def deleteInNewsletter(tweetId: String): IO[Unit]
@@ -194,5 +196,10 @@ class DefaultMongoService(mongoClient: MongoClient)(implicit c: ContextShift[IO]
         logger.info(s"Moved $count tweets from category $category to the newsletter")
         count
       }) // No special handling of failures for now
+  }
+
+  override def changeNewsletterCategory(tweetId: String, category: TweetCategory): IO[Unit] = {
+    val res = collNewsletter.updateOne(Filters.eq("id", tweetId), Updates.set("category", category.name))
+    IO.fromFuture(IO(res.toFuture())).map(_ => ())
   }
 }

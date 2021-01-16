@@ -13,24 +13,26 @@ class TweetUI extends React.Component {
             scoreCalculationInProgress: false,
             toolTweets: [],
             versionTweets: [],
-            videoTweets: []
+            videoTweets: [],
+
+            showSwitchModal: false,
+            tweetSwitchingCategory: null
         };
 
         this.deleteTweet = this.deleteTweet.bind(this);
 
-        this.loadAllData = this.loadAllData.bind(this);
         this.resetNewsletter = this.resetNewsletter.bind(this);
         this.retrieveTweets = this.retrieveTweets.bind(this);
         this.createNewsletterDraft = this.createNewsletterDraft.bind(this);
         this.calculateScores = this.calculateScores.bind(this);
+
+        this.switchTweetCategory = this.switchTweetCategory.bind(this);
+        this.hideSwitchModal = this.hideSwitchModal.bind(this);
+        this.showSwitchModal = this.showSwitchModal.bind(this);
     }
 
     componentDidMount() {
-        this.loadAllData();
-    }
-
-    loadAllData() {
-        return this.retrieveTweets();
+        this.retrieveTweets();
     }
 
     retrieveTweets() {
@@ -74,6 +76,9 @@ class TweetUI extends React.Component {
         return (
             <ReactBootstrap.Container fluid>
                 <ReactBootstrap.Row>
+                    {this.switchCategoryModal()}
+                </ReactBootstrap.Row>
+                <ReactBootstrap.Row>
                     <ReactBootstrap.Button className="mb-2 ml-3"
                                            variant="secondary" href="/index.html">
                         Back to Tweets
@@ -110,16 +115,54 @@ class TweetUI extends React.Component {
                     <ReactBootstrap.Col>
                         <ReactBootstrap.Accordion>
                             {this.tweetsCard("0", "Audio", audioTweets.length, audioTweets)}
-                            {this.tweetsCard( "1", "Video", videoTweets.length, videoTweets)}
-                            {this.tweetsCard( "2", "Article", articleTweets.length, articleTweets)}
-                            {this.tweetsCard( "3", "Tool", toolTweets.length, toolTweets)}
-                            {this.tweetsCard( "4", "Version", versionTweets.length, versionTweets)}
-                            {this.tweetsCard( "5", "Other", otherTweets.length, otherTweets)}
+                            {this.tweetsCard("1", "Video", videoTweets.length, videoTweets)}
+                            {this.tweetsCard("2", "Article", articleTweets.length, articleTweets)}
+                            {this.tweetsCard("3", "Tool", toolTweets.length, toolTweets)}
+                            {this.tweetsCard("4", "Version", versionTweets.length, versionTweets)}
+                            {this.tweetsCard("5", "Other", otherTweets.length, otherTweets)}
                         </ReactBootstrap.Accordion>
                     </ReactBootstrap.Col>
                 </ReactBootstrap.Row>
             </ReactBootstrap.Container>
         )
+    }
+
+    switchCategoryModal() {
+        const {newCategory, showSwitchModal} = this.state;
+        return (
+            <ReactBootstrap.Modal show={showSwitchModal} onHide={this.hideSwitchModal}>
+                <ReactBootstrap.Modal.Header closeButton>
+                    <ReactBootstrap.Modal.Title>Change Category</ReactBootstrap.Modal.Title>
+                </ReactBootstrap.Modal.Header>
+                <ReactBootstrap.Modal.Body>
+                    <ReactBootstrap.Form.Group>
+                        <ReactBootstrap.Form.Control onChange={(event) => this.setNewCategory(event)}
+                                                     defaultValue={newCategory}
+                                                     as="select">
+                            <option value="audio">Audio</option>
+                            <option value="video">Video</option>
+                            <option value="article">Article</option>
+                            <option value="tool">Tool</option>
+                            <option value="version">Version</option>
+                            <option value="other">Other</option>
+                        </ReactBootstrap.Form.Control>
+                    </ReactBootstrap.Form.Group>
+                </ReactBootstrap.Modal.Body>
+                <ReactBootstrap.Modal.Footer>
+                    <ReactBootstrap.Button variant="secondary" onClick={this.hideSwitchModal}>
+                        Close
+                    </ReactBootstrap.Button>
+                    <ReactBootstrap.Button variant="primary" onClick={this.switchTweetCategory}>
+                        Apply Change
+                    </ReactBootstrap.Button>
+                </ReactBootstrap.Modal.Footer>
+            </ReactBootstrap.Modal>
+        );
+    }
+
+    setNewCategory(event) {
+        console.log("Setting category value " + event.target.value)
+        this.setState({newCategory: event.target.value})
     }
 
     tweetsCard(cardKey, cardTitle, count, tweets) {
@@ -161,6 +204,10 @@ class TweetUI extends React.Component {
                         <td><span title={tweet.reason}>{tweet.user}</span></td>
                         <td style={{textAlign: "center"}}>{tweet.score}</td>
                         <td>
+                            <ReactBootstrap.Button variant="warning"
+                                                   onClick={() => this.showSwitchModal(tweet.id, tweet.category)}>
+                                Switch
+                            </ReactBootstrap.Button>
                             <ReactBootstrap.Button variant="danger"
                                                    onClick={() => this.deleteTweet(tweet.id)}>
                                 Del
@@ -218,6 +265,36 @@ class TweetUI extends React.Component {
                     }
                 )
         )
+    }
+
+    showSwitchModal(tweetId, category) {
+        this.setState({
+            newCategory: category,
+            showSwitchModal: true,
+            tweetSwitchingCategory: tweetId
+        })
+    }
+
+    hideSwitchModal() {
+        this.setState({
+            showSwitchModal: false,
+            tweetSwitchingCategory: null
+        })
+    }
+
+    switchTweetCategory() {
+        const {newCategory, tweetSwitchingCategory} = this.state;
+        fetch(`/api/newsletter/tweet/${tweetSwitchingCategory}/${newCategory}`, {method: "PUT"})
+            .then(
+                (res) => {
+                    this.setState({
+                        showSwitchModal: false,
+                        tweetSwitchingCategory: null
+                    }, this.retrieveTweets)
+                },
+                (error) => {
+                }
+            )
     }
 }
 

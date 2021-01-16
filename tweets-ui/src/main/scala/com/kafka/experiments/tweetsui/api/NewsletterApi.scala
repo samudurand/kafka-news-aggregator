@@ -22,13 +22,14 @@ class NewsletterApi(
 
   def api(): HttpRoutes[IO] = HttpRoutes
     .of[IO] {
-      case req @ PUT -> Root / "newsletter" / "prepare"      => prepareNewsletterData(req)
-      case GET -> Root / "newsletter" / "included"           => loadCurrentlyIncludedInNewsletter()
-      case GET -> Root / "newsletter" / "html"               => loadCurrentHtmlNewsletter()
-      case POST -> Root / "newsletter" / "create"            => createNewsletterDraft(sendGridClient)
-      case PUT -> Root / "newsletter" / "score"              => scoreNewsletterTweets(scoringService)
-      case DELETE -> Root / "newsletter" / "reset"           => resetNewsletterData()
-      case DELETE -> Root / "newsletter" / "tweet" / tweetId => deleteNewsletterTweet(tweetId)
+      case req @ PUT -> Root / "newsletter" / "prepare"              => prepareNewsletterData(req)
+      case GET -> Root / "newsletter" / "included"                   => loadCurrentlyIncludedInNewsletter()
+      case GET -> Root / "newsletter" / "html"                       => loadCurrentHtmlNewsletter()
+      case POST -> Root / "newsletter" / "create"                    => createNewsletterDraft(sendGridClient)
+      case PUT -> Root / "newsletter" / "score"                      => scoreNewsletterTweets(scoringService)
+      case DELETE -> Root / "newsletter" / "reset"                   => resetNewsletterData()
+      case PUT -> Root / "newsletter" / "tweet" / tweetId / category => setTweetCategory(tweetId, category)
+      case DELETE -> Root / "newsletter" / "tweet" / tweetId         => deleteNewsletterTweet(tweetId)
     }
 
   private def loadCurrentlyIncludedInNewsletter(): IO[Response[IO]] = {
@@ -80,4 +81,10 @@ class NewsletterApi(
     mongoService.deleteInNewsletter(tweetId).flatMap(Ok(_))
   }
 
+  private def setTweetCategory(tweetId: String, categoryName: String) = {
+    TweetCategory.fromName(categoryName) match {
+      case Some(category) => mongoService.changeNewsletterCategory(tweetId, category).flatMap(Ok(_))
+      case None => BadRequest()
+    }
+  }
 }
