@@ -2,8 +2,8 @@ package com.kafka.experiments.tweetscategorizer.ignore
 
 import com.kafka.experiments.shared.{LinkUtils, Tweet}
 import com.kafka.experiments.tweetscategorizer.KnownSources.hasSourceToBeExcluded
+import com.kafka.experiments.tweetscategorizer.config.Keywords
 import com.kafka.experiments.tweetscategorizer.utils.TextUtils.{textContainAtLeastOneNumber, textLoweredCaseContainAnyOf}
-import com.kafka.experiments.tweetscategorizer.Keywords
 import com.kafka.experiments.tweetscategorizer.ignore.FranzKafkaWriter.isAboutFranzKafka
 import com.kafka.experiments.tweetscategorizer.utils.UserUtils.userNameContainsAnyOf
 import com.kafka.experiments.tweetscategorizer.utils.UserUtils

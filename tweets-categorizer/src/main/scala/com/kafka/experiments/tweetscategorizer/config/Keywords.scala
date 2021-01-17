@@ -1,6 +1,5 @@
-package com.kafka.experiments.tweetscategorizer
+package com.kafka.experiments.tweetscategorizer.config
 
-import com.kafka.experiments.tweetscategorizer.config.GlobalConfig
 import pureconfig.ConfigSource
 import pureconfig.generic.auto._
 
@@ -16,6 +15,7 @@ object Keywords {
   val franzKafkaRelatedWords: Seq[String] = config.fkafka
   val jobOfferWords: Seq[String] = config.job
   val gameWords: Seq[String] = config.game
+  val otherDomains: Seq[String] = config.otherdomains
   val tagsToExclude: Seq[String] = config.tagsexclude
   val toolWords: Seq[String] = config.tool
   val toolDomains: Seq[String] = config.tooldomains

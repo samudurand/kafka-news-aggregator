@@ -2,13 +2,10 @@ package com.kafka.experiments.tweetscategorizer.categorize
 
 import com.kafka.experiments.shared.UrlManipulator.expandUrlOnce
 import com.kafka.experiments.shared._
-import com.kafka.experiments.tweetscategorizer.utils.TextUtils.{
-  textContainAnyOf,
-  textContainAtLeastOneNumber,
-  textLoweredCaseContainAnyOf
-}
-import com.kafka.experiments.tweetscategorizer.{Keywords, RedisService}
-import LinkUtils.{expandUrlAndExtractBase, noParamsUrl, firstValidLink}
+import com.kafka.experiments.tweetscategorizer.utils.TextUtils.{textContainAnyOf, textContainAtLeastOneNumber, textLoweredCaseContainAnyOf}
+import com.kafka.experiments.tweetscategorizer.RedisService
+import LinkUtils.{expandUrlAndExtractBase, firstValidLink, noParamsUrl}
+import com.kafka.experiments.tweetscategorizer.config.Keywords
 
 trait Categorizer {
   def categorize(tweet: Tweet): CategorisedTweet
@@ -45,6 +42,8 @@ class DefaultCategorizer(redisService: RedisService) extends Categorizer {
             VideoTweet(tweet.Id.toString, tweet.Text, link, tweet.User.ScreenName, tweet.CreatedAt.toString)
           case t if isAboutATool(t) =>
             ToolTweet(tweet.Id.toString, tweet.Text, link, tweet.User.ScreenName, tweet.CreatedAt.toString)
+          case t if isAboutSmthgUncategorized(t) =>
+            OtherTweet(tweet.Id.toString, tweet.Text, link, tweet.User.ScreenName, tweet.CreatedAt.toString)
           case t if isAboutAnArticle(t) =>
             ArticleTweet(tweet.Id.toString, tweet.Text, link, tweet.User.ScreenName, tweet.CreatedAt.toString)
           case _ =>
@@ -76,6 +75,10 @@ class DefaultCategorizer(redisService: RedisService) extends Categorizer {
   private def isAboutATool(tweet: Tweet): Boolean = {
     textLoweredCaseContainAnyOf(tweet.Text, Keywords.toolWords) ||
     Keywords.toolDomains.exists(domain => tweet.URLEntities.exists(_.ExpandedURL.contains(domain)))
+  }
+
+  private def isAboutSmthgUncategorized(tweet: Tweet): Boolean = {
+    Keywords.otherDomains.exists(domain => tweet.URLEntities.exists(_.ExpandedURL.contains(domain)))
   }
 
 }

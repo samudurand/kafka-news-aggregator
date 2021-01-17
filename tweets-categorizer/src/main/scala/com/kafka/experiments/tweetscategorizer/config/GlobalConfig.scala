@@ -29,6 +29,7 @@ case class KeywordsConfig(
     versioncombinations: Seq[String],
     video: Seq[String],
     videodomains: Seq[String],
+    otherdomains: Seq[String],
     unrelated: Seq[String],
     unrelateddomains: Seq[String]
 )
