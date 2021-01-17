@@ -3,8 +3,16 @@ package com.kafka.experiments.tweetsui
 import cats.effect.{ContextShift, IO}
 import com.danielasfregola.twitter4s.entities.{Tweet, User}
 import com.kafka.experiments.tweetsui.DefaultScoringServiceTest._
-import com.kafka.experiments.tweetsui.client.{GithubClient, RepoMetadata, VideoMetadata, YoutubeClient}
-import com.kafka.experiments.tweetsui.config.{GithubScoringConfig, ScaledScoreConfig, ScoringConfig, SourceConfig, TwitterScoringConfig, YoutubeScoringConfig}
+import com.kafka.experiments.tweetsui.client.{GithubClient, MediumClient, RepoMetadata, VideoMetadata, YoutubeClient}
+import com.kafka.experiments.tweetsui.config.{
+  GithubScoringConfig,
+  MediumScoringConfig,
+  ScaledScoreConfig,
+  ScoringConfig,
+  SourceConfig,
+  TwitterScoringConfig,
+  YoutubeScoringConfig
+}
 import com.kafka.experiments.tweetsui.newsletter.NewsletterTweet
 import com.kafka.experiments.tweetsui.score.{DefaultScoringService, ScoringService}
 import org.scalamock.scalatest.MockFactory
@@ -21,12 +29,14 @@ class DefaultScoringServiceTest extends AnyFlatSpec with BeforeAndAfterEach with
   implicit val contextShift: ContextShift[IO] = IO.contextShift(global)
 
   var githubClient: GithubClient = _
+  var mediumClient: MediumClient = _
   var youtubeClient: YoutubeClient = _
   var scoringService: ScoringService = _
 
   override def beforeEach(): Unit = {
     super.beforeEach()
     githubClient = mock[GithubClient]
+    mediumClient = mock[MediumClient]
     youtubeClient = mock[YoutubeClient]
   }
 
@@ -63,18 +73,27 @@ class DefaultScoringServiceTest extends AnyFlatSpec with BeforeAndAfterEach with
         user = baseTweet.user.map(_.copy(followers_count = 0))
       )
     )
-    scoringService = new DefaultScoringService(config, githubClient, new MockedTwitterRestClient(metadata), youtubeClient)
+    scoringService = new DefaultScoringService(
+      config,
+      githubClient,
+      mediumClient,
+      new MockedTwitterRestClient(metadata),
+      youtubeClient
+    )
     (youtubeClient.videoData _)
       .expects("cvu53CnZmGI")
       .returning(IO.pure(Some(VideoMetadata("cvu53CnZmGI", 2, Duration(21, MINUTES), 301, 401, 501))))
     (githubClient.retrieveRepoMetadata _)
       .expects("https://github.com/samudurand/kafka-news-aggregator")
       .returning(IO.pure(Some(RepoMetadata(2, 80))))
+    (mediumClient.retrieveClapCount _)
+      .expects("https://medium.com/towards-artificial-intelligence/kafka-25584415f7ab")
+      .returning(IO.pure(Some(10L)))
 
     val tweets = List(
       baseNewsTweet.copy(id = "1"),
       baseNewsTweet.copy(id = "2"),
-      baseNewsTweet.copy(id = "3"),
+      baseNewsTweet.copy(id = "3", url = "https://medium.com/towards-artificial-intelligence/kafka-25584415f7ab"),
       baseNewsTweet.copy(id = "4", url = "https://www.youtube.com/watch?v=cvu53CnZmGI&list=PLIivdWyY5sqKwse&index=1"),
       baseNewsTweet.copy(id = "5", url = "https://github.com/samudurand/kafka-news-aggregator")
     )
@@ -82,7 +101,7 @@ class DefaultScoringServiceTest extends AnyFlatSpec with BeforeAndAfterEach with
 
     scoredTweets(0).score.toInt shouldBe 0
     scoredTweets(1).score.toInt shouldBe 233
-    scoredTweets(2).score.toInt shouldBe 2333
+    scoredTweets(2).score.toInt shouldBe 2143
     scoredTweets(3).score.toInt shouldBe 1053
     scoredTweets(4).score.toInt shouldBe 56
   }
@@ -95,6 +114,7 @@ object DefaultScoringServiceTest {
       stars = ScaledScoreConfig(1, Map("1" -> 100, "10" -> 200)),
       watchers = ScaledScoreConfig(2, Map("1" -> 100, "10" -> 200))
     ),
+    MediumScoringConfig(ScaledScoreConfig(1, Map("0" -> 0, "1" -> 100, "10" -> 1000))),
     SourceConfig(List("badsource", "otherbadsource")),
     TwitterScoringConfig(
       favourites = ScaledScoreConfig(1, Map("0" -> 0, "1" -> 100, "10" -> 1000)),

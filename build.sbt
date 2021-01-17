@@ -62,7 +62,7 @@ val CommonSettings: Seq[Def.Setting[_]] = Seq(
     "-language:higherKinds",
     "-language:implicitConversions",
     "-unchecked",
-    "-Werror",
+//    "-Werror",
 //    "-Xlint",
     "-Ywarn-dead-code",
     "-Ywarn-numeric-widen",

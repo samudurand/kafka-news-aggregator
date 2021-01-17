@@ -12,6 +12,7 @@ case class GlobalConfig(
 
 case class ScoringConfig(
     github: GithubScoringConfig,
+    medium: MediumScoringConfig,
     sources: SourceConfig,
     twitter: TwitterScoringConfig,
     youtube: YoutubeScoringConfig
@@ -43,6 +44,8 @@ case class FreeMarkerConfig(templatesFolderSystemPath: Option[String])
 case class GithubConfig(baseUrl: String)
 
 case class GithubScoringConfig(stars: ScaledScoreConfig, watchers: ScaledScoreConfig)
+
+case class MediumScoringConfig(claps: ScaledScoreConfig)
 
 case class YoutubeConfig(baseUrl: String, apiKey: String)
 
