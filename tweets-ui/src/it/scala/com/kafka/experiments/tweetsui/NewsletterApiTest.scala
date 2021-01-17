@@ -254,7 +254,7 @@ class NewsletterApiTest
       None
     )
     val tweetWithScore: NewsletterTweet = finalResponse.as[Seq[NewsletterTweet]].unsafeRunSync().head
-    tweetWithScore.score.toInt shouldBe 100
+    tweetWithScore.score.toInt shouldBe 55
   }
 
   def check[A](actual: IO[Response[IO]], expectedStatus: Status, expectedBody: Option[A])(implicit
