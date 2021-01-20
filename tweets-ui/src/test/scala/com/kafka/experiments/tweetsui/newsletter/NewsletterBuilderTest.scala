@@ -2,6 +2,7 @@ package com.kafka.experiments.tweetsui.newsletter
 
 import cats.effect.IO
 import com.kafka.experiments.tweetsui.client.MongoService
+import com.kafka.experiments.tweetsui.config.NewsletterConfig
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
@@ -18,7 +19,7 @@ class NewsletterBuilderTest extends AnyFlatSpec with Matchers with MockFactory w
   override def beforeEach(): Unit = {
     fmGenerator = mock[FreeMarkerGenerator]
     mongoService = mock[MongoService]
-    builder = new NewsletterBuilder(mongoService, fmGenerator)
+    builder = new NewsletterBuilder(mongoService, fmGenerator, new NewsletterConfig(5))
   }
 
   "Newsletter Builder" should "build newsletter" in {

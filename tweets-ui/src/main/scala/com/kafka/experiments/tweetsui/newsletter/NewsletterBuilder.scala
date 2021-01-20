@@ -5,11 +5,12 @@ import com.kafka.experiments.shared.UrlManipulator
 import com.kafka.experiments.shared.UrlManipulator.removeUrls
 import com.kafka.experiments.tweetsui._
 import com.kafka.experiments.tweetsui.client.MongoService
+import com.kafka.experiments.tweetsui.config.NewsletterConfig
 import com.linkedin.urls.detection.{UrlDetector, UrlDetectorOptions}
 
 import scala.jdk.CollectionConverters._
 
-class NewsletterBuilder(mongoService: MongoService, fmGenerator: FreeMarkerGenerator) {
+class NewsletterBuilder(mongoService: MongoService, fmGenerator: FreeMarkerGenerator, config: NewsletterConfig) {
 
   def buildNewsletter(): IO[String] = {
     mongoService
@@ -17,7 +18,8 @@ class NewsletterBuilder(mongoService: MongoService, fmGenerator: FreeMarkerGener
       .map(tweets =>
         tweets
           .groupBy(_.category)
-          .map { case (category, tweetsByCategory) =>
+          .map { case (category, allTweetsByCategory) =>
+            val tweetsByCategory = takeUpToMax(allTweetsByCategory)
             category match {
               case Article.name        => "listArticles" -> tweetsByCategory
               case Audio.name          => "listAudios" -> tweetsByCategory
@@ -33,6 +35,14 @@ class NewsletterBuilder(mongoService: MongoService, fmGenerator: FreeMarkerGener
       .map(removeUrlsInTweets)
       .map(_.view.mapValues(_.asJava).toMap)
       .map(data => fmGenerator.generateHtml(data))
+  }
+
+  private def takeUpToMax(tweets: Seq[NewsletterTweet]) = {
+    if (tweets.size > config.maxByCategory) {
+      tweets.take(config.maxByCategory)
+    } else {
+      tweets
+    }
   }
 
   private def removeUrlsInTweets(data: Map[String, Seq[NewsletterTweet]]) = {

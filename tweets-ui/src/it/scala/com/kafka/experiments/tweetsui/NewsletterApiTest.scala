@@ -44,7 +44,7 @@ class NewsletterApiTest
   private val sendGridConfig = SendGridConfig(mockSendGridUrl, "key", 11, List("id"), 22)
   private val youtubeConfig = YoutubeConfig(mockYoutubeUrl, "key")
 
-  private val newsletterBuilder = new NewsletterBuilder(mongoService, new FreeMarkerGenerator(config.freemarker))
+  private val newsletterBuilder = new NewsletterBuilder(mongoService, new FreeMarkerGenerator(config.freemarker), config.newsletter)
   private var httpClient: Client[IO] = _
   private var githubClient: GithubClient = _
   private var mediumClient: MediumClient = _

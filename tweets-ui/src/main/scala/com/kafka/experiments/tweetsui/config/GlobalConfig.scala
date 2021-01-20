@@ -4,6 +4,7 @@ case class GlobalConfig(
     freemarker: FreeMarkerConfig,
     github: GithubConfig,
     mongodb: MongodbConfig,
+    newsletter: NewsletterConfig,
     score: ScoringConfig,
     sendgrid: SendGridConfig,
     server: ServerConfig,
@@ -56,3 +57,5 @@ case class YoutubeScoringConfig(
     likes: ScaledScoreConfig,
     views: ScaledScoreConfig
 )
+
+case class NewsletterConfig(maxByCategory: Int)

@@ -26,7 +26,7 @@ object Main extends IOApp with StrictLogging {
 
   private val mongoService = MongoService(config.mongodb)
   private val fmGenerator = new FreeMarkerGenerator(config.freemarker)
-  private val newsletterBuilder = new NewsletterBuilder(mongoService, fmGenerator)
+  private val newsletterBuilder = new NewsletterBuilder(mongoService, fmGenerator, config.newsletter)
   private val twitterRestClient = TwitterRestClient()
 
   val app: Resource[IO, Server[IO]] =
