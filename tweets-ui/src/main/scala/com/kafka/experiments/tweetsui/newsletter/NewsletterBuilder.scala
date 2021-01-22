@@ -17,6 +17,7 @@ class NewsletterBuilder(mongoService: MongoService, fmGenerator: FreeMarkerGener
       .tweetsForNewsletter()
       .map(tweets =>
         tweets
+          .sortBy(_.score)(Ordering[Long].reverse)
           .groupBy(_.category)
           .map { case (category, allTweetsByCategory) =>
             val tweetsByCategory = takeUpToMax(allTweetsByCategory)
