@@ -9,7 +9,7 @@ import com.kafka.experiments.shared.{ArticleTweet, AudioTweet}
 import com.kafka.experiments.tweetsui.Decoders._
 import com.kafka.experiments.tweetsui.Encoders._
 import com.kafka.experiments.tweetsui.NewsletterApiTest._
-import com.kafka.experiments.tweetsui.api.{MoveTweetsToNewsletter, NewsletterApi, UpdateTweet}
+import com.kafka.experiments.tweetsui.api.{MoveTweetsToNewsletter, NewsletterApi, UpdateNewsletterTweet}
 import com.kafka.experiments.tweetsui.client.{GithubClient, MediumClient, YoutubeClient}
 import com.kafka.experiments.tweetsui.client.sendgrid.SendGridClient
 import com.kafka.experiments.tweetsui.config._
@@ -203,7 +203,7 @@ class NewsletterApiTest
     check[String](response1, Status.Ok, None)
     val response2 = api.run(
       Request(method = Method.PUT, uri = uri"/newsletter/tweet")
-        .withEntity(UpdateTweet(tweet.id, category = Some("audio"), favourite = Some(true)))
+        .withEntity(UpdateNewsletterTweet(tweet.id, category = Some("audio"), favourite = Some(true)))
     )
     check[String](response2, Status.Ok, None)
     val response3 = api.run(Request(method = Method.GET, uri = uri"/newsletter/included"))

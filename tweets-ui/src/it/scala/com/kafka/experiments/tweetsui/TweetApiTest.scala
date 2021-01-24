@@ -4,7 +4,8 @@ import cats.effect.IO
 import com.dimafeng.testcontainers.ForEachTestContainer
 import com.kafka.experiments.shared.{ArticleTweet, AudioTweet, VersionReleaseTweet, VideoTweet}
 import com.kafka.experiments.tweetsui.Decoders._
-import com.kafka.experiments.tweetsui.api.{CountResult, TweetApi}
+import com.kafka.experiments.tweetsui.Encoders._
+import com.kafka.experiments.tweetsui.api.{CountResult, TweetApi, UpdateTweet}
 import org.http4s._
 import org.http4s.implicits.{http4sLiteralsSyntax, _}
 import org.scalatest.BeforeAndAfterEach
@@ -56,6 +57,20 @@ class TweetApiTest
 
     check(response, Status.Ok, Some("Deleted"))
     mongoService.tweetsCount(Video).unsafeRunSync() shouldBe 1
+  }
+
+  "Tweet API" should "set tweet as favourite" in {
+    val tweet = VideoTweet("124142314", "Some good Kafka stuff", "http://medium.com/123445", "mlmenace", "1609020620")
+    mongoService.createTweet(tweet, Video).unsafeRunSync()
+
+    val response = api.run(Request(method = Method.PUT, uri = uri"/tweets/video/124142314")
+      .withEntity(UpdateTweet(true)))
+
+    check(response, Status.Ok, Some("Updated"))
+    val response2 = api.run(Request(method = Method.GET, uri = uri"/tweets/video"))
+    check[Seq[VideoTweet]](response2, Status.Ok, Some(List(
+      VideoTweet("124142314", "Some good Kafka stuff", "http://medium.com/123445", "mlmenace", "1609020620", favourite = true)
+    )))
   }
 
   "Tweet API" should "delete all tweets in category version release" in {

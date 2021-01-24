@@ -2,27 +2,41 @@ package com.kafka.experiments.tweetsui.api
 
 import cats.effect.IO
 import com.kafka.experiments.shared._
+import com.kafka.experiments.tweetsui.Decoders._
 import com.kafka.experiments.tweetsui.Encoders._
 import com.kafka.experiments.tweetsui.client.MongoService
 import com.kafka.experiments.tweetsui._
 import com.typesafe.scalalogging.StrictLogging
-import org.http4s.HttpRoutes
+import org.http4s.{HttpRoutes, Request, Response}
 import org.http4s.dsl.io._
 
 class TweetApi(mongoService: MongoService) extends StrictLogging {
 
   def api(): HttpRoutes[IO] = HttpRoutes
     .of[IO] {
-      case GET -> Root / "tweets" / category / "count"    => getTweetsCountByCategory(category)
-      case GET -> Root / "tweets" / category              => getTweetsByCategory(category)
-      case DELETE -> Root / "tweets" / category           => deleteTweetsByCategory(category)
-      case DELETE -> Root / "tweets" / category / tweetId => deleteTweet(category, tweetId)
+      case GET -> Root / "tweets" / category / "count"       => getTweetsCountByCategory(category)
+      case GET -> Root / "tweets" / category                 => getTweetsByCategory(category)
+      case req @ PUT -> Root / "tweets" / category / tweetId => updateTweet(category, tweetId, req)
+      case DELETE -> Root / "tweets" / category              => deleteTweetsByCategory(category)
+      case DELETE -> Root / "tweets" / category / tweetId    => deleteTweet(category, tweetId)
     }
 
   private def deleteTweet(categoryName: String, tweetId: String) = {
     TweetCategory.fromName(categoryName) match {
       case Some(category) => mongoService.delete(category, tweetId).flatMap(_ => Ok("Deleted"))
       case _              => BadRequest()
+    }
+  }
+
+  private def updateTweet(categoryName: String, tweetId: String, req: Request[IO]): IO[Response[IO]] = {
+    TweetCategory.fromName(categoryName) match {
+      case Some(category) =>
+        for {
+          body <- req.as[UpdateTweet]
+          _ <- mongoService.updateTweetFavourite(tweetId, category, body.favourite)
+          resp <- Ok("Updated")
+        } yield resp
+      case _ => BadRequest()
     }
   }
 

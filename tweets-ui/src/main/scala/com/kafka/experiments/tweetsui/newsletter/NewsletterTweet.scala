@@ -12,14 +12,15 @@ case class NewsletterTweetDraft(
     user: String,
     text: String,
     url: String,
-    createdAt: String
+    createdAt: String,
+    favourite: Boolean
 )
 
 object NewsletterTweet {
   implicit val codec: Codec[NewsletterTweet] = deriveCodec
 
   def apply(category: String, tweet: NewsletterTweetDraft): NewsletterTweet =
-    NewsletterTweet(tweet.id, tweet.user, tweet.text, tweet.url, tweet.createdAt, category)
+    NewsletterTweet(tweet.id, tweet.user, tweet.text, tweet.url, tweet.createdAt, category, favourite = tweet.favourite)
 }
 
 case class NewsletterTweet(

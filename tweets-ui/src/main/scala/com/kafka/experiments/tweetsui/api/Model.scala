@@ -13,7 +13,12 @@ object MoveTweetsToNewsletter {
 }
 case class MoveTweetsToNewsletter(tweetIds: Map[String, List[String]])
 
+object UpdateNewsletterTweet {
+  implicit val codec: Codec[UpdateNewsletterTweet] = deriveCodec
+}
+case class UpdateNewsletterTweet(tweetId: String, category: Option[String], favourite: Option[Boolean])
+
 object UpdateTweet {
   implicit val codec: Codec[UpdateTweet] = deriveCodec
 }
-case class UpdateTweet(tweetId: String, category: Option[String], favourite: Option[Boolean])
+case class UpdateTweet(favourite: Boolean)

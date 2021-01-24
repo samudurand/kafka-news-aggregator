@@ -36,6 +36,8 @@ trait MongoService {
 
   def deleteAll(category: TweetCategory): IO[Unit]
 
+  def updateTweetFavourite(tweetId: String, category: TweetCategory, favourite: Boolean): IO[Unit]
+
   def moveToNewsletter(category: TweetCategory, tweetIds: Seq[String]): IO[Int]
 
   def changeNewsletterCategory(tweetId: String, category: TweetCategory): IO[Unit]
@@ -103,11 +105,6 @@ class DefaultMongoService(mongoClient: MongoClient)(implicit c: ContextShift[IO]
     IO.fromFuture(IO(res.toFuture())).map(_ => ())
   }
 
-  override def updateNewsletterTweetScore(tweet: NewsletterTweet): IO[Unit] = {
-    val res = collNewsletter.updateOne(Filters.eq("id", tweet.id), Updates.set("score", tweet.score))
-    IO.fromFuture(IO(res.toFuture())).map(_ => ())
-  }
-
   override def tweets[T](category: TweetCategory)(implicit ct: ClassTag[T]): IO[Seq[T]] = {
     val tweets = collectionFromCategory(category)
       .find[T]()
@@ -140,6 +137,12 @@ class DefaultMongoService(mongoClient: MongoClient)(implicit c: ContextShift[IO]
     ).map(_ => ())
   }
 
+  override def updateTweetFavourite(tweetId: String, category: TweetCategory, favourite: Boolean): IO[Unit] = {
+    val res = collectionFromCategory(category)
+      .updateOne(Filters.eq("id", tweetId), Updates.set("favourite", favourite))
+    IO.fromFuture(IO(res.toFuture())).map(_ => ())
+  }
+
   private def collectionFromCategory(category: TweetCategory): MongoCollection[Document] = {
     category match {
       case Article        => collArticleTweets
@@ -152,14 +155,19 @@ class DefaultMongoService(mongoClient: MongoClient)(implicit c: ContextShift[IO]
     }
   }
 
+  override def updateNewsletterTweetScore(tweet: NewsletterTweet): IO[Unit] = {
+    val res = collNewsletter.updateOne(Filters.eq("id", tweet.id), Updates.set("score", tweet.score))
+    IO.fromFuture(IO(res.toFuture())).map(_ => ())
+  }
+
   override def deleteInNewsletter(tweetId: String): IO[Unit] = {
     IO.fromFuture(
       IO(collNewsletter.deleteOne(Document("id" -> BsonString(tweetId))).toFuture())
     ).map(_ => ())
   }
 
-  override def favouriteInNewsletter(tweetId: String, isFavourite: Boolean): IO[Unit] = {
-    val res = collNewsletter.updateOne(Filters.eq("id", tweetId), Updates.set("favourite", isFavourite))
+  override def favouriteInNewsletter(tweetId: String, favourite: Boolean): IO[Unit] = {
+    val res = collNewsletter.updateOne(Filters.eq("id", tweetId), Updates.set("favourite", favourite))
     IO.fromFuture(IO(res.toFuture())).map(_ => ())
   }
 

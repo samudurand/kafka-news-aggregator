@@ -20,6 +20,7 @@ class TweetUI extends React.Component {
         this.deleteAllInCategory = this.deleteAllInCategory.bind(this);
         this.retrieveTweetsByCategory = this.retrieveTweetsByCategory.bind(this);
         this.retrieveTweetsCountByCategory = this.retrieveTweetsCountByCategory.bind(this);
+        this.setFavourite = this.setFavourite.bind(this);
 
         this.prepareNewsletter = this.prepareNewsletter.bind(this);
         this.loadAllData = this.loadAllData.bind(this);
@@ -181,6 +182,10 @@ class TweetUI extends React.Component {
                         </td>
                         <td><Linkify>{tweet.text}</Linkify></td>
                         <td><span title={tweet.reason}>{tweet.user}</span></td>
+                        <td style={{textAlign: "center"}}>
+                                <ReactBootstrap.Form.Check type="checkbox" checked={tweet.favourite}
+                                                          onChange={(event) => this.setFavourite(tweet.id, category, event)}/>
+                        </td>
                         <td>
                             <ReactBootstrap.Button variant="danger"
                                                    onClick={() => this.deleteTweet(category, tweet.id)}>
@@ -218,6 +223,20 @@ class TweetUI extends React.Component {
                     ])
                 },
                 (error) => {
+                }
+            )
+    }
+
+    setFavourite(tweetId, category, event) {
+        fetch(`/api/tweets/${category}/${tweetId}`, {
+            body: JSON.stringify({favourite: event.target.checked}),
+            headers: {
+                "Content-Type": "application/json"
+            },
+            method: "PUT"
+        }).then(
+                (res) => {
+                    return this.retrieveTweetsByCategory(category, `${category}Tweets`)
                 }
             )
     }

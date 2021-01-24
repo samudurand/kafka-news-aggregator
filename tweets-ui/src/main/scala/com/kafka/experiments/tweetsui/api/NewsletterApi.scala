@@ -34,10 +34,10 @@ class NewsletterApi(
 
   def updateTweet(req: Request[IO]): IO[Response[IO]] = {
     for {
-      body <- req.as[UpdateTweet]
+      body <- req.as[UpdateNewsletterTweet]
       _ <- {
         body match {
-          case UpdateTweet(tweetId, categoryOpt, favourite) =>
+          case UpdateNewsletterTweet(tweetId, categoryOpt, favourite) =>
             val catUpdate = categoryOpt
               .flatMap { categoryName =>
                 TweetCategory
