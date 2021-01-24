@@ -2,7 +2,7 @@ package com.kafka.experiments.tweetsui
 
 import cats.effect.IO
 import com.kafka.experiments.shared._
-import com.kafka.experiments.tweetsui.api.{CountResult, MoveTweetsToNewsletter}
+import com.kafka.experiments.tweetsui.api.{CountResult, MoveTweetsToNewsletter, UpdateTweet}
 import com.kafka.experiments.tweetsui.newsletter.NewsletterTweet
 import org.http4s.{EntityDecoder, EntityEncoder, circe}
 import org.http4s.circe.jsonEncoderOf
@@ -17,6 +17,7 @@ object Decoders {
   implicit val excludedDecoder: EntityDecoder[IO, Seq[ExcludedTweet]] = circe.jsonOf[IO, Seq[ExcludedTweet]]
   implicit val countResultDecoder: EntityDecoder[IO, CountResult] = circe.jsonOf[IO, CountResult]
 
+  implicit val updateTweetDecoder: EntityDecoder[IO, UpdateTweet] = circe.jsonOf[IO, UpdateTweet]
   implicit val moveTweetsDecoder: EntityDecoder[IO, MoveTweetsToNewsletter] = circe.jsonOf[IO, MoveTweetsToNewsletter]
 
   implicit val newsTweetsDecoder: EntityDecoder[IO, Seq[NewsletterTweet]] =
@@ -35,6 +36,7 @@ object Encoders {
   implicit val countResultEncoder: EntityEncoder[IO, CountResult] = jsonEncoderOf[IO, CountResult]
 
   implicit val moveTweetsEncoder: EntityEncoder[IO, MoveTweetsToNewsletter] = jsonEncoderOf[IO, MoveTweetsToNewsletter]
+  implicit val udpateTweetEncoder: EntityEncoder[IO, UpdateTweet] = jsonEncoderOf[IO, UpdateTweet]
 
   implicit val newsTweetEncoder: EntityEncoder[IO, Seq[NewsletterTweet]] =
     jsonEncoderOf[IO, Seq[NewsletterTweet]]

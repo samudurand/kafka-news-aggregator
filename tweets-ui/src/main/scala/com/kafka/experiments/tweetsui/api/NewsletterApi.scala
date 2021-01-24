@@ -22,20 +22,45 @@ class NewsletterApi(
 
   def api(): HttpRoutes[IO] = HttpRoutes
     .of[IO] {
-      case req @ PUT -> Root / "newsletter" / "prepare"              => prepareNewsletterData(req)
-      case GET -> Root / "newsletter" / "included"                   => loadCurrentlyIncludedInNewsletter()
-      case GET -> Root / "newsletter" / "html"                       => loadCurrentHtmlNewsletter()
-      case POST -> Root / "newsletter" / "create"                    => createNewsletterDraft(sendGridClient)
-      case PUT -> Root / "newsletter" / "score"                      => scoreNewsletterTweets(scoringService)
-      case DELETE -> Root / "newsletter" / "reset"                   => resetNewsletterData()
-      case PUT -> Root / "newsletter" / "tweet" / tweetId / category => setTweetCategory(tweetId, category)
-      case DELETE -> Root / "newsletter" / "tweet" / tweetId         => deleteNewsletterTweet(tweetId)
+      case req @ PUT -> Root / "newsletter" / "prepare"      => prepareNewsletterData(req)
+      case GET -> Root / "newsletter" / "included"           => loadCurrentlyIncludedInNewsletter()
+      case GET -> Root / "newsletter" / "html"               => loadCurrentHtmlNewsletter()
+      case POST -> Root / "newsletter" / "create"            => createNewsletterDraft(sendGridClient)
+      case PUT -> Root / "newsletter" / "score"              => scoreNewsletterTweets(scoringService)
+      case DELETE -> Root / "newsletter" / "reset"           => resetNewsletterData()
+      case req @ PUT -> Root / "newsletter" / "tweet"        => updateTweet(req)
+      case DELETE -> Root / "newsletter" / "tweet" / tweetId => deleteNewsletterTweet(tweetId)
     }
+
+  def updateTweet(req: Request[IO]): IO[Response[IO]] = {
+    for {
+      body <- req.as[UpdateTweet]
+      _ <- {
+        body match {
+          case UpdateTweet(tweetId, categoryOpt, favourite) =>
+            val catUpdate = categoryOpt
+              .flatMap { categoryName =>
+                TweetCategory
+                  .fromName(categoryName)
+                  .map(category => mongoService.changeNewsletterCategory(tweetId, category))
+              }
+              .getOrElse(IO.unit)
+            val favUpdate = favourite
+              .map { fav =>
+                mongoService.favouriteInNewsletter(tweetId, fav)
+              }
+              .getOrElse(IO.unit)
+            List(catUpdate, favUpdate).sequence
+        }
+      }
+      resp <- Ok(s"Updated")
+    } yield resp
+  }
 
   private def loadCurrentlyIncludedInNewsletter(): IO[Response[IO]] = {
     mongoService
       .tweetsForNewsletter()
-      .map(_.sortBy(_.score).reverse)
+      .map(_.sortBy(tweet => (tweet.favourite, tweet.score)).reverse)
       .flatMap(Ok(_))
   }
 
@@ -44,7 +69,6 @@ class NewsletterApi(
   }
 
   private def prepareNewsletterData(req: Request[IO]) = {
-    logger.info(req.as[MoveTweetsToNewsletter].toString())
     for {
       body <- req.as[MoveTweetsToNewsletter]
       counts <-
@@ -69,7 +93,7 @@ class NewsletterApi(
     mongoService
       .tweetsForNewsletter()
       .flatMap(scoringService.calculateScores)
-      .flatMap(_.map(mongoService.updateNewsletterTweet).toList.sequence)
+      .flatMap(_.map(mongoService.updateNewsletterTweetScore).toList.sequence)
       .flatMap(_ => Ok("Scored"))
   }
 
@@ -79,12 +103,5 @@ class NewsletterApi(
 
   private def deleteNewsletterTweet(tweetId: String) = {
     mongoService.deleteInNewsletter(tweetId).flatMap(Ok(_))
-  }
-
-  private def setTweetCategory(tweetId: String, categoryName: String) = {
-    TweetCategory.fromName(categoryName) match {
-      case Some(category) => mongoService.changeNewsletterCategory(tweetId, category).flatMap(Ok(_))
-      case None => BadRequest()
-    }
   }
 }

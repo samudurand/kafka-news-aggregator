@@ -190,6 +190,7 @@ class TweetUI extends React.Component {
                 <th>Text</th>
                 <th>User</th>
                 <th>Score</th>
+                <th>Fav</th>
                 <th colSpan={2}></th>
             </tr>
             </thead>
@@ -203,6 +204,10 @@ class TweetUI extends React.Component {
                         <td><Linkify>{tweet.text}</Linkify></td>
                         <td><span title={tweet.reason}>{tweet.user}</span></td>
                         <td style={{textAlign: "center"}}>{tweet.score}</td>
+                        <td style={{textAlign: "center"}}>
+                                <ReactBootstrap.Form.Check type="checkbox" checked={tweet.favourite}
+                                                          onChange={(event) => this.setFavourite(tweet.id, event)}/>
+                        </td>
                         <td>
                             <ReactBootstrap.Button variant="warning"
                                                    onClick={() => this.showSwitchModal(tweet.id, tweet.category)}>
@@ -222,13 +227,25 @@ class TweetUI extends React.Component {
         </ReactBootstrap.Table>
     }
 
+    setFavourite(tweetId, event) {
+        fetch(`/api/newsletter/tweet`, {
+            body: JSON.stringify({tweetId, favourite: event.target.checked}),
+            headers: {
+                "Content-Type": "application/json"
+            },
+            method: "PUT"
+        }).then(
+                (res) => {
+                    return this.retrieveTweets();
+                }
+            )
+    }
+
     deleteTweet(tweetId) {
         fetch(`/api/newsletter/tweet/${tweetId}`, {method: "DELETE"})
             .then(
                 (res) => {
                     return this.retrieveTweets();
-                },
-                (error) => {
                 }
             )
     }
@@ -286,7 +303,13 @@ class TweetUI extends React.Component {
 
     switchTweetCategory() {
         const {newCategory, tweetSwitchingCategory} = this.state;
-        fetch(`/api/newsletter/tweet/${tweetSwitchingCategory}/${newCategory}`, {method: "PUT"})
+        fetch(`/api/newsletter/tweet/${tweetSwitchingCategory}`, {
+            method: "PUT",
+            body: JSON.stringify({category: newCategory}),
+            headers: {
+                "Content-Type": "application/json"
+            }
+        })
             .then(
                 (res) => {
                     this.setState({

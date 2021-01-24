@@ -9,7 +9,7 @@ import com.kafka.experiments.shared.{ArticleTweet, AudioTweet}
 import com.kafka.experiments.tweetsui.Decoders._
 import com.kafka.experiments.tweetsui.Encoders._
 import com.kafka.experiments.tweetsui.NewsletterApiTest._
-import com.kafka.experiments.tweetsui.api.{MoveTweetsToNewsletter, NewsletterApi}
+import com.kafka.experiments.tweetsui.api.{MoveTweetsToNewsletter, NewsletterApi, UpdateTweet}
 import com.kafka.experiments.tweetsui.client.{GithubClient, MediumClient, YoutubeClient}
 import com.kafka.experiments.tweetsui.client.sendgrid.SendGridClient
 import com.kafka.experiments.tweetsui.config._
@@ -44,7 +44,8 @@ class NewsletterApiTest
   private val sendGridConfig = SendGridConfig(mockSendGridUrl, "key", 11, List("id"), 22)
   private val youtubeConfig = YoutubeConfig(mockYoutubeUrl, "key")
 
-  private val newsletterBuilder = new NewsletterBuilder(mongoService, new FreeMarkerGenerator(config.freemarker), config.newsletter)
+  private val newsletterBuilder =
+    new NewsletterBuilder(mongoService, new FreeMarkerGenerator(config.freemarker), config.newsletter)
   private var httpClient: Client[IO] = _
   private var githubClient: GithubClient = _
   private var mediumClient: MediumClient = _
@@ -183,6 +184,42 @@ class NewsletterApiTest
             "http://medium.com/789445",
             "1605020620",
             "audio"
+          )
+        )
+      )
+    )
+  }
+
+  "Newsletter API" should "change a tweet category and favourite status" in {
+    val tweet = ArticleTweet("124142314", "Some good Kafka stuff", "http://medium.com/123445", "mlmenace", "1609020620")
+    mongoService.createTweet(tweet, Article).unsafeRunSync()
+    val tweetsToInclude = MoveTweetsToNewsletter(
+      Map(
+        "article" -> List(tweet.id)
+      )
+    )
+
+    val response1 = api.run(Request(method = Method.PUT, uri = uri"/newsletter/prepare").withEntity(tweetsToInclude))
+    check[String](response1, Status.Ok, None)
+    val response2 = api.run(
+      Request(method = Method.PUT, uri = uri"/newsletter/tweet")
+        .withEntity(UpdateTweet(tweet.id, category = Some("audio"), favourite = Some(true)))
+    )
+    check[String](response2, Status.Ok, None)
+    val response3 = api.run(Request(method = Method.GET, uri = uri"/newsletter/included"))
+    check[Seq[NewsletterTweet]](
+      response3,
+      Status.Ok,
+      Some(
+        List[NewsletterTweet](
+          NewsletterTweet(
+            tweet.id,
+            "mlmenace",
+            "Some good Kafka stuff",
+            "http://medium.com/123445",
+            "1609020620",
+            "audio",
+            favourite = true
           )
         )
       )
