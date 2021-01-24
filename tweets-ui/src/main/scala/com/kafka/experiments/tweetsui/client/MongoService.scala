@@ -3,10 +3,10 @@ package com.kafka.experiments.tweetsui.client
 import cats.effect.{ContextShift, IO}
 import cats.implicits._
 import com.kafka.experiments.shared._
+import com.kafka.experiments.tweetsui._
 import com.kafka.experiments.tweetsui.client.MongoService._
 import com.kafka.experiments.tweetsui.config.MongodbConfig
 import com.kafka.experiments.tweetsui.newsletter.{NewsletterTweet, NewsletterTweetDraft}
-import com.kafka.experiments.tweetsui._
 import com.mongodb.client.model.Filters
 import com.typesafe.scalalogging.StrictLogging
 import io.circe.Encoder
@@ -15,13 +15,12 @@ import io.circe.syntax._
 import jdk.jshell.spi.ExecutionControl.NotImplementedException
 import org.bson.codecs.configuration.CodecRegistries.{fromProviders, fromRegistries}
 import org.mongodb.scala.MongoClient.DEFAULT_CODEC_REGISTRY
-import org.mongodb.scala.bson.{BsonBoolean, BsonString}
+import org.mongodb.scala.bson.BsonString
 import org.mongodb.scala.bson.codecs.Macros._
 import org.mongodb.scala.model.Sorts.{descending, orderBy}
 import org.mongodb.scala.model.Updates
 import org.mongodb.scala.{Document, MongoClient, MongoCollection}
 
-import scala.Boolean.{box, unbox}
 import scala.reflect.ClassTag
 
 trait MongoService {
