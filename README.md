@@ -125,7 +125,7 @@ sbt "project tweetsCategorizer" run
 To build and run the tests:
 
 ```
-sbt "project tweetsUI" coverage test coverageReport
+sbt "project tweetsUI" test
 ```
 
 To start the Tweets UI service, run:
