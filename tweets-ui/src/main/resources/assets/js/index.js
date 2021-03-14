@@ -170,6 +170,7 @@ class TweetUI extends React.Component {
                 <th width={120}>Date</th>
                 <th>Text</th>
                 <th>User</th>
+                <th>Fav</th>
                 <th>Delete</th>
             </tr>
             </thead>
